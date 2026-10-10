@@ -69,6 +69,24 @@ def get_global_audit_logs_v1(limit: int = 100):
     from app.services.proposal_repository import proposal_repo
     return proposal_repo.get_all_audit_logs(limit=limit)
 
+# Agent-Layer Pipeline Orchestration Endpoint
+@app.post("/api/agent/pipeline/{account_id}", tags=["Agent Architecture"])
+@app.get("/api/agent/pipeline/{account_id}", tags=["Agent Architecture"])
+def run_agent_pipeline(account_id: str):
+    """
+    Executes the 4-tier Agent Pipeline:
+    1. Signal Analysis -> 2. Risk Assessment -> 3. Investigation -> 4. Action Planning
+    """
+    from app.services.agent_orchestrator import agent_orchestrator
+    from fastapi import HTTPException
+    try:
+        return agent_orchestrator.execute_full_cycle(account_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent pipeline failed: {e}")
+
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
