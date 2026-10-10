@@ -201,7 +201,7 @@ def init_mongodb(uri: str = "mongodb://localhost:27017", db_name: str = "revora"
         db.integrations.update_one({"id": conn["id"]}, {"$set": conn}, upsert=True)
     logger.info(f"Upserted {len(connectors)} integration connectors.")
 
-    # 4. Seed initial Action Proposals and Tasks
+    # 4. Seed initial Action Proposals
     seed_proposals = [
         {
             "id": "prop-101",
@@ -239,13 +239,90 @@ def init_mongodb(uri: str = "mongodb://localhost:27017", db_name: str = "revora"
             "version": 1,
             "content_hash": "hash_prop_102_init",
             "created_at": now.isoformat()
+        },
+        {
+            "id": "prop-103",
+            "account_id": "acc-102",
+            "action_type": "csm_email",
+            "title": "Technical Architecture Sync on SSO Integration",
+            "reason": "25% usage drop following authentication deprecation warning",
+            "investigation_id": "inv-acc-102",
+            "evidence_ids": ["sig-104", "sig-105"],
+            "payload": {
+                "recipient": "elena.rostova@cloudnova.io",
+                "recipient_name": "Elena Rostova",
+                "subject": "CloudNova + Revora: Clearing technical blocker on Ticket #4402",
+                "body": "Hi Elena,\n\nI saw the authentication blocker on ticket #4402 and wanted to connect you directly with our Principal Solutions Engineer to get this resolved today.\n\nLet me know your availability for a 20-minute working session.\n\nBest,\nMarcus Chen"
+            },
+            "status": "proposed",
+            "version": 1,
+            "content_hash": "hash_prop_103_init",
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "prop-104",
+            "account_id": "acc-103",
+            "action_type": "task_create",
+            "title": "Quarterly Telemetry Optimization Review",
+            "reason": "Seasonal 12% query drop in Singapore branch during regional holiday",
+            "investigation_id": "inv-acc-103",
+            "evidence_ids": ["sig-106", "sig-113"],
+            "payload": {
+                "assigned_to": "Sarah Jenkins",
+                "due_date": (now + timedelta(days=7)).strftime("%Y-%m-%d"),
+                "priority": "medium",
+                "title": "Review Vortex APAC Query Volume Recovery",
+                "description": "Verify Singapore query traffic rebounded following corporate holiday."
+            },
+            "status": "proposed",
+            "version": 1,
+            "content_hash": "hash_prop_104_init",
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "prop-105",
+            "account_id": "acc-105",
+            "action_type": "csm_email",
+            "title": "Expansion Proposal: 50 Additional Hospital Licenses",
+            "reason": "Customer reached 98% license saturation with 123 days to renewal",
+            "investigation_id": "inv-acc-105",
+            "evidence_ids": ["sig-111", "sig-112"],
+            "payload": {
+                "recipient": "dr.kavita.patel@omnihealth.org",
+                "recipient_name": "Dr. Kavita Patel",
+                "subject": "OmniHealth + Revora: Expanding capacity for your new hospital clinics",
+                "body": "Dear Dr. Patel,\n\nCongratulations on the successful deployment across your regional hospitals! With your license utilization at 98.2%, we have prepared a custom expansion package that preserves your enterprise tier pricing.\n\nWould you like me to send over the updated order form?\n\nWarm regards,\nMarcus Chen"
+            },
+            "status": "proposed",
+            "version": 1,
+            "content_hash": "hash_prop_105_init",
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "prop-106",
+            "account_id": "acc-106",
+            "action_type": "csm_email",
+            "title": "Urgent Financial Compliance & Contract Safeguard Outreach",
+            "reason": "30% drop in banking transaction throughput 33 days before renewal",
+            "investigation_id": "inv-acc-106",
+            "evidence_ids": ["sig-107"],
+            "payload": {
+                "recipient": "r.sterling@apexfintech.com",
+                "recipient_name": "Robert Sterling",
+                "subject": "Action Required: Enterprise SLA review and upcoming November renewal",
+                "body": "Hi Robert,\n\nOur system detected a 30% contraction in API throughput alongside an open high-priority compliance ticket. Given your upcoming contract renewal on November 12th, our VP of Engineering and I are available to address any security concerns.\n\nBest regards,\nSarah Jenkins"
+            },
+            "status": "proposed",
+            "version": 1,
+            "content_hash": "hash_prop_106_init",
+            "created_at": now.isoformat()
         }
     ]
     for prop in seed_proposals:
         db.action_proposals.update_one({"id": prop["id"]}, {"$setOnInsert": prop}, upsert=True)
     logger.info(f"Upserted {len(seed_proposals)} action proposals.")
 
-    # 5. Seed initial Follow-Up Tasks
+    # 5. Seed initial Follow-Up Tasks for All Accounts
     seed_tasks = [
         {
             "id": "task-acc-101",
@@ -270,6 +347,78 @@ def init_mongodb(uri: str = "mongodb://localhost:27017", db_name: str = "revora"
             "status": "pending",
             "evidence_ids": ["sig-104"],
             "created_at": now.isoformat()
+        },
+        {
+            "id": "task-acc-103",
+            "account_id": "acc-103",
+            "title": "Verify APAC Inactivity Rebound",
+            "description": "Monitor Singapore branch query logs to verify post-holiday traffic normalizes.",
+            "assigned_to": "Sarah Jenkins",
+            "due_date": (now + timedelta(days=5)).strftime("%Y-%m-%d"),
+            "priority": "low",
+            "status": "pending",
+            "evidence_ids": ["sig-113"],
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "task-acc-104",
+            "account_id": "acc-104",
+            "title": "Escalate API Outage Root Cause to VP Engineering",
+            "description": "Provide HyperScale Robotics team with post-mortem incident report.",
+            "assigned_to": "Alex Rivera",
+            "due_date": (now + timedelta(days=1)).strftime("%Y-%m-%d"),
+            "priority": "high",
+            "status": "pending",
+            "evidence_ids": ["sig-109", "sig-110"],
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "task-acc-105",
+            "account_id": "acc-105",
+            "title": "Deliver Q1 License Expansion Contract",
+            "description": "Send updated Master Services Agreement with 50 added hospital seats.",
+            "assigned_to": "Marcus Chen",
+            "due_date": (now + timedelta(days=4)).strftime("%Y-%m-%d"),
+            "priority": "medium",
+            "status": "pending",
+            "evidence_ids": ["sig-111", "sig-112"],
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "task-acc-106",
+            "account_id": "acc-106",
+            "title": "Schedule Executive Risk Intercept with CIO",
+            "description": "Coordinate joint review of financial latency and renewal terms.",
+            "assigned_to": "Sarah Jenkins",
+            "due_date": (now + timedelta(days=2)).strftime("%Y-%m-%d"),
+            "priority": "high",
+            "status": "pending",
+            "evidence_ids": ["sig-107"],
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "task-acc-107",
+            "account_id": "acc-107",
+            "title": "Confirm Peak Season Black Friday SLA",
+            "description": "Validate 99.99% uptime parameters ahead of Q4 e-commerce sales rush.",
+            "assigned_to": "Alex Rivera",
+            "due_date": (now + timedelta(days=10)).strftime("%Y-%m-%d"),
+            "priority": "medium",
+            "status": "pending",
+            "evidence_ids": ["sig-114"],
+            "created_at": now.isoformat()
+        },
+        {
+            "id": "task-acc-108",
+            "account_id": "acc-108",
+            "title": "Quarterly Media Infrastructure Sync",
+            "description": "Meet with Head of Content Delivery to review publishing bandwidth.",
+            "assigned_to": "Marcus Chen",
+            "due_date": (now + timedelta(days=6)).strftime("%Y-%m-%d"),
+            "priority": "low",
+            "status": "pending",
+            "evidence_ids": ["sig-115"],
+            "created_at": now.isoformat()
         }
     ]
     for tsk in seed_tasks:
@@ -281,6 +430,8 @@ def init_mongodb(uri: str = "mongodb://localhost:27017", db_name: str = "revora"
 
 if __name__ == "__main__":
     import os
+    from dotenv import load_dotenv
+    load_dotenv()
     uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     db_name = os.getenv("MONGODB_DB_NAME", "revora")
     init_mongodb(uri, db_name)
