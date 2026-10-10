@@ -116,7 +116,7 @@ These rules apply to every folder, language, service, and task.
 - Do not calculate or override the authoritative risk score in React.
 - Do not mark an action approved or succeeded by changing local state alone.
 - Do not call CRM/email/task providers directly from the browser.
-- Do not include provider API keys, Supabase service-role keys, or Google/Gemini secrets in frontend code or `VITE_*` variables.
+- Do not include provider API keys, MongoDB connection strings, or Google/Gemini secrets in frontend code or `VITE_*` variables.
 - Do not hide missing evidence, stale records, or failed requests to make the interface look cleaner.
 - Do not display unsupported claims as sourced facts.
 - Do not show “Email sent,” “Task created,” or “CRM updated” before the backend confirms and persists the result.
@@ -187,20 +187,20 @@ These rules apply to every folder, language, service, and task.
 
 ### Responsibilities
 
-- Own Supabase PostgreSQL schema/migrations, normalized source records, account identity mappings, seed/reset process, repository/query helpers, and integration adapters.
+- Own MongoDB collections, indexes, schemas, normalized source records, account identity mappings, seed/reset process, repository/query helpers, and integration adapters.
 - Provide stable, source-linked data for the backend and AI layer.
 
 ### MUST
 
 - Use canonical internal account IDs and explicit mappings from external provider IDs.
 - Preserve source type, source record ID, observed timestamp, ingestion timestamp where available, account ID, and source link/reference.
-- Use foreign keys and constraints for relationships where practical.
-- Version schema changes through migrations rather than undocumented manual edits.
+- Use consistent document identifiers (IDs), references, and collection indexes for relationships.
+- Maintain schema definitions and collection indexes through repeatable initialization scripts rather than undocumented manual edits.
 - Make seed loading repeatable and safe to run more than once.
 - Use synthetic data for the hackathon unless real-data handling and provider terms have been reviewed.
 - Mark synthetic/demo records clearly enough that the UI and presentation can distinguish them from live records.
 - Represent missing, stale, invalid, and conflicting data explicitly.
-- Use parameterized queries or safe ORM/client methods; never concatenate untrusted values into SQL.
+- Use parameterized queries or safe PyMongo/ODM client methods; sanitize inputs and avoid NoSQL injection.
 - Keep secrets in backend/deployment secret settings, not in the frontend or repository.
 - Design proposal, approval, action-attempt, and audit storage to preserve version and status history.
 - Provide the backend and AI owner with stable, documented record shapes and test fixtures.
@@ -214,13 +214,13 @@ These rules apply to every folder, language, service, and task.
 - Do not make a seed record look like a live integration result.
 - Do not delete or mutate audit history to hide rejected or failed operations.
 - Do not store secrets or unnecessary sensitive customer content in seed files.
-- Do not expose Supabase service-role keys to the browser.
-- Do not rename columns, relations, or shared fields without informing backend, frontend, and AI owners.
+- Do not expose MongoDB connection URIs or credentials to the browser.
+- Do not rename collections, relations, or shared fields without informing backend, frontend, and AI owners.
 - Do not store only the latest action status if doing so would lose important attempt/version history.
 
 ### Database/integration completion checklist
 
-- [ ] Migrations recreate the expected schema.
+- [ ] MongoDB initialization script recreates the expected collections and indexes.
 - [ ] Seed/reset is repeatable.
 - [ ] At least three source categories are represented in the demo dataset.
 - [ ] Source records map to the correct canonical accounts.

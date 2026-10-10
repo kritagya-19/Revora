@@ -34,7 +34,7 @@ Use role labels rather than names. Assign one person to each role before startin
 |---|---|---|---|
 | **Member 1 — Frontend** | React UI and user experience | App shell, Revenue Radar, account detail, timeline, Autopsy display, proposal review controls, action/audit status, loading/error/empty states | Backend on API contracts; AI on explanation/proposal fields |
 | **Member 2 — Backend** | FastAPI and workflow rules | API routes, data access, request validation, account authorization, proposal lifecycle, approval gate, execution interface, status transitions, audit persistence | Database on schema; AI on request/response models; frontend on API contracts |
-| **Member 3 — Database and Integrations** | Supabase schema, seed data, normalized records, source/action adapters | Migrations, accounts and source records, 5–10 synthetic accounts, at least three source categories, repository/query helpers, demo executor or first live connector | Backend on models/queries; AI on evidence shape |
+| **Member 3 — Database and Integrations** | MongoDB collections & indexes, seed data, normalized records, source/action adapters | MongoDB initialization/indexes, accounts and source records, 5–10 synthetic accounts, at least three source categories, repository/query helpers, demo executor or first live connector | Backend on models/queries; AI on evidence shape |
 | **Member 4 — AI and Risk Engine** | Deterministic scoring and LLM features | Risk rules/reason codes, evidence-grounded Autopsy, structured LLM output, action drafts, evidence-ID validation tests, prompt safety | Backend on interfaces and validation; database on evidence schema; frontend on displayed fields |
 
 ### Shared responsibility
@@ -129,8 +129,8 @@ Make the frontend, backend, and database run independently and provide predictab
 - [ ] Add basic tests for app startup and health endpoint.
 
 **Member 3 — Database and Integrations**
-- [ ] Create Supabase project/schema or the agreed test database.
-- [ ] Add initial migrations for accounts, external mappings, source records, and risk assessments.
+- [ ] Configure MongoDB database and connection URI.
+- [ ] Add initial collection indexes and initialization script for accounts, contacts, signals, and risk assessments.
 - [ ] Create 5–10 synthetic demo accounts.
 - [ ] Include at least three source categories across the dataset, such as CRM, email/calendar, and product usage.
 - [ ] Add a repeatable seed/reset script.

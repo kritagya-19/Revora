@@ -19,8 +19,8 @@
 | Frontend API access | Native `fetch` or a small typed API client | Communicate with the FastAPI backend | Recommended; avoid adding a large data framework unless needed |
 | Backend | Python 3.12+ + FastAPI | API, workflow orchestration, authorization checks, proposal lifecycle, and action execution gates | Recommended; choose a version supported by deployment/runtime |
 | Request/data validation | Pydantic | Validate request and response schemas and structured AI output | Recommended |
-| Database | Supabase PostgreSQL | Persist accounts, source records, risk assessments, proposals, approvals, attempts, and audit events | Recommended |
-| Authentication | Supabase Auth, only if multi-user login is required for the MVP | User identity and session management | Decision needed based on demo scope |
+| Database | MongoDB | Persist accounts, source records, risk assessments, proposals, approvals, attempts, and audit events | Recommended |
+| Authentication | Custom session/token auth, only if multi-user login is required for the MVP | User identity and session management | Decision needed based on demo scope |
 | Risk scoring | Deterministic Python module | Repeatable, explainable risk and urgency calculations | Required design choice |
 | LLM | Gemini Flash model through Google's official Python SDK | Evidence-grounded risk explanations and action drafts | Recommended; verify current model name, SDK, quota, and account access before coding |
 | LLM output | Pydantic models / JSON schema validation | Enforce a structured output contract | Recommended |
@@ -31,7 +31,7 @@
 | Frontend hosting | Vercel or another available static frontend host | Deploy React application | Candidate; verify account/project setup |
 | Backend hosting | Render or another Python-compatible host | Deploy FastAPI API | Candidate; verify current free-tier limits and cold-start behavior |
 | Secrets/configuration | Environment variables in local `.env` (excluded from Git) and host secret settings | Keep keys and database credentials out of source | Required |
-| Observability | Python structured logging plus audit records in PostgreSQL | Debug requests and inspect workflow/action outcomes | Recommended |
+| Observability | Python structured logging plus audit records in MongoDB | Debug requests and inspect workflow/action outcomes | Recommended |
 | Vector database | None for MVP | Not needed for structured account signals and source-linked evidence | Explicitly excluded initially |
 | Agent orchestration framework | None for MVP | One deterministic workflow plus a bounded LLM call is sufficient | Explicitly excluded initially |
 
@@ -41,7 +41,7 @@
 
 - **React + Vite:** Fast frontend iteration and straightforward local development.
 - **FastAPI + Pydantic:** One Python backend can handle API validation, deterministic scoring, LLM calls, approval gates, and connectors without a second backend language.
-- **Supabase PostgreSQL:** Relational data suits accounts, evidence references, proposals, and audit history. PostgreSQL constraints and transactions can help preserve workflow integrity.
+- **MongoDB:** Flexible document store suits accounts, evidence references, proposals, and audit history. MongoDB indexes and transactional document operations preserve workflow integrity.
 - **Gemini Flash:** A single LLM is sufficient for summarizing evidence and drafting actions. Keep the model behind a small service interface so it can be changed if access, quota, or quality is insufficient.
 - **Deterministic Python rules:** Makes scoring reproducible and easier to test than an LLM-owned score.
 - **Seed data first:** Keeps the end-to-end workflow demonstrable even if provider credentials or integration approvals are unavailable.
@@ -90,7 +90,7 @@ flowchart TB
     end
 
     subgraph Persistence["Persistence"]
-        DB[(Supabase PostgreSQL)]
+        DB[(MongoDB)]
     end
 
     subgraph External["Sources and destinations"]
@@ -124,7 +124,7 @@ flowchart TB
 
 1. React communicates with the backend through HTTP JSON endpoints. It does not access provider secrets or bypass approval logic.
 2. FastAPI is the application boundary and enforces authentication, account scope, input validation, workflow state, and execution policy.
-3. PostgreSQL is the durable record of workflow state. The browser must reload actual persisted statuses rather than infer success locally.
+3. MongoDB is the durable record of workflow state. The browser must reload actual persisted statuses rather than infer success locally.
 4. The risk engine is deterministic and separate from the LLM service.
 5. The LLM receives only the minimum relevant, validated context needed for a specific explanation or draft.
 6. The execution gate re-checks authorization and the exact approved proposal version immediately before any consequential operation.
@@ -140,7 +140,7 @@ flowchart TB
 2. The adapter converts the payload into the application's normalized internal record model.
 3. Pydantic validates types and required fields; malformed records are rejected or quarantined with an error.
 4. The identity-mapping service resolves the external account/customer ID to a canonical account ID.
-5. The backend persists source provenance, timestamps, normalized values, and data-quality status in PostgreSQL.
+5. The backend persists source provenance, timestamps, normalized values, and data-quality status in MongoDB.
 6. The signal service checks freshness, missing fields, and conflicting values before using a record.
 
 ### B. Account risk analysis
@@ -231,8 +231,8 @@ signalbridge-ai/
 │   ├── tests/
 │   ├── requirements.txt or pyproject.toml
 │   └── .env.example
-├── supabase/
-│   └── migrations/            # Versioned SQL migrations
+├── mongodb/
+│   └── init_mongo.py          # MongoDB index creation & seed database script
 ├── seed_data/                 # Synthetic demo records only
 ├── docs/
 │   ├── PRD.md
@@ -246,12 +246,12 @@ This is a suggested layout, not a requirement to create every module immediately
 
 ## 6. Database and persistence
 
-Use Supabase PostgreSQL as the primary durable store. Keep credentials and service-role keys on the server only.
+Use MongoDB as the primary durable store. Keep credentials and connection URIs on the server only.
 
 The logical entities should include:
 - `accounts`
 - `external_account_mappings`
-- `source_records` or normalized signal tables
+- `signals` or normalized source signal documents
 - `risk_assessments`
 - `evidence_items` or evidence references
 - `action_proposals` with version/hash
@@ -259,12 +259,12 @@ The logical entities should include:
 - `action_attempts`
 - `audit_events`
 
-The final names and columns are to be specified in `DATABASE_AND_API.md`. Avoid storing the only copy of an approval or action status in frontend state.
+The final names and fields are to be specified in `DATABASE_AND_API.md`. Avoid storing the only copy of an approval or action status in frontend state.
 
 Implementation guidance:
-- Use migrations to version schema changes.
-- Add foreign keys and indexes for account IDs, timestamps, proposal IDs, and status queries as appropriate.
-- Use transactions when updating proposal state and approval metadata where practical.
+- Use collection indexes and initialization scripts to manage document structure and constraints.
+- Add indexes for account IDs, timestamps, proposal IDs, and status queries as appropriate.
+- Use atomic operations or multi-document transactions when updating proposal state and approval metadata where practical.
 - Use an append-oriented audit history for important decisions and action attempts.
 - Avoid duplicating large raw source payloads unnecessarily; store minimum needed normalized fields and provider references.
 - Use synthetic data for the hackathon unless data handling and provider terms have been reviewed.
@@ -353,17 +353,15 @@ Example variable names (fill values locally; do not place real secrets in this d
 
 ```dotenv
 APP_ENV=development
-DATABASE_URL=
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DB_NAME=revora
 GOOGLE_API_KEY=
 LLM_MODEL=
 FRONTEND_ORIGIN=http://localhost:5173
 EXECUTION_MODE=demo
 ```
 
-Not every variable is required for every deployment. If the application uses Supabase's client SDK rather than a direct PostgreSQL connection, configure only the variables that implementation needs. Never expose the service-role key or Google API key in frontend environment variables.
+Not every variable is required for every deployment. Configure MONGODB_URI and credentials on the backend. Never expose database connection strings or Google API key in frontend environment variables.
 
 Security checklist:
 - [ ] `.env` is ignored by Git.
@@ -412,7 +410,7 @@ Prioritize tests for correctness and safety before visual polish.
 Run the frontend and backend separately:
 - Frontend Vite development server, commonly on port `5173`.
 - FastAPI development server, commonly on port `8000`.
-- Supabase-hosted PostgreSQL or a configured local/test database.
+- MongoDB-hosted (Atlas or local instance) database.
 
 Exact commands belong in `README.md` after the repository is scaffolded. Do not hardcode production credentials in source code.
 
@@ -420,7 +418,7 @@ Exact commands belong in `README.md` after the repository is scaffolded. Do not 
 
 - Frontend: Vercel or an available static host.
 - Backend: Render or another Python-compatible host.
-- Database/auth: Supabase.
+- Database: MongoDB (MongoDB Atlas or local).
 
 Before selecting a deployment, verify current free-tier policies, sleep/cold-start behavior, environment-variable support, networking, and build/runtime versions. Maintain a reliable local demo fallback in case hosted services are slow or unavailable during judging.
 
@@ -456,8 +454,8 @@ Do not begin multiple live integrations, vector search, forecasting ML, or multi
 
 These items must be decided by the team during implementation:
 
-1. Whether Supabase Auth is required for the hackathon demo or a single-user controlled demo is sufficient.
-2. Whether the backend accesses Supabase through a supported Python client or direct PostgreSQL driver.
+1. Whether multi-user authentication is required for the hackathon demo or a single-user controlled demo is sufficient.
+2. Whether the backend connects to MongoDB Atlas or runs via local MongoDB instance.
 3. The exact Gemini Flash model identifier and official SDK version available to the team.
 4. The first live integration, if any, and whether its read/write flow can be tested within the hackathon.
 5. Exact risk rules, thresholds, usage windows, and baseline definitions.

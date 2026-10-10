@@ -1,0 +1,407 @@
+{
+  "accounts": [
+    {
+      "id": "acc-101",
+      "name": "Acme Dynamics",
+      "domain": "acmedynamics.com",
+      "arr": 120000.0,
+      "renewal_date": "2026-11-05",
+      "csm_owner": "Sarah Jenkins",
+      "industry": "Enterprise Logistics",
+      "health_score": 38,
+      "tier": "Enterprise",
+      "status": "at_risk",
+      "signals_summary": {
+        "days_to_renewal": 26,
+        "usage_drop_pct": 45.0,
+        "days_since_last_touchpoint": 35,
+        "open_critical_tickets": 2
+      }
+    },
+    {
+      "id": "acc-102",
+      "name": "CloudNova Technologies",
+      "domain": "cloudnova.io",
+      "arr": 85000.0,
+      "renewal_date": "2026-11-20",
+      "csm_owner": "Marcus Chen",
+      "industry": "DevOps Platforms",
+      "health_score": 52,
+      "tier": "Mid-Market",
+      "status": "at_risk",
+      "signals_summary": {
+        "days_to_renewal": 41,
+        "usage_drop_pct": 25.0,
+        "days_since_last_touchpoint": 18,
+        "open_critical_tickets": 1
+      }
+    },
+    {
+      "id": "acc-103",
+      "name": "Vortex Analytics",
+      "domain": "vortexdata.ai",
+      "arr": 240000.0,
+      "renewal_date": "2026-12-15",
+      "csm_owner": "Sarah Jenkins",
+      "industry": "Financial Data",
+      "health_score": 68,
+      "tier": "Strategic",
+      "status": "active",
+      "signals_summary": {
+        "days_to_renewal": 66,
+        "usage_drop_pct": 12.0,
+        "days_since_last_touchpoint": 14,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-104",
+      "name": "HyperScale Labs",
+      "domain": "hyperscalelabs.co",
+      "arr": 175000.0,
+      "renewal_date": "2026-10-25",
+      "csm_owner": "Alex Rivera",
+      "industry": "AI & Robotics",
+      "health_score": 24,
+      "tier": "Enterprise",
+      "status": "at_risk",
+      "signals_summary": {
+        "days_to_renewal": 15,
+        "usage_drop_pct": 52.0,
+        "days_since_last_touchpoint": 50,
+        "open_critical_tickets": 3
+      }
+    },
+    {
+      "id": "acc-105",
+      "name": "OmniHealth Solutions",
+      "domain": "omnihealth.org",
+      "arr": 95000.0,
+      "renewal_date": "2027-02-10",
+      "csm_owner": "Marcus Chen",
+      "industry": "Healthcare Tech",
+      "health_score": 88,
+      "tier": "Mid-Market",
+      "status": "active",
+      "signals_summary": {
+        "days_to_renewal": 123,
+        "usage_drop_pct": 0.0,
+        "days_since_last_touchpoint": 8,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-106",
+      "name": "Apex Fintech Group",
+      "domain": "apexfintech.com",
+      "arr": 310000.0,
+      "renewal_date": "2026-11-12",
+      "csm_owner": "Sarah Jenkins",
+      "industry": "Banking Software",
+      "health_score": 45,
+      "tier": "Strategic",
+      "status": "at_risk",
+      "signals_summary": {
+        "days_to_renewal": 33,
+        "usage_drop_pct": 30.0,
+        "days_since_last_touchpoint": 28,
+        "open_critical_tickets": 1
+      }
+    },
+    {
+      "id": "acc-107",
+      "name": "KiteFlow Commerce",
+      "domain": "kiteflow.shop",
+      "arr": 62000.0,
+      "renewal_date": "2027-03-30",
+      "csm_owner": "Alex Rivera",
+      "industry": "E-commerce Infrastructure",
+      "health_score": 78,
+      "tier": "Growth",
+      "status": "active",
+      "signals_summary": {
+        "days_to_renewal": 171,
+        "usage_drop_pct": 0.0,
+        "days_since_last_touchpoint": 10,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-108",
+      "name": "Starlight Media Network",
+      "domain": "starlightmedia.io",
+      "arr": 115000.0,
+      "renewal_date": "2027-01-18",
+      "csm_owner": "Marcus Chen",
+      "industry": "Digital Publishing",
+      "health_score": 60,
+      "tier": "Enterprise",
+      "status": "active",
+      "signals_summary": {
+        "days_to_renewal": 100,
+        "usage_drop_pct": 15.0,
+        "days_since_last_touchpoint": 32,
+        "open_critical_tickets": 0
+      }
+    }
+  ],
+  "contacts": [
+    {
+      "id": "con-101",
+      "account_id": "acc-101",
+      "name": "David Vance",
+      "email": "d.vance@acmedynamics.com",
+      "role": "VP of Engineering",
+      "is_primary": true,
+      "sentiment": "negative",
+      "last_contact_date": "2026-10-02T16:45:00Z"
+    },
+    {
+      "id": "con-102",
+      "account_id": "acc-101",
+      "name": "Elena Rostova",
+      "email": "e.rostova@acmedynamics.com",
+      "role": "Director of Operations",
+      "is_primary": false,
+      "sentiment": "neutral",
+      "last_contact_date": "2026-10-08T09:15:00Z"
+    },
+    {
+      "id": "con-103",
+      "account_id": "acc-102",
+      "name": "Rachel Adams",
+      "email": "radams@cloudnova.io",
+      "role": "Head of Platform",
+      "is_primary": true,
+      "sentiment": "neutral",
+      "last_contact_date": "2026-09-28T14:00:00Z"
+    },
+    {
+      "id": "con-104",
+      "account_id": "acc-103",
+      "name": "Liam Gallagher",
+      "email": "liam@vortexdata.ai",
+      "role": "Chief Data Officer",
+      "is_primary": true,
+      "sentiment": "positive",
+      "last_contact_date": "2026-10-04T11:30:00Z"
+    },
+    {
+      "id": "con-105",
+      "account_id": "acc-104",
+      "name": "Vikram Patel",
+      "email": "vikram@hyperscalelabs.co",
+      "role": "CTO & Co-Founder",
+      "is_primary": true,
+      "sentiment": "negative",
+      "last_contact_date": "2026-09-15T10:00:00Z"
+    },
+    {
+      "id": "con-106",
+      "account_id": "acc-105",
+      "name": "Dr. Patricia Hayes",
+      "email": "phayes@omnihealth.org",
+      "role": "Chief Information Officer",
+      "is_primary": true,
+      "sentiment": "positive",
+      "last_contact_date": "2026-10-07T15:20:00Z"
+    },
+    {
+      "id": "con-107",
+      "account_id": "acc-106",
+      "name": "Michael Sterling",
+      "email": "msterling@apexfintech.com",
+      "role": "SVP Infrastructure",
+      "is_primary": true,
+      "sentiment": "negative",
+      "last_contact_date": "2026-09-20T17:00:00Z"
+    },
+    {
+      "id": "con-108",
+      "account_id": "acc-107",
+      "name": "Chloe Nguyen",
+      "email": "chloe@kiteflow.shop",
+      "role": "VP Product",
+      "is_primary": true,
+      "sentiment": "positive",
+      "last_contact_date": "2026-10-01T12:00:00Z"
+    },
+    {
+      "id": "con-109",
+      "account_id": "acc-108",
+      "name": "Arthur Pendelton",
+      "email": "arthur@starlightmedia.io",
+      "role": "Director of Technology",
+      "is_primary": true,
+      "sentiment": "neutral",
+      "last_contact_date": "2026-09-30T10:00:00Z"
+    }
+  ],
+  "signals": [
+    {
+      "id": "sig-101",
+      "account_id": "acc-101",
+      "source_category": "usage",
+      "signal_type": "usage_drop",
+      "title": "Severe Drop in Active Seats",
+      "summary": "Weekly active seats dropped from 240 to 132 (-45%) over the past 3 weeks.",
+      "severity": "high",
+      "timestamp": "2026-10-06T14:30:00Z",
+      "metadata": { "drop_pct": 45.0, "current_seats": 132, "baseline": 240 }
+    },
+    {
+      "id": "sig-102",
+      "account_id": "acc-101",
+      "source_category": "support",
+      "signal_type": "support_ticket",
+      "title": "Open Critical SLA Escalation",
+      "summary": "Ticket #4920: Data sync latency exceeding SLA; tagged Urgent by Director of Ops.",
+      "severity": "high",
+      "timestamp": "2026-10-08T09:15:00Z",
+      "metadata": { "ticket_id": "4920", "priority": "critical", "days_open": 4 }
+    },
+    {
+      "id": "sig-103",
+      "account_id": "acc-101",
+      "source_category": "email",
+      "signal_type": "budget_escalation",
+      "title": "Inbound Budget Downsizing Inquiries",
+      "summary": "VP of Engineering requested breakdown of tier options for contract renewal.",
+      "severity": "medium",
+      "timestamp": "2026-10-02T16:45:00Z",
+      "metadata": { "sender": "d.vance@acmedynamics.com", "intent": "tier_downgrade" }
+    },
+    {
+      "id": "sig-104",
+      "account_id": "acc-104",
+      "source_category": "calendar",
+      "signal_type": "qbr_cancelled",
+      "title": "Executive QBR Renewal Cancelled",
+      "summary": "Exec sponsor cancelled QBR renewal review meeting with no reschedule date provided.",
+      "severity": "high",
+      "timestamp": "2026-10-05T11:00:00Z",
+      "metadata": { "status": "cancelled", "meeting_type": "Executive QBR" }
+    },
+    {
+      "id": "sig-105",
+      "account_id": "acc-104",
+      "source_category": "usage",
+      "signal_type": "usage_drop",
+      "title": "API Telemetry Steep Decline",
+      "summary": "Production cluster API calls dropped 52% month-over-month.",
+      "severity": "high",
+      "timestamp": "2026-10-09T08:00:00Z",
+      "metadata": { "drop_pct": 52.0 }
+    },
+    {
+      "id": "sig-106",
+      "account_id": "acc-104",
+      "source_category": "crm",
+      "signal_type": "touchpoint_lag",
+      "title": "Severe Touchpoint Absence",
+      "summary": "No logged CSM contact in 50 days; renewal in 15 days.",
+      "severity": "high",
+      "timestamp": "2026-10-10T00:00:00Z",
+      "metadata": { "days_since_touchpoint": 50 }
+    },
+    {
+      "id": "sig-107",
+      "account_id": "acc-102",
+      "source_category": "usage",
+      "signal_type": "usage_drop",
+      "title": "Moderate Usage Contraction",
+      "summary": "Daily active pipeline builders decreased by 25% following recent re-org.",
+      "severity": "medium",
+      "timestamp": "2026-10-03T10:00:00Z",
+      "metadata": { "drop_pct": 25.0 }
+    },
+    {
+      "id": "sig-108",
+      "account_id": "acc-102",
+      "source_category": "crm",
+      "signal_type": "renewal_window",
+      "title": "Approaching 45-day Renewal Horizon",
+      "summary": "Contract renewal due in 41 days with single sponsor contact recorded.",
+      "severity": "medium",
+      "timestamp": "2026-10-09T14:00:00Z",
+      "metadata": { "days_to_renewal": 41 }
+    },
+    {
+      "id": "sig-109",
+      "account_id": "acc-106",
+      "source_category": "email",
+      "signal_type": "champion_left",
+      "title": "Champion Departed Organization",
+      "summary": "Primary executive champion updated LinkedIn status; autoreply confirmed departure.",
+      "severity": "high",
+      "timestamp": "2026-09-22T08:30:00Z",
+      "metadata": { "risk_type": "sponsor_loss" }
+    },
+    {
+      "id": "sig-110",
+      "account_id": "acc-106",
+      "source_category": "support",
+      "signal_type": "support_ticket",
+      "title": "Security Audit Review Overdue",
+      "summary": "Security compliance sign-off blocked on custom SAML SSO query.",
+      "severity": "medium",
+      "timestamp": "2026-10-04T12:00:00Z",
+      "metadata": { "ticket_id": "5102" }
+    },
+    {
+      "id": "sig-111",
+      "account_id": "acc-105",
+      "source_category": "usage",
+      "signal_type": "expansion_signal",
+      "title": "Seat Limit Reached at 98%",
+      "summary": "Customer reached 98% user license limit across all hospitals; upsell candidate.",
+      "severity": "low",
+      "timestamp": "2026-10-07T11:00:00Z",
+      "metadata": { "utilization_pct": 98.2 }
+    },
+    {
+      "id": "sig-112",
+      "account_id": "acc-105",
+      "source_category": "calendar",
+      "signal_type": "touchpoint_recent",
+      "title": "Successful Quarterly Partnership Sync",
+      "summary": "Positive quarterly review completed with CIO; expansion approved for Q1.",
+      "severity": "low",
+      "timestamp": "2026-10-07T15:20:00Z",
+      "metadata": { "sentiment": "very_positive" }
+    },
+    {
+      "id": "sig-113",
+      "account_id": "acc-103",
+      "source_category": "usage",
+      "signal_type": "mild_drop",
+      "title": "Slight Weekly Query Inactivity",
+      "summary": "Query volume down 12% due to corporate holiday week in Singapore branch.",
+      "severity": "low",
+      "timestamp": "2026-10-01T09:00:00Z",
+      "metadata": { "drop_pct": 12.0 }
+    },
+    {
+      "id": "sig-114",
+      "account_id": "acc-107",
+      "source_category": "usage",
+      "signal_type": "steady_usage",
+      "title": "Consistent Black Friday Prep Utilization",
+      "summary": "Throughput holding steady with +8% growth in catalog synchronizations.",
+      "severity": "low",
+      "timestamp": "2026-10-05T16:00:00Z",
+      "metadata": { "growth_pct": 8.0 }
+    },
+    {
+      "id": "sig-115",
+      "account_id": "acc-108",
+      "source_category": "crm",
+      "signal_type": "touchpoint_lag",
+      "title": "Touchpoint Due",
+      "summary": "Last touchpoint 32 days ago; scheduled check-in recommended.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T10:00:00Z",
+      "metadata": { "days_since_touchpoint": 32 }
+    }
+  ]
+}
