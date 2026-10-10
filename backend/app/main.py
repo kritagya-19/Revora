@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from app.core.config import settings
-from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations
+from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations, tasks
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("revora.api")
@@ -54,20 +54,28 @@ app.include_router(proposals.router, prefix="/api/v1/action-proposals", tags=["N
 app.include_router(approvals.router, prefix="/api/approvals", tags=["Trust & Approval Center"])
 app.include_router(approvals.router, prefix="/api/v1/approvals", tags=["Trust & Approval Center"])
 
+# Tasks endpoints
+app.include_router(tasks.router, prefix="/api/tasks", tags=["Follow-up Tasks"])
+app.include_router(tasks.router, prefix="/api/v1/tasks", tags=["Follow-up Tasks"])
+
 # Page 7: Settings and Integrations endpoints
 app.include_router(integrations.router, prefix="/api/integrations", tags=["Settings & Integrations"])
 app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["Settings & Integrations"])
 
-# Global audit logs alias
+# Global audit logs endpoints
 @app.get("/api/audit-logs", tags=["Audit Log"])
-def get_global_audit_logs(limit: int = 100):
+def get_global_audit_logs(account_id: str = None, event_type: str = None, limit: int = 100):
     from app.services.proposal_repository import proposal_repo
-    return proposal_repo.get_all_audit_logs(limit=limit)
+    logs = proposal_repo.get_all_audit_logs(limit=limit)
+    if account_id:
+        logs = [entry for entry in logs if entry.get("account_id") == account_id]
+    if event_type:
+        logs = [entry for entry in logs if entry.get("event_type") == event_type]
+    return logs
 
 @app.get("/api/v1/audit-logs", tags=["Audit Log"])
-def get_global_audit_logs_v1(limit: int = 100):
-    from app.services.proposal_repository import proposal_repo
-    return proposal_repo.get_all_audit_logs(limit=limit)
+def get_global_audit_logs_v1(account_id: str = None, event_type: str = None, limit: int = 100):
+    return get_global_audit_logs(account_id=account_id, event_type=event_type, limit=limit)
 
 # Agent-Layer Pipeline Orchestration Endpoint
 @app.post("/api/agent/pipeline/{account_id}", tags=["Agent Architecture"])

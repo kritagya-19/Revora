@@ -449,4 +449,23 @@ class AccountRepository:
             ))
         return records
 
+    def create_signal(self, signal: Signal) -> Signal:
+        doc = signal.model_dump()
+        self._signals_data.append(doc)
+        if self.db is not None:
+            try:
+                self.db.signals.update_one({"id": signal.id}, {"$set": doc}, upsert=True)
+            except Exception as e:
+                logger.warning(f"MongoDB create_signal error: {e}")
+
+        from app.services.proposal_repository import proposal_repo
+        proposal_repo._record_audit(
+            account_id=signal.account_id,
+            proposal_id=None,
+            event_type="signal_ingested",
+            actor=f"adapter:{signal.source_category}",
+            details={"signal_id": signal.id, "type": signal.signal_type, "severity": signal.severity}
+        )
+        return signal
+
 account_repo = AccountRepository()

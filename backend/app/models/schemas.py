@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -59,17 +59,58 @@ class Signal(BaseModel):
     account_id: str
     source_category: str
     source_type: Optional[str] = None
+    source: Optional[str] = None
+    signal_id: Optional[str] = None
     signal_type: str
     event_type: Optional[str] = None
-    title: str
-    summary: str
+    title: str = ""
+    summary: str = ""
     description: Optional[str] = None
-    severity: str
-    timestamp: str
+    severity: str = "medium"
+    timestamp: str = ""
+    occurred_at: Optional[str] = None
     event_time: Optional[str] = None
-    observed_value: Optional[str] = None
+    observed_value: Optional[Any] = None
+    baseline_value: Optional[Any] = None
+    unit: Optional[str] = None
     source_record_id: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_signal_inputs(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            # Normalize ID
+            sig_id = data.get("id") or data.get("signal_id") or data.get("_id")
+            if sig_id:
+                data["id"] = str(sig_id)
+                data["signal_id"] = str(sig_id)
+
+            # Normalize Source
+            source = data.get("source_category") or data.get("source") or data.get("source_type") or "system"
+            data["source_category"] = source
+            data["source"] = source
+            data["source_type"] = data.get("source_type") or source
+
+            # Normalize Timestamp
+            ts = data.get("timestamp") or data.get("occurred_at") or data.get("event_time") or datetime.utcnow().isoformat()
+            data["timestamp"] = str(ts)
+            data["occurred_at"] = str(ts)
+            data["event_time"] = str(ts)
+
+            # Normalize Title and Summary
+            sig_type = data.get("signal_type") or data.get("event_type") or "unspecified_signal"
+            data["signal_type"] = sig_type
+            data["event_type"] = data.get("event_type") or sig_type
+
+            if not data.get("title"):
+                data["title"] = sig_type.replace("_", " ").title()
+            if not data.get("summary"):
+                data["summary"] = data.get("description") or data["title"]
+            if not data.get("severity"):
+                data["severity"] = "medium"
+
+        return data
 
 # Customer Metrics Banner
 class CustomerMetrics(BaseModel):
@@ -317,4 +358,31 @@ class TriggerSyncResponse(BaseModel):
     message: str
     last_sync_time: str
     freshness_minutes: int
+
+# Audit Log Schema
+class AuditLog(BaseModel):
+    account_id: str
+    proposal_id: Optional[str] = None
+    event_type: str
+    actor: str
+    details: Dict[str, Any] = Field(default_factory=dict)
+    timestamp: str
+
+# Task Management Schemas
+class CreateTaskRequest(BaseModel):
+    account_id: str
+    title: str
+    description: Optional[str] = ""
+    assigned_to: Optional[str] = "CSM Owner"
+    due_date: Optional[str] = None
+    priority: Optional[str] = "high"
+    evidence_ids: List[str] = []
+
+class UpdateTaskRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    assigned_to: Optional[str] = None
+    due_date: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
 
