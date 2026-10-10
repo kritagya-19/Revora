@@ -256,4 +256,14 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# End of https://mrkandreev.name/snippets/gitignore-generator/#Node,Python
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+

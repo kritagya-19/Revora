@@ -19,7 +19,7 @@ import type {
   TriggerSyncResponse
 } from '../types/api';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000';
 
 export async function checkBackendHealth(): Promise<{ status: string; execution_mode: string; service: string }> {
   const res = await fetch(`${API_BASE}/health`);

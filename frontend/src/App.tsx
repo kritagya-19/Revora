@@ -39,6 +39,8 @@ export function App() {
   const [backendHealthy, setBackendHealthy] = useState<boolean>(true);
   const [executionMode, setExecutionMode] = useState<string>('simulated');
 
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
+
   // Load accounts, metrics and backend health on mount
   const loadData = async () => {
     try {
@@ -48,13 +50,19 @@ export function App() {
       setBackendHealthy(health.status === 'healthy');
       setExecutionMode(health.execution_mode);
 
-      const [accountsData, summaryData] = await Promise.all([
+      const [accountsData, summaryData, pendingData] = await Promise.all([
         fetchAccounts(),
-        fetchDashboardSummary().catch(() => null)
+        fetchDashboardSummary().catch(() => null),
+        fetch(`${(import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000'}/api/approvals?status=proposed`)
+          .then((res) => (res.ok ? res.json() : []))
+          .catch(() => [])
       ]);
 
       setAccounts(accountsData);
       setDashboardSummary(summaryData);
+      if (Array.isArray(pendingData)) {
+        setPendingApprovalsCount(pendingData.length);
+      }
 
       if (accountsData.length > 0 && !selectedAccountId) {
         setSelectedAccountId(accountsData[0].id);
@@ -213,7 +221,7 @@ export function App() {
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       accountCount={accounts.length}
-      pendingApprovalsCount={2}
+      pendingApprovalsCount={pendingApprovalsCount}
       executionMode={executionMode}
       backendHealthy={backendHealthy}
     >
