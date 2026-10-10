@@ -1,15 +1,17 @@
 import { useEffect, useState, useMemo } from 'react';
-import type { AccountRiskSummary, AccountDetail } from './types/api';
+import type { AccountRiskSummary, AccountDetail, DashboardSummary } from './types/api';
 import {
   checkBackendHealth,
   fetchAccounts,
-  fetchAccountById
+  fetchAccountById,
+  fetchDashboardSummary
 } from './services/api';
 import { AppLayout } from './components/AppLayout';
 import type { NavItem } from './components/Sidebar';
 import { MetricCard } from './components/MetricCard';
 import { AccountTable } from './components/AccountTable';
-import { RiskBadge } from './components/RiskBadge';
+import { CustomerDetailView } from './components/CustomerDetailView';
+import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
 import { ErrorState } from './components/ErrorState';
@@ -19,25 +21,25 @@ import {
   Calendar,
   DollarSign,
   Building,
-  Mail,
-  Activity,
   Layers,
   ArrowRight
 } from 'lucide-react';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavItem>('dashboard');
+  const [viewMode, setViewMode] = useState<'radar' | 'customer_detail' | 'autopsy'>('radar');
   const [accounts, setAccounts] = useState<AccountRiskSummary[]>([]);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [selectedAccountDetail, setSelectedAccountDetail] = useState<AccountDetail | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currency, setCurrency] = useState<'USD' | 'INR'>('USD');
   const [loading, setLoading] = useState<boolean>(true);
-  const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [backendHealthy, setBackendHealthy] = useState<boolean>(true);
   const [executionMode, setExecutionMode] = useState<string>('simulated');
 
-  // Load accounts and health on mount
+  // Load accounts, metrics and backend health on mount
   const loadData = async () => {
     try {
       setLoading(true);
@@ -46,10 +48,16 @@ export function App() {
       setBackendHealthy(health.status === 'healthy');
       setExecutionMode(health.execution_mode);
 
-      const data = await fetchAccounts();
-      setAccounts(data);
-      if (data.length > 0 && !selectedAccountId) {
-        setSelectedAccountId(data[0].id);
+      const [accountsData, summaryData] = await Promise.all([
+        fetchAccounts(),
+        fetchDashboardSummary().catch(() => null)
+      ]);
+
+      setAccounts(accountsData);
+      setDashboardSummary(summaryData);
+
+      if (accountsData.length > 0 && !selectedAccountId) {
+        setSelectedAccountId(accountsData[0].id);
       }
     } catch (err: any) {
       console.error('API Error:', err);
@@ -64,24 +72,42 @@ export function App() {
     loadData();
   }, []);
 
-  // Fetch detailed account context (contacts & signals) when selected
+  // Fetch detailed account context (contacts, signals, customer metrics) when selected
   useEffect(() => {
     if (!selectedAccountId) return;
+    let isMounted = true;
     async function loadDetail() {
       try {
-        setDetailLoading(true);
         const detail = await fetchAccountById(selectedAccountId!);
-        setSelectedAccountDetail(detail);
+        if (isMounted) setSelectedAccountDetail(detail);
       } catch (err) {
         console.error('Error fetching account detail:', err);
-      } finally {
-        setDetailLoading(false);
       }
     }
     loadDetail();
+    return () => {
+      isMounted = false;
+    };
   }, [selectedAccountId]);
 
-  // Search filter
+  // Handle Tab changes
+  const handleSelectTab = (tab: NavItem) => {
+    setCurrentTab(tab);
+    if (tab === 'dashboard') {
+      setViewMode('radar');
+    } else if (tab === 'customers') {
+      setViewMode('customer_detail');
+    } else if (tab === 'autopsy') {
+      setViewMode('autopsy');
+    }
+  };
+
+  const handleSelectAccount = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setViewMode('customer_detail');
+  };
+
+  // Global search filter across accounts
   const filteredAccounts = useMemo(() => {
     if (!searchQuery.trim()) return accounts;
     const q = searchQuery.toLowerCase();
@@ -90,19 +116,22 @@ export function App() {
         a.name.toLowerCase().includes(q) ||
         (a.domain && a.domain.toLowerCase().includes(q)) ||
         (a.industry && a.industry.toLowerCase().includes(q)) ||
-        a.csm_owner.toLowerCase().includes(q)
+        a.csm_owner.toLowerCase().includes(q) ||
+        a.primary_reason_code.toLowerCase().includes(q)
     );
   }, [accounts, searchQuery]);
 
-  // Aggregate Metrics
+  // Dynamic Metrics derived directly from backend/data
   const metrics = useMemo(() => {
-    const totalMonitored = accounts.length;
+    const totalMonitored = dashboardSummary?.total_accounts_monitored ?? accounts.length;
     const highRiskAccounts = accounts.filter(
       (a) => a.risk_level === 'critical' || a.risk_level === 'high'
     );
-    const highRiskCount = highRiskAccounts.length;
-    const highRiskArr = highRiskAccounts.reduce((sum, a) => sum + a.arr, 0);
-    const renewalSoonCount = accounts.filter((a) => a.urgency_days_to_renewal <= 60).length;
+    const highRiskCount = dashboardSummary?.high_risk_accounts_count ?? highRiskAccounts.length;
+    const highRiskArr = dashboardSummary?.high_risk_arr ?? highRiskAccounts.reduce((sum, a) => sum + a.arr, 0);
+    const renewalSoonCount =
+      dashboardSummary?.renewals_due_soon_count ??
+      accounts.filter((a) => a.urgency_days_to_renewal <= 60).length;
 
     return {
       totalMonitored,
@@ -110,18 +139,56 @@ export function App() {
       highRiskArr,
       renewalSoonCount
     };
-  }, [accounts]);
+  }, [accounts, dashboardSummary]);
+
+  // Currency Formatter
+  const formatCurrency = (amount: number) => {
+    if (currency === 'INR') {
+      const inrAmount = amount * 83;
+      if (inrAmount >= 10000000) {
+        return `₹${(inrAmount / 10000000).toFixed(2)} Cr`;
+      } else if (inrAmount >= 100000) {
+        return `₹${(inrAmount / 100000).toFixed(1)} L`;
+      }
+      return `₹${inrAmount.toLocaleString('en-IN')}`;
+    }
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(2)}M`;
+    } else if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}k`;
+    }
+    return `$${amount.toLocaleString()}`;
+  };
 
   const getPageTitle = () => {
+    if (currentTab === 'autopsy' || viewMode === 'autopsy') {
+      return {
+        title: selectedAccountDetail ? `${selectedAccountDetail.name} — Risk Autopsy` : 'Revenue Risk Autopsy',
+        subtitle: 'Evidence-Grounded AI Causal Analysis & Multi-Signal Synthesis'
+      };
+    }
+    if (currentTab === 'customers' || viewMode === 'customer_detail') {
+      return {
+        title: selectedAccountDetail ? selectedAccountDetail.name : 'Customer Details',
+        subtitle: 'Customer Intelligence & Unified Multi-Source Evidence Timeline'
+      };
+    }
     switch (currentTab) {
       case 'dashboard':
-        return { title: 'Revenue Radar', subtitle: 'Deterministic Risk & Multi-Signal Detection' };
-      case 'customers':
-        return { title: 'Customer Accounts', subtitle: 'Verified Portfolio & Signals Store' };
+        return {
+          title: 'Revenue Radar',
+          subtitle: 'Deterministic Multi-Signal Churn Detection & Revenue Exposure'
+        };
       case 'approvals':
-        return { title: 'Approval Center', subtitle: 'Human-Gated Next-Best-Action Workflow' };
+        return {
+          title: 'Approval Center',
+          subtitle: 'Human-Gated Next-Best-Action Workflow'
+        };
       case 'settings':
-        return { title: 'Integrations & Rules', subtitle: 'MongoDB Data Connections and Weights' };
+        return {
+          title: 'Integrations & Rules',
+          subtitle: 'MongoDB Data Connections and Weights'
+        };
       default:
         return { title: 'SignalBridge AI', subtitle: 'Revenue Intelligence' };
     }
@@ -132,7 +199,7 @@ export function App() {
   return (
     <AppLayout
       currentTab={currentTab}
-      onSelectTab={setCurrentTab}
+      onSelectTab={handleSelectTab}
       title={title}
       subtitle={subtitle}
       searchQuery={searchQuery}
@@ -159,45 +226,45 @@ export function App() {
         />
       )}
 
-      {/* Main Content (when not loading and no top-level error) */}
+      {/* Main Revenue Radar / App Content */}
       {!loading && !error && (
         <>
-          {/* Top Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard
-              label="Monitored Accounts"
-              value={metrics.totalMonitored}
-              subtext="Seeded across 3+ source categories"
-              icon={<Users className="w-5 h-5" />}
-            />
-
-            <MetricCard
-              label="High / Critical Risk"
-              value={metrics.highRiskCount}
-              subtext="Accounts requiring urgent attention"
-              icon={<AlertTriangle className="w-5 h-5" />}
-              highlight={metrics.highRiskCount > 0}
-            />
-
-            <MetricCard
-              label="Renewals Due ≤ 60d"
-              value={metrics.renewalSoonCount}
-              subtext="Active renewal negotiation window"
-              icon={<Calendar className="w-5 h-5" />}
-            />
-
-            <MetricCard
-              label="At-Risk ARR Exposure"
-              value={`$${metrics.highRiskArr.toLocaleString()}`}
-              subtext="Contract ARR across high risk accounts"
-              icon={<DollarSign className="w-5 h-5" />}
-            />
-          </div>
-
-          {/* Tab 1: Dashboard / Revenue Radar & Tab 2: Customers */}
-          {(currentTab === 'dashboard' || currentTab === 'customers') && (
+          {/* TAB 1: Revenue Radar View */}
+          {currentTab === 'dashboard' && viewMode === 'radar' && (
             <div className="space-y-6">
-              {/* Account Table */}
+              {/* Top 4 Summary Cards (Exact Page 2 Specifications) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard
+                  label="Accounts monitored"
+                  value={metrics.totalMonitored}
+                  subtext="Active B2B SaaS Customer Portfolio"
+                  icon={<Users className="w-5 h-5" />}
+                />
+
+                <MetricCard
+                  label="High-risk accounts"
+                  value={metrics.highRiskCount}
+                  subtext="Based on deterministic risk engine rules"
+                  icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
+                  highlight={metrics.highRiskCount > 0}
+                />
+
+                <MetricCard
+                  label="Renewals due soon"
+                  value={metrics.renewalSoonCount}
+                  subtext="Active renewal window (≤ 60 days)"
+                  icon={<Calendar className="w-5 h-5" />}
+                />
+
+                <MetricCard
+                  label="ARR in high-risk accounts"
+                  value={formatCurrency(metrics.highRiskArr)}
+                  subtext="Contract ARR exposed to churn likelihood"
+                  icon={<DollarSign className="w-5 h-5" />}
+                />
+              </div>
+
+              {/* Sortable & Filterable Account Table */}
               {filteredAccounts.length === 0 ? (
                 <EmptyState
                   title="No matching accounts"
@@ -209,214 +276,96 @@ export function App() {
                 <AccountTable
                   accounts={filteredAccounts}
                   selectedAccountId={selectedAccountId}
-                  onSelectAccount={setSelectedAccountId}
+                  onSelectAccount={handleSelectAccount}
+                  currency={currency}
+                  onCurrencyChange={setCurrency}
                 />
-              )}
-
-              {/* Selected Account Deep Dive Panel */}
-              {selectedAccountDetail && (
-                <div className="border border-[#E2E8F0] rounded-lg p-6 bg-white space-y-6">
-                  {/* Account Detail Header */}
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-5 border-b border-[#E2E8F0] gap-4">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h2 className="font-headline text-2xl text-[#020062] font-bold">
-                          {selectedAccountDetail.name}
-                        </h2>
-                        <RiskBadge
-                          level={selectedAccountDetail.risk_level}
-                          score={selectedAccountDetail.risk_score}
-                        />
-                        <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
-                          {selectedAccountDetail.tier}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-500 font-body">
-                        <span>Domain: <strong>{selectedAccountDetail.domain}</strong></span>
-                        <span>•</span>
-                        <span>Industry: <strong>{selectedAccountDetail.industry}</strong></span>
-                        <span>•</span>
-                        <span>CSM Owner: <strong>{selectedAccountDetail.csm_owner}</strong></span>
-                        <span>•</span>
-                        <span>Renewal Date: <strong>{selectedAccountDetail.renewal_date}</strong></span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <span className="text-xl font-headline text-[#020062] font-bold block">
-                          ${selectedAccountDetail.arr.toLocaleString()}
-                        </span>
-                        <span className="text-[11px] text-slate-400 uppercase tracking-wider block">
-                          Contract Value (ARR)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2-Column Detail: Key Stakeholders & Multi-Source Signals */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Contacts Table / Cards */}
-                    <div className="border border-[#E2E8F0] rounded-lg p-5 bg-slate-50/40 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-[#2563EB]" />
-                          <h3 className="font-semibold text-sm text-[#020062]">
-                            Account Stakeholders & Contacts
-                          </h3>
-                        </div>
-                        <span className="text-xs text-slate-500 font-mono">
-                          {selectedAccountDetail.contacts.length} recorded
-                        </span>
-                      </div>
-
-                      {detailLoading ? (
-                        <div className="py-6 text-center text-xs text-slate-400">Loading contacts...</div>
-                      ) : selectedAccountDetail.contacts.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic">No contacts found for this account.</p>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {selectedAccountDetail.contacts.map((contact) => (
-                            <div
-                              key={contact.id}
-                              className="p-3 bg-white border border-[#E2E8F0] rounded-md flex items-center justify-between"
-                            >
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-xs text-[#020062]">
-                                    {contact.name}
-                                  </span>
-                                  {contact.is_primary && (
-                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 font-medium">
-                                      Primary
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-xs text-slate-500 block mt-0.5">
-                                  {contact.role || 'Executive'}
-                                </span>
-                                <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-1">
-                                  <Mail className="w-3 h-3" />
-                                  <span>{contact.email}</span>
-                                </div>
-                              </div>
-
-                              <div className="text-right">
-                                <span
-                                  className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
-                                    contact.sentiment === 'negative'
-                                      ? 'bg-red-50 text-red-700'
-                                      : contact.sentiment === 'positive'
-                                      ? 'bg-emerald-50 text-emerald-700'
-                                      : 'bg-slate-100 text-slate-600'
-                                  }`}
-                                >
-                                  {contact.sentiment} sentiment
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Multi-Source Signals */}
-                    <div className="border border-[#E2E8F0] rounded-lg p-5 bg-slate-50/40 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Activity className="w-4 h-4 text-[#2563EB]" />
-                          <h3 className="font-semibold text-sm text-[#020062]">
-                            Cross-Source Signals
-                          </h3>
-                        </div>
-                        <span className="text-xs text-slate-500 font-mono">
-                          {selectedAccountDetail.signals.length} signals
-                        </span>
-                      </div>
-
-                      {detailLoading ? (
-                        <div className="py-6 text-center text-xs text-slate-400">Loading signals...</div>
-                      ) : selectedAccountDetail.signals.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic">No signals recorded.</p>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {selectedAccountDetail.signals.map((sig) => (
-                            <div
-                              key={sig.id}
-                              className="p-3 bg-white border border-[#E2E8F0] rounded-md space-y-1.5"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
-                                    {sig.source_category}
-                                  </span>
-                                  <span className="font-semibold text-xs text-[#020062]">
-                                    {sig.title}
-                                  </span>
-                                </div>
-                                <span
-                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase ${
-                                    sig.severity === 'high'
-                                      ? 'bg-red-50 text-red-700'
-                                      : sig.severity === 'medium'
-                                      ? 'bg-amber-50 text-amber-700'
-                                      : 'bg-emerald-50 text-emerald-700'
-                                  }`}
-                                >
-                                  {sig.severity}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-600 leading-relaxed">
-                                {sig.summary}
-                              </p>
-                              <div className="text-[10px] text-slate-400 font-mono">
-                                {new Date(sig.timestamp).toLocaleDateString()}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
               )}
             </div>
           )}
 
-          {/* Tab 3: Approvals Info */}
+          {/* TAB 2 or Detail View: Page 3 Customer Details and Unified Evidence Timeline */}
+          {(currentTab === 'customers' || viewMode === 'customer_detail') && selectedAccountDetail && (
+            <CustomerDetailView
+              account={selectedAccountDetail}
+              onBackToRadar={() => {
+                setViewMode('radar');
+                setCurrentTab('dashboard');
+              }}
+              currency={currency}
+              onNavigateToApprovals={() => setCurrentTab('approvals')}
+              onInvestigateWithAI={() => {
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+            />
+          )}
+
+          {/* TAB 3 / Page 4: Revenue Risk Autopsy (Central AI Wow Feature) */}
+          {(currentTab === 'autopsy' || viewMode === 'autopsy') && selectedAccountDetail && (
+            <RevenueRiskAutopsyView
+              account={selectedAccountDetail}
+              allAccounts={accounts}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onBackToCustomer={() => {
+                setViewMode('customer_detail');
+                setCurrentTab('customers');
+              }}
+              onBackToRadar={() => {
+                setViewMode('radar');
+                setCurrentTab('dashboard');
+              }}
+              currency={currency}
+              onNavigateToApprovals={() => setCurrentTab('approvals')}
+            />
+          )}
+
+          {/* TAB 3: Approval Center */}
           {currentTab === 'approvals' && (
-            <div className="border border-[#E2E8F0] rounded-lg p-6 bg-white space-y-4">
+            <div className="border border-[#E2E8F0] rounded-xl p-6 bg-white space-y-4 shadow-xs">
               <div className="flex items-center gap-3">
-                <Layers className="w-5 h-5 text-[#2563EB]" />
-                <h2 className="font-headline text-xl text-[#020062]">
-                  Approval Center Ready
+                <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <h2 className="font-headline text-xl text-[#020062] font-bold">
+                  Approval Center — Human-Gated Action Gate
                 </h2>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
                 The approval lifecycle requires human verification before any consequential customer communication or CRM update is dispatched. In upcoming pages, you can review drafts, edit proposal bodies, and trigger cryptographic hash-bound approvals.
               </p>
-              <div className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-md text-xs text-slate-700 flex items-center justify-between">
-                <span>Active approval gate: <strong>Version-Bound Content Hashing</strong></span>
-                <span className="text-[#0025AE] font-semibold flex items-center gap-1 cursor-pointer" onClick={() => setCurrentTab('dashboard')}>
+              <div className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs text-slate-700 flex items-center justify-between">
+                <span>Active safety gate: <strong>Version-Bound Content Hashing</strong></span>
+                <button
+                  onClick={() => {
+                    setViewMode('radar');
+                    setCurrentTab('dashboard');
+                  }}
+                  className="text-[#0025AE] font-semibold flex items-center gap-1 cursor-pointer hover:underline"
+                >
                   Return to Revenue Radar <ArrowRight className="w-3.5 h-3.5" />
-                </span>
+                </button>
               </div>
             </div>
           )}
 
-          {/* Tab 4: Settings Info */}
+          {/* TAB 4: Settings & Data Connections */}
           {currentTab === 'settings' && (
-            <div className="border border-[#E2E8F0] rounded-lg p-6 bg-white space-y-4">
+            <div className="border border-[#E2E8F0] rounded-xl p-6 bg-white space-y-4 shadow-xs">
               <div className="flex items-center gap-3">
-                <Building className="w-5 h-5 text-[#2563EB]" />
-                <h2 className="font-headline text-xl text-[#020062]">
+                <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
+                  <Building className="w-5 h-5" />
+                </div>
+                <h2 className="font-headline text-xl text-[#020062] font-bold">
                   Data Foundation & Environment
                 </h2>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
                 SignalBridge AI is configured to read directly from MongoDB or the normalized seed repository. Collections seeded: <code>accounts</code>, <code>contacts</code>, and <code>signals</code>.
               </p>
-              <div className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-md text-xs text-slate-700 space-y-2">
+              <div className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs text-slate-700 space-y-2">
                 <div>Backend Service: <strong>FastAPI on :8000</strong></div>
                 <div>Configured Execution Mode: <strong>{executionMode}</strong></div>
                 <div>Status: <strong className="text-emerald-700">Healthy & Synchronized</strong></div>

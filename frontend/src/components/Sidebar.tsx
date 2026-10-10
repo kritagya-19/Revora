@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity, Sparkles } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'approvals' | 'settings';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'approvals' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -20,17 +20,25 @@ export function Sidebar({
   const navItems = [
     {
       id: 'dashboard' as NavItem,
-      label: 'Dashboard',
-      sublabel: 'Revenue Radar',
+      label: 'Revenue Radar',
+      sublabel: 'Landing & Alerts',
       icon: LayoutDashboard,
       badge: null
     },
     {
       id: 'customers' as NavItem,
-      label: 'Customers',
-      sublabel: 'Accounts & Signals',
+      label: 'Customer Details',
+      sublabel: 'Evidence Timeline',
       icon: Users,
       badge: accountCount > 0 ? accountCount : null
+    },
+    {
+      id: 'autopsy' as NavItem,
+      label: 'Risk Autopsy',
+      sublabel: 'AI Wow Feature',
+      icon: Sparkles,
+      badge: 'AI',
+      badgeColor: 'bg-[#2563EB]/10 text-[#2563EB] font-bold'
     },
     {
       id: 'approvals' as NavItem,
