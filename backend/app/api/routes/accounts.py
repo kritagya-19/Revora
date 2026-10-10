@@ -8,7 +8,8 @@ from app.models.schemas import (
     Signal,
     EvidenceRecord,
     RevenueRiskAutopsy,
-    RiskLevel
+    RiskLevel,
+    DraftActionsResponse
 )
 from app.services.account_repository import account_repo
 
@@ -107,3 +108,24 @@ def get_account_autopsy(account_id: str):
         unknowns=unknowns,
         suggested_action_type="csm_outreach_email"
     )
+
+@router.post("/{account_id}/actions/draft", response_model=DraftActionsResponse)
+def draft_account_actions(account_id: str):
+    """
+    POST /api/accounts/{id}/actions/draft
+    Generates personalized, evidence-grounded action drafts across:
+    1. Email draft (recipient, subject, editable body, reason)
+    2. Follow-up task (title, description, assigned owner, due date, priority)
+    3. CRM update (field name, current value, proposed value, strategic reason, evidence citations)
+    """
+    from app.services.llm_service import llm_service
+    from app.services.investigation_repository import investigation_repo
+
+    acc = account_repo.get_account_by_id(account_id)
+    if not acc:
+        raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
+
+    investigation = investigation_repo.get_latest_for_account(account_id)
+    drafts = llm_service.generate_draft_actions(acc, investigation)
+    return drafts
+

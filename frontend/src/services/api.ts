@@ -9,7 +9,14 @@ import type {
   Investigation,
   AskAccountQuestionResponse,
   ActionProposal,
-  AuditLog
+  AuditLog,
+  DraftActionsResponse,
+  CreateActionProposalRequest,
+  PatchActionProposalRequest,
+  EnrichedPendingApproval,
+  IntegrationConnector,
+  SyncRunRecord,
+  TriggerSyncResponse
 } from '../types/api';
 
 const API_BASE = 'http://localhost:8000';
@@ -81,6 +88,8 @@ export async function fetchAccountProposals(accountId: string): Promise<ActionPr
   if (!res.ok) throw new Error(`Failed to fetch proposals: ${res.statusText}`);
   return res.json();
 }
+
+export const fetchProposalsForAccount = fetchAccountProposals;
 
 export async function updateProposal(proposalId: string, title: string, payload: Record<string, any>): Promise<ActionProposal> {
   const res = await fetch(`${API_BASE}/api/v1/proposals/${proposalId}`, {
@@ -155,4 +164,146 @@ export async function askAccountQuestion(accountId: string, question: string): P
   }
   return res.json();
 }
+
+// Page 5: Next-Best-Action Copilot API endpoints
+export async function draftAccountActions(accountId: string): Promise<DraftActionsResponse> {
+  const res = await fetch(`${API_BASE}/api/accounts/${accountId}/actions/draft`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to draft actions: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function createActionProposal(req: CreateActionProposalRequest): Promise<ActionProposal> {
+  const res = await fetch(`${API_BASE}/api/action-proposals`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to create action proposal: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchActionProposalById(proposalId: string): Promise<ActionProposal> {
+  const res = await fetch(`${API_BASE}/api/action-proposals/${proposalId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch proposal ${proposalId}: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function patchActionProposal(proposalId: string, req: PatchActionProposalRequest): Promise<ActionProposal> {
+  const res = await fetch(`${API_BASE}/api/action-proposals/${proposalId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to patch proposal: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Page 6: Trust & Approval Center APIs
+export async function fetchPendingApprovals(status?: string): Promise<EnrichedPendingApproval[]> {
+  const url = status ? `${API_BASE}/api/approvals?status=${encodeURIComponent(status)}` : `${API_BASE}/api/approvals`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch approvals: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function approvePendingProposal(
+  proposalId: string,
+  expectedHash?: string,
+  approver = 'CSM Team',
+  autoExecute = true
+): Promise<{ proposal: ActionProposal; approval_status: string; reviewer: string; execution: Record<string, any> }> {
+  const res = await fetch(`${API_BASE}/api/approvals/${proposalId}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      approver,
+      expected_hash: expectedHash,
+      auto_execute: autoExecute
+    })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Approval failed: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function rejectPendingProposal(
+  proposalId: string,
+  reason: string,
+  reviewer = 'CSM Team'
+): Promise<{ proposal: ActionProposal; approval_status: string; decision_reason: string; reviewer: string }> {
+  const res = await fetch(`${API_BASE}/api/approvals/${proposalId}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      reason,
+      reviewer
+    })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Rejection failed: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchGlobalAuditLogs(limit = 100): Promise<AuditLog[]> {
+  const res = await fetch(`${API_BASE}/api/audit-logs?limit=${limit}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch audit logs: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Page 7: Settings & Integrations APIs
+export async function fetchIntegrations(): Promise<IntegrationConnector[]> {
+  const res = await fetch(`${API_BASE}/api/integrations`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch integrations: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function triggerIntegrationSync(integrationId: string): Promise<TriggerSyncResponse> {
+  const res = await fetch(`${API_BASE}/api/integrations/${integrationId}/sync`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to trigger sync: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchRecentSyncRuns(limit = 20): Promise<SyncRunRecord[]> {
+  const res = await fetch(`${API_BASE}/api/integrations/sync-runs/recent?limit=${limit}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch sync runs: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+
+
 

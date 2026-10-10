@@ -12,6 +12,9 @@ import { MetricCard } from './components/MetricCard';
 import { AccountTable } from './components/AccountTable';
 import { CustomerDetailView } from './components/CustomerDetailView';
 import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
+import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
+import { ApprovalCenterView } from './components/ApprovalCenterView';
+import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
 import { ErrorState } from './components/ErrorState';
@@ -19,15 +22,12 @@ import {
   Users,
   AlertTriangle,
   Calendar,
-  DollarSign,
-  Building,
-  Layers,
-  ArrowRight
+  DollarSign
 } from 'lucide-react';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavItem>('dashboard');
-  const [viewMode, setViewMode] = useState<'radar' | 'customer_detail' | 'autopsy'>('radar');
+  const [viewMode, setViewMode] = useState<'radar' | 'customer_detail' | 'autopsy' | 'copilot'>('radar');
   const [accounts, setAccounts] = useState<AccountRiskSummary[]>([]);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -99,6 +99,8 @@ export function App() {
       setViewMode('customer_detail');
     } else if (tab === 'autopsy') {
       setViewMode('autopsy');
+    } else if (tab === 'copilot') {
+      setViewMode('copilot');
     }
   };
 
@@ -161,6 +163,12 @@ export function App() {
   };
 
   const getPageTitle = () => {
+    if (currentTab === 'copilot' || viewMode === 'copilot') {
+      return {
+        title: selectedAccountDetail ? `${selectedAccountDetail.name} — Action Copilot` : 'Next-Best-Action Copilot',
+        subtitle: 'Page 5: Editable Action Proposals (Email Draft, Follow-up Task, Structured CRM Update)'
+      };
+    }
     if (currentTab === 'autopsy' || viewMode === 'autopsy') {
       return {
         title: selectedAccountDetail ? `${selectedAccountDetail.name} — Risk Autopsy` : 'Revenue Risk Autopsy',
@@ -298,6 +306,10 @@ export function App() {
                 setViewMode('autopsy');
                 setCurrentTab('autopsy');
               }}
+              onNavigateToCopilot={() => {
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
             />
           )}
 
@@ -319,58 +331,57 @@ export function App() {
               }}
               currency={currency}
               onNavigateToApprovals={() => setCurrentTab('approvals')}
+              onNavigateToCopilot={() => {
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
             />
           )}
 
-          {/* TAB 3: Approval Center */}
-          {currentTab === 'approvals' && (
-            <div className="border border-[#E2E8F0] rounded-xl p-6 bg-white space-y-4 shadow-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <h2 className="font-headline text-xl text-[#020062] font-bold">
-                  Approval Center — Human-Gated Action Gate
-                </h2>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
-                The approval lifecycle requires human verification before any consequential customer communication or CRM update is dispatched. In upcoming pages, you can review drafts, edit proposal bodies, and trigger cryptographic hash-bound approvals.
-              </p>
-              <div className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs text-slate-700 flex items-center justify-between">
-                <span>Active safety gate: <strong>Version-Bound Content Hashing</strong></span>
-                <button
-                  onClick={() => {
-                    setViewMode('radar');
-                    setCurrentTab('dashboard');
-                  }}
-                  className="text-[#0025AE] font-semibold flex items-center gap-1 cursor-pointer hover:underline"
-                >
-                  Return to Revenue Radar <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+          {/* TAB 4 / Page 5: Next-Best-Action Copilot (Editable Proposals) */}
+          {(currentTab === 'copilot' || viewMode === 'copilot') && selectedAccountDetail && (
+            <NextBestActionCopilotView
+              account={selectedAccountDetail}
+              allAccounts={accounts}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onBackToCustomer={() => {
+                setViewMode('customer_detail');
+                setCurrentTab('customers');
+              }}
+              onBackToRadar={() => {
+                setViewMode('radar');
+                setCurrentTab('dashboard');
+              }}
+              onNavigateToApprovals={() => {
+                setCurrentTab('approvals');
+              }}
+              currency={currency}
+            />
           )}
 
-          {/* TAB 4: Settings & Data Connections */}
+          {/* TAB 5 / Page 6: Trust & Approval Center */}
+          {currentTab === 'approvals' && (
+            <ApprovalCenterView
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('customer_detail');
+                setCurrentTab('customers');
+              }}
+              onNavigateToCopilot={() => {
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+            />
+          )}
+
+          {/* TAB 6 / Page 7: Settings & Integrations */}
           {currentTab === 'settings' && (
-            <div className="border border-[#E2E8F0] rounded-xl p-6 bg-white space-y-4 shadow-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
-                  <Building className="w-5 h-5" />
-                </div>
-                <h2 className="font-headline text-xl text-[#020062] font-bold">
-                  Data Foundation & Environment
-                </h2>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
-                SignalBridge AI is configured to read directly from MongoDB or the normalized seed repository. Collections seeded: <code>accounts</code>, <code>contacts</code>, and <code>signals</code>.
-              </p>
-              <div className="p-4 bg-slate-50 border border-[#E2E8F0] rounded-lg text-xs text-slate-700 space-y-2">
-                <div>Backend Service: <strong>FastAPI on :8000</strong></div>
-                <div>Configured Execution Mode: <strong>{executionMode}</strong></div>
-                <div>Status: <strong className="text-emerald-700">Healthy & Synchronized</strong></div>
-              </div>
-            </div>
+            <SettingsAndIntegrationsView
+              executionMode={executionMode}
+              backendHealthy={backendHealthy}
+            />
           )}
         </>
       )}

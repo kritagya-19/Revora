@@ -340,4 +340,114 @@ Return JSON:
             uncertainties=["Additional context can be obtained through direct customer check-in."]
         )
 
+    def draft_followup_email(self, account: AccountDetail, investigation: Optional[Investigation] = None) -> Dict[str, Any]:
+        """
+        Drafts a personalized, context-grounded executive email using verified account signals,
+        stakeholder relationships, and the recommended intervention action.
+        """
+        primary_contact = next((c for c in account.contacts if c.is_primary), account.contacts[0] if account.contacts else None)
+        recipient = primary_contact.email if primary_contact else f"sponsor@{account.domain or 'company.com'}"
+        recipient_name = primary_contact.name if primary_contact else "Leadership Team"
+        top_signals = account.signals[:3]
+        evidence_ids = [s.id for s in top_signals]
+
+        # Use investigation action context if available
+        action_reason = (
+            investigation.recommended_action.reason
+            if investigation and investigation.recommended_action
+            else f"Proactively mitigate {account.primary_reason_code.replace('_', ' ')} ahead of {account.renewal_date} contract renewal."
+        )
+
+        subject = f"{account.name} — Platform Continuity & Executive Alignment ({account.renewal_date})"
+        body = (
+            f"Hi {recipient_name},\n\n"
+            f"I hope you're having a productive week. As your Customer Success Partner at Revora, "
+            f"I have been tracking your team's utilization trends and upcoming renewal scheduled for {account.renewal_date}.\n\n"
+            f"Recently, our operational telemetry detected a few items we want to ensure are addressed swiftly:\n"
+            f"• Verified usage shifts: {top_signals[0].summary if top_signals else 'Telemetry variance observed'}\n"
+            f"• Service continuity: Addressing open SLA escalations and optimizing seat allocations across departments.\n\n"
+            f"I would like to schedule a brief 20-minute alignment session this Thursday or Friday with our Solutions Architect to review these metrics, provide direct resolution on open tickets, and tailor your license tier to maximize ROI.\n\n"
+            f"Please let me know if Thursday 2:00 PM or Friday 11:00 AM works for your calendar.\n\n"
+            f"Best regards,\n"
+            f"{account.csm_owner}\n"
+            f"Revora Customer Success"
+        )
+
+        return {
+            "recipient": recipient,
+            "recipient_name": recipient_name,
+            "subject": subject,
+            "body": body,
+            "reason": action_reason,
+            "evidence_ids": evidence_ids
+        }
+
+    def draft_followup_task(self, account: AccountDetail, investigation: Optional[Investigation] = None) -> Dict[str, Any]:
+        """
+        Prepares a structured follow-up operational task assigned to the account owner.
+        """
+        top_signals = account.signals[:2]
+        evidence_ids = [s.id for s in top_signals]
+
+        task_title = f"Conduct Executive Health Review & Ticket Resolution for {account.name}"
+        task_desc = (
+            f"Schedule 20-min alignment with {account.name} stakeholders regarding {account.primary_reason_code.replace('_', ' ')}. "
+            f"Coordinate with Support engineering to clear blocking tickets prior to renewal window ({account.urgency_days_to_renewal} days remaining)."
+        )
+
+        return {
+            "title": task_title,
+            "description": task_desc,
+            "assigned_to": account.csm_owner,
+            "due_date": account.renewal_date,
+            "priority": "high" if account.risk_level.value in ("critical", "high") else "medium",
+            "evidence_ids": evidence_ids
+        }
+
+    def draft_crm_update(self, account: AccountDetail, investigation: Optional[Investigation] = None) -> Dict[str, Any]:
+        """
+        Prepares structured CRM updates with current value, proposed value, strategic reason,
+        and backing evidence citations.
+        """
+        top_signals = account.signals[:2]
+        evidence_ids = [s.id for s in top_signals]
+
+        current_val = "Healthy / Low Risk" if account.health_score and account.health_score > 70 else "Medium Risk"
+        proposed_val = f"High Churn Risk — {account.primary_reason_code.replace('_', ' ').title()}"
+        reason = (
+            f"Automated risk detection identified compounding indicators: "
+            f"Deterministic score {account.risk_score}/100, renewal in {account.urgency_days_to_renewal} days, "
+            f"and {len(account.signals)} verified risk signals."
+        )
+
+        return {
+            "field_name": "Account Risk Tier & Forecast Category",
+            "current_value": current_val,
+            "proposed_value": proposed_val,
+            "reason": reason,
+            "evidence_ids": evidence_ids
+        }
+
+    def generate_draft_actions(self, account: AccountDetail, investigation: Optional[Investigation] = None) -> Dict[str, Any]:
+        """
+        Synthesizes the complete Next-Best-Action copilot draft set across Email, Task, and CRM fields.
+        """
+        email_draft = self.draft_followup_email(account, investigation)
+        task_draft = self.draft_followup_task(account, investigation)
+        crm_draft = self.draft_crm_update(account, investigation)
+
+        return {
+            "account_id": account.id,
+            "account_name": account.name,
+            "investigation_id": investigation.id if investigation else f"inv-{account.id}",
+            "email_draft": email_draft,
+            "task_draft": {
+                "account_id": account.id,
+                **task_draft
+            },
+            "crm_update": crm_draft,
+            "created_at": datetime.utcnow().isoformat()
+        }
+
 llm_service = LLMService()
+

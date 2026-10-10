@@ -19,10 +19,28 @@ class SourceCategory(str, Enum):
 class ActionStatus(str, Enum):
     PROPOSED = "proposed"
     APPROVED = "approved"
+    REJECTED = "rejected"
     EXECUTING = "executing"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
+    RETRY_PENDING = "retry_pending"
     UNCERTAIN = "uncertain"
+
+class ApprovalRecord(BaseModel):
+    id: str
+    proposal_id: str
+    account_id: str
+    decision: str  # approved, rejected
+    reviewer: str
+    decision_reason: Optional[str] = None
+    content_hash: str
+    version: int
+    created_at: str
+
+class RejectProposalRequest(BaseModel):
+    reason: str
+    reviewer: Optional[str] = "CSM User"
+
 
 # Contacts
 class Contact(BaseModel):
@@ -251,3 +269,52 @@ class RevenueRiskAutopsy(BaseModel):
     interpretations: List[str] = Field(..., description="Derived context or hypothesis")
     unknowns: List[str] = Field(..., description="Missing signals or unknowns")
     suggested_action_type: str
+
+# Page 7: Settings and Integrations
+class IntegrationStatus(str, Enum):
+    CONNECTED = "connected"
+    SYNCING = "syncing"
+    DEGRADED = "degraded"
+    DISCONNECTED = "disconnected"
+
+class IntegrationMode(str, Enum):
+    LIVE = "live"
+    SIMULATED = "simulated"
+
+class IntegrationConnector(BaseModel):
+    id: str
+    name: str
+    category: str  # crm, email, calendar, usage, support, database
+    provider: str  # Salesforce, HubSpot, Gmail, Google Calendar, Mixpanel, Zendesk, MongoDB
+    status: IntegrationStatus
+    mode: IntegrationMode
+    is_real_connector: bool = False
+    endpoint_or_host: Optional[str] = None
+    last_sync_time: str
+    records_synced: int
+    data_freshness_status: str  # fresh, stale_warning, delayed
+    freshness_minutes: int
+    freshness_warning: Optional[str] = None
+    config_details: Dict[str, Any] = Field(default_factory=dict)
+
+class SyncRunRecord(BaseModel):
+    id: str
+    integration_id: str
+    provider: str
+    status: str  # success, in_progress, failed
+    records_ingested: int
+    records_updated: int
+    duration_ms: int
+    started_at: str
+    completed_at: Optional[str] = None
+    mode: IntegrationMode = IntegrationMode.SIMULATED
+    log_message: str
+
+class TriggerSyncResponse(BaseModel):
+    integration_id: str
+    status: str
+    sync_run_id: str
+    message: str
+    last_sync_time: str
+    freshness_minutes: int
+

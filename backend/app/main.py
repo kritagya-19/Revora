@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from app.core.config import settings
-from app.api.routes import accounts, proposals, dashboard, signals, investigations
+from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("revora.api")
@@ -47,6 +47,28 @@ app.include_router(investigations.router, prefix="/api/v1", tags=["Revenue Risk 
 
 app.include_router(proposals.router, prefix="/api/proposals", tags=["Proposals & Approval Gate"])
 app.include_router(proposals.router, prefix="/api/v1/proposals", tags=["Proposals & Approval Gate"])
+app.include_router(proposals.router, prefix="/api/action-proposals", tags=["Next-Best-Action Copilot Proposals"])
+app.include_router(proposals.router, prefix="/api/v1/action-proposals", tags=["Next-Best-Action Copilot Proposals"])
+
+# Page 6: Trust & Approval Center endpoints
+app.include_router(approvals.router, prefix="/api/approvals", tags=["Trust & Approval Center"])
+app.include_router(approvals.router, prefix="/api/v1/approvals", tags=["Trust & Approval Center"])
+
+# Page 7: Settings and Integrations endpoints
+app.include_router(integrations.router, prefix="/api/integrations", tags=["Settings & Integrations"])
+app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["Settings & Integrations"])
+
+# Global audit logs alias
+@app.get("/api/audit-logs", tags=["Audit Log"])
+def get_global_audit_logs(limit: int = 100):
+    from app.services.proposal_repository import proposal_repo
+    return proposal_repo.get_all_audit_logs(limit=limit)
+
+@app.get("/api/v1/audit-logs", tags=["Audit Log"])
+def get_global_audit_logs_v1(limit: int = 100):
+    from app.services.proposal_repository import proposal_repo
+    return proposal_repo.get_all_audit_logs(limit=limit)
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):

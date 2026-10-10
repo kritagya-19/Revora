@@ -1,5 +1,5 @@
 export type RiskLevel = 'critical' | 'high' | 'medium' | 'low';
-export type ActionStatus = 'proposed' | 'approved' | 'executing' | 'succeeded' | 'failed' | 'uncertain';
+export type ActionStatus = 'proposed' | 'approved' | 'rejected' | 'executing' | 'succeeded' | 'failed' | 'retry_pending' | 'uncertain';
 
 export interface Contact {
   id: string;
@@ -166,16 +166,78 @@ export interface RevenueRiskAutopsy {
   suggested_action_type: string;
 }
 
+// Page 5: Next-Best-Action Copilot Types
+export interface EmailDraftItem {
+  recipient: string;
+  recipient_name?: string;
+  subject: string;
+  body: string;
+  reason: string;
+  evidence_ids: string[];
+}
+
+export interface ProposedTask {
+  id?: string;
+  account_id: string;
+  title: string;
+  description: string;
+  assigned_to: string;
+  due_date: string;
+  priority: 'high' | 'medium' | 'low';
+  status?: string;
+  evidence_ids: string[];
+  created_at?: string;
+}
+
+export interface ProposedCRMUpdate {
+  field_name: string;
+  current_value: string;
+  proposed_value: string;
+  reason: string;
+  evidence_ids: string[];
+}
+
+export interface DraftActionsResponse {
+  account_id: string;
+  account_name: string;
+  investigation_id?: string;
+  email_draft: EmailDraftItem;
+  task_draft: ProposedTask;
+  crm_update: ProposedCRMUpdate;
+  created_at: string;
+}
+
+export interface CreateActionProposalRequest {
+  account_id: string;
+  action_type: 'csm_email' | 'task_create' | 'crm_update' | string;
+  title: string;
+  reason?: string;
+  payload: Record<string, any>;
+  evidence_ids?: string[];
+  investigation_id?: string;
+}
+
+export interface PatchActionProposalRequest {
+  title?: string;
+  reason?: string;
+  payload?: Record<string, any>;
+  status?: ActionStatus;
+}
+
 export interface ActionProposal {
   id: string;
   account_id: string;
   action_type: string;
   title: string;
+  reason?: string;
+  investigation_id?: string;
+  evidence_ids?: string[];
   payload: Record<string, any>;
   status: ActionStatus;
   version: number;
   content_hash: string;
   created_at: string;
+  updated_at?: string;
   approved_by?: string;
   approved_at?: string;
   execution_result?: Record<string, any>;
@@ -189,3 +251,74 @@ export interface AuditLog {
   details: Record<string, any>;
   timestamp: string;
 }
+
+// Page 6: Trust & Approval Center Types
+export interface EnrichedPendingApproval {
+  id: string;
+  account_id: string;
+  customer_name: string;
+  account_owner: string;
+  risk_score: number;
+  risk_level: RiskLevel;
+  urgency_days_to_renewal: number;
+  action_type: string;
+  title: string;
+  reason?: string;
+  payload: Record<string, any>;
+  evidence_ids: string[];
+  status: ActionStatus;
+  version: number;
+  content_hash: string;
+  created_at: string;
+  updated_at?: string;
+  approved_by?: string;
+  approved_at?: string;
+  execution_result?: Record<string, any>;
+}
+
+// Page 7: Settings & Integrations Types
+export type IntegrationStatus = 'connected' | 'syncing' | 'degraded' | 'disconnected';
+export type IntegrationMode = 'live' | 'simulated';
+
+export interface IntegrationConnector {
+  id: string;
+  name: string;
+  category: 'crm' | 'email' | 'calendar' | 'usage' | 'database' | string;
+  provider: string;
+  status: IntegrationStatus;
+  mode: IntegrationMode;
+  is_real_connector: boolean;
+  endpoint_or_host?: string;
+  last_sync_time: string;
+  records_synced: number;
+  data_freshness_status: 'fresh' | 'stale_warning' | 'delayed' | string;
+  freshness_minutes: number;
+  freshness_warning?: string | null;
+  config_details?: Record<string, any>;
+}
+
+export interface SyncRunRecord {
+  id: string;
+  integration_id: string;
+  provider: string;
+  status: 'success' | 'in_progress' | 'failed' | string;
+  records_ingested: number;
+  records_updated: number;
+  duration_ms: number;
+  started_at: string;
+  completed_at?: string;
+  mode: IntegrationMode;
+  log_message: string;
+}
+
+export interface TriggerSyncResponse {
+  integration_id: string;
+  status: string;
+  sync_run_id: string;
+  message: string;
+  last_sync_time: string;
+  freshness_minutes: number;
+}
+
+
+

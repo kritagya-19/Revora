@@ -46,6 +46,7 @@ interface RevenueRiskAutopsyViewProps {
   onBackToRadar: () => void;
   currency?: 'USD' | 'INR';
   onNavigateToApprovals?: () => void;
+  onNavigateToCopilot?: () => void;
 }
 
 interface ChatMessage {
@@ -65,7 +66,8 @@ export function RevenueRiskAutopsyView({
   onBackToCustomer,
   onBackToRadar,
   currency = 'USD',
-  onNavigateToApprovals
+  onNavigateToApprovals,
+  onNavigateToCopilot
 }: RevenueRiskAutopsyViewProps) {
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -599,19 +601,31 @@ export function RevenueRiskAutopsyView({
               </div>
 
               {/* Action Stage CTA */}
-              <div className="pt-2 flex items-center justify-between gap-3">
+              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-[11px] text-slate-600 font-body">
                   Target Recipient: <strong className="text-slate-800">{investigation.recommended_action.target_recipient || 'Account Champion'}</strong>
                 </span>
 
-                <button
-                  onClick={onNavigateToApprovals}
-                  className="inline-flex items-center gap-2 bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-xs transition-all cursor-pointer"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Stage for Approval Gate</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {onNavigateToCopilot && (
+                    <button
+                      onClick={onNavigateToCopilot}
+                      className="inline-flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-xs transition-all cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Open Action Copilot (Page 5)</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  <button
+                    onClick={onNavigateToApprovals}
+                    className="inline-flex items-center gap-1.5 bg-white border border-[#E2E8F0] hover:bg-slate-50 text-[#020062] text-xs font-semibold px-3.5 py-2.5 rounded-lg shadow-2xs transition-all cursor-pointer"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Approval Center</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity, Sparkles, Send } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'approvals' | 'settings';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -35,10 +35,18 @@ export function Sidebar({
     {
       id: 'autopsy' as NavItem,
       label: 'Risk Autopsy',
-      sublabel: 'AI Wow Feature',
+      sublabel: 'AI Causal Synthesis',
       icon: Sparkles,
       badge: 'AI',
       badgeColor: 'bg-[#2563EB]/10 text-[#2563EB] font-bold'
+    },
+    {
+      id: 'copilot' as NavItem,
+      label: 'Action Copilot',
+      sublabel: 'Page 5 Proposals',
+      icon: Send,
+      badge: 'Copilot',
+      badgeColor: 'bg-indigo-100 text-[#0025AE] font-semibold'
     },
     {
       id: 'approvals' as NavItem,

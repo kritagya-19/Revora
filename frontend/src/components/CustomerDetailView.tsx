@@ -29,6 +29,7 @@ interface CustomerDetailViewProps {
   currency?: 'USD' | 'INR';
   onNavigateToApprovals?: () => void;
   onInvestigateWithAI?: () => void;
+  onNavigateToCopilot?: () => void;
 }
 
 export function CustomerDetailView({
@@ -36,7 +37,8 @@ export function CustomerDetailView({
   onBackToRadar,
   currency = 'USD',
   onNavigateToApprovals,
-  onInvestigateWithAI
+  onInvestigateWithAI,
+  onNavigateToCopilot
 }: CustomerDetailViewProps) {
   const [timelineFilter, setTimelineFilter] = useState<string>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
@@ -178,15 +180,27 @@ export function CustomerDetailView({
               </span>
             </div>
 
-            {/* Prominent Action Button: Investigate with AI */}
-            <button
-              onClick={handleInvestigateWithAI}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-[#0025AE] text-white text-xs font-bold hover:bg-[#2563EB] cursor-pointer transition-all shadow-md hover:shadow-lg"
-            >
-              <Bot className="w-4 h-4 text-blue-200" />
-              <span>Investigate with AI</span>
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            </button>
+            {/* Action Copilot & Investigate with AI CTA Buttons */}
+            <div className="flex items-center gap-2">
+              {onNavigateToCopilot && (
+                <button
+                  onClick={onNavigateToCopilot}
+                  className="inline-flex items-center gap-1.5 px-4 py-3 rounded-lg bg-white border border-[#2563EB]/40 hover:bg-blue-50 text-[#0025AE] text-xs font-bold cursor-pointer transition-all shadow-2xs hover:shadow-xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>Action Copilot</span>
+                </button>
+              )}
+
+              <button
+                onClick={handleInvestigateWithAI}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-[#0025AE] text-white text-xs font-bold hover:bg-[#2563EB] cursor-pointer transition-all shadow-md hover:shadow-lg"
+              >
+                <Bot className="w-4 h-4 text-blue-200" />
+                <span>Investigate with AI</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              </button>
+            </div>
           </div>
         </div>
 
