@@ -45,8 +45,8 @@ def test_proposal_edit_invalidates_prior_approval():
     original_version = prop.version
     
     # Approve first
-    proposal_repo.approve_proposal(prop.id, "CSM User", prop.content_hash)
-    assert prop.status == ActionStatus.APPROVED
+    approved = proposal_repo.approve_proposal(prop.id, "CSM User", prop.content_hash)
+    assert approved.status == ActionStatus.APPROVED
 
     # Edit proposal
     new_payload = {**prop.payload, "value": "Updated risk level"}
