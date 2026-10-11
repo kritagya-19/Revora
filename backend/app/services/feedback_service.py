@@ -334,6 +334,7 @@ class FeedbackService:
             account_name=account_name,
             recipient_email=submission.respondent_email or (survey.recipient_email if survey else "customer@domain.com"),
             recipient_name=submission.respondent_name or (survey.recipient_name if survey else "Customer Champion"),
+            feedback_type=submission.feedback_type or "customer_survey",
             submission=submission,
             analysis=analysis,
             created_at=survey.created_at if survey else submitted_at,
@@ -653,31 +654,34 @@ Return strictly valid JSON conforming to this schema:
         Emits a structured feedback Signal so it's visible in Account Evidence Timeline
         and picked up by the Risk Engine and Agent Orchestrator.
         """
+        fb_type = record.feedback_type or "customer_survey"
         sig_id = f"sig-fb-{record.id}"
         severity = "critical" if (record.submission.satisfaction_score and record.submission.satisfaction_score <= 4) else "high"
+        type_title = fb_type.replace('_', ' ').title()
         
         sig = Signal(
             id=sig_id,
             account_id=account_id,
             source_category="support",
             source="feedback_form",
-            source_type="customer_survey",
+            source_type=fb_type,
             signal_type="customer_feedback_received",
-            title=f"Customer Survey Feedback Received (Score: {record.submission.satisfaction_score or 'N/A'}/10)",
-            summary=f"Respondent {record.recipient_name} submitted survey: '{record.submission.primary_blocker or record.submission.usage_trend_self_report or 'Feedback submitted'}'",
-            description=record.submission.unresolved_issues or record.submission.additional_comments or "Feedback submitted via personalized survey.",
+            title=f"Customer Feedback ({type_title}) - Score: {record.submission.satisfaction_score or 'N/A'}/10",
+            summary=f"Respondent {record.recipient_name} submitted {type_title}: '{record.submission.primary_blocker or record.submission.usage_trend_self_report or 'Feedback submitted'}'",
+            description=record.submission.unresolved_issues or record.submission.additional_comments or f"{type_title} submitted.",
             severity=severity,
             timestamp=record.submitted_at,
             metadata={
                 "survey_code": record.survey_code,
                 "feedback_id": record.id,
+                "feedback_type": fb_type,
                 "satisfaction_score": record.submission.satisfaction_score,
                 "classified_churn_reason": record.analysis.classified_churn_reason if record.analysis else None,
                 "recommended_retention_action": record.analysis.recommended_retention_action if record.analysis else None
             }
         )
 
-        account_repo._signals_data.append(sig.model_dump())
-        logger.info(f"Ingested survey response as Signal {sig_id} for account {account_id}")
+        account_repo.create_signal(sig)
+        logger.info(f"Ingested {fb_type} as Signal {sig_id} for account {account_id}")
 
 feedback_service = FeedbackService()

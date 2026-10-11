@@ -698,4 +698,7 @@ class FeedbackRepository:
                 except Exception as e:
                     logger.error(f"MongoDB update survey status failed: {e}")
 
+    def get_responses_by_account(self, account_id: str) -> List[CustomerFeedbackRecord]:
+        return self.list_feedback_records(account_id=account_id)
+
 feedback_repo = FeedbackRepository()

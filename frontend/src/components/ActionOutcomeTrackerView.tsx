@@ -1,11 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { ActionTrackerItem, ActionExecutionStatus, WorkStatus } from '../types/api';
+import type {
+  ActionTrackerItem,
+  ActionExecutionStatus,
+  WorkStatus,
+  PostActionImprovementCycle
+} from '../types/api';
 import {
   fetchTrackedActions,
   saveActionOutcome,
   updateTrackedActionStatus,
   autoCaptureActionOutcome,
-  syncApprovedProposalsToTracker
+  syncApprovedProposalsToTracker,
+  fetchPostActionCycle,
+  evaluatePostActionCycle,
+  triggerSecondaryReview
 } from '../services/api';
 import {
   ClipboardCheck,
@@ -31,7 +39,11 @@ import {
   BookmarkCheck,
   Zap,
   Info,
-  X
+  X,
+  Activity,
+  TrendingUp,
+  TrendingDown,
+  ShieldAlert
 } from 'lucide-react';
 
 interface ActionOutcomeTrackerViewProps {
@@ -62,6 +74,14 @@ export function ActionOutcomeTrackerView({
   const [savingOutcome, setSavingOutcome] = useState<boolean>(false);
   const [syncingApproved, setSyncingApproved] = useState<boolean>(false);
   const [autoCapturingId, setAutoCapturingId] = useState<string | null>(null);
+
+  // Task C: Post-Action Improvement Cycle State
+  const [activeCycle, setActiveCycle] = useState<PostActionImprovementCycle | null>(null);
+  const [evaluatingCycle, setEvaluatingCycle] = useState<boolean>(false);
+  const [showTriggerReviewModal, setShowTriggerReviewModal] = useState<boolean>(false);
+  const [reviewReason, setReviewReason] = useState<string>('');
+  const [reviewUrgency, setReviewUrgency] = useState<string>('high');
+  const [triggeringReview, setTriggeringReview] = useState<boolean>(false);
 
   // Status updates in-flight
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
@@ -121,9 +141,63 @@ export function ActionOutcomeTrackerView({
     }
   };
 
-  const handleSelectItem = (item: ActionTrackerItem) => {
+  const handleSelectItem = async (item: ActionTrackerItem) => {
     setSelectedItem(item);
     populateOutcomeForm(item);
+    try {
+      const cycle = await fetchPostActionCycle(item.id);
+      setActiveCycle(cycle);
+    } catch {
+      setActiveCycle(null);
+    }
+  };
+
+  const handleReevaluateCycle = async (itemId: string) => {
+    try {
+      setEvaluatingCycle(true);
+      const updated = await evaluatePostActionCycle(itemId);
+      setActiveCycle(updated);
+      setToast({
+        type: 'success',
+        message: `Evaluated telemetry cycle: situation marked as ${updated.verdict.toUpperCase().replace('_', ' ')}`
+      });
+      loadTrackerData();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Failed to evaluate cycle'
+      });
+    } finally {
+      setEvaluatingCycle(false);
+    }
+  };
+
+  const handleTriggerSecondaryReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItem || !reviewReason.trim()) return;
+    try {
+      setTriggeringReview(true);
+      const updated = await triggerSecondaryReview(selectedItem.id, {
+        reason: reviewReason.trim(),
+        reviewer_name: 'Elena Vance (CSM Lead)',
+        review_urgency: reviewUrgency
+      });
+      setActiveCycle(updated);
+      setShowTriggerReviewModal(false);
+      setReviewReason('');
+      setToast({
+        type: 'success',
+        message: 'Secondary review and follow-up reminder triggered successfully!'
+      });
+      loadTrackerData();
+    } catch (err: any) {
+      setToast({
+        type: 'error',
+        message: err.message || 'Failed to trigger secondary review'
+      });
+    } finally {
+      setTriggeringReview(false);
+    }
   };
 
   const handleSyncApprovedProposals = async () => {
@@ -617,9 +691,10 @@ export function ActionOutcomeTrackerView({
         </div>
 
         {/* Right Side: Detail & Outcome Form Drawer (5 Columns) */}
-        <div className="lg:col-span-5 space-y-4 sticky top-24">
+        <div className="lg:col-span-5 space-y-4 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
           {selectedItem ? (
-            <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm divide-y divide-[#E2E8F0]">
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm divide-y divide-[#E2E8F0]">
               {/* Header */}
               <div className="p-5 bg-gradient-to-br from-slate-50 to-white rounded-t-xl">
                 <div className="flex items-center justify-between mb-2">
@@ -898,19 +973,370 @@ export function ActionOutcomeTrackerView({
                 </button>
               </form>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-[#E2E8F0] p-8 text-center text-slate-500 space-y-3">
-              <ClipboardCheck className="w-12 h-12 text-slate-300 mx-auto" />
-              <h4 className="text-sm font-bold text-[#020062]">Select an action to inspect</h4>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                Select any action from the left panel to update execution progress, log customer responses, or review automated outcome ingestion.
-              </p>
+
+            {/* Task C: Post-Action Improvement Cycle */}
+            <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-5 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#020062] font-headline">
+                      Post-Action Improvement Cycle
+                    </h4>
+                    <p className="text-[10px] text-slate-500">
+                      Member 3 (Task C) • Telemetry & Signal Comparison
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleReevaluateCycle(selectedItem.id)}
+                  disabled={evaluatingCycle}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-[11px] font-semibold text-slate-700 hover:text-slate-900 shadow-xs cursor-pointer disabled:opacity-50 transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${evaluatingCycle ? 'animate-spin text-indigo-600' : 'text-slate-400'}`} />
+                  <span>{evaluatingCycle ? 'Evaluating...' : 'Re-evaluate Cycle'}</span>
+                </button>
+              </div>
+
+              {activeCycle ? (
+                <div className="space-y-4">
+                  {/* Verdict Banner */}
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-slate-50/70 border-slate-200">
+                    <div className="flex items-center gap-2">
+                      {activeCycle.verdict === 'improved' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Improved Situation</span>
+                        </span>
+                      )}
+                      {activeCycle.verdict === 'remained_unchanged' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          <Activity className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Remained Unchanged</span>
+                        </span>
+                      )}
+                      {activeCycle.verdict === 'deteriorated' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                          <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Deteriorated</span>
+                        </span>
+                      )}
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        {activeCycle.subsequent_signals_count} signals analyzed
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {new Date(activeCycle.evaluated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+
+                  {/* 4-Quadrant State Comparison Grid */}
+                  <div className="grid grid-cols-2 gap-2.5 text-xs">
+                    {/* Telemetry Usage */}
+                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Usage Telemetry
+                      </span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-mono text-slate-500 text-[11px]">
+                          {activeCycle.state_comparison.usage_baseline.toFixed(1)} / hr
+                        </span>
+                        <span className="text-slate-400 text-[10px]">➔</span>
+                        <span className="font-mono font-bold text-slate-800 text-xs">
+                          {activeCycle.state_comparison.subsequent_usage_avg.toFixed(1)} / hr
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 pt-0.5">
+                        <span
+                          className={`text-[10px] font-bold ${
+                            activeCycle.state_comparison.subsequent_usage_delta_pct >= 0
+                              ? 'text-emerald-600'
+                              : 'text-rose-600'
+                          }`}
+                        >
+                          {activeCycle.state_comparison.subsequent_usage_delta_pct >= 0 ? '+' : ''}
+                          {activeCycle.state_comparison.subsequent_usage_delta_pct.toFixed(1)}%
+                        </span>
+                        <span className="text-[10px] text-slate-400">vs baseline</span>
+                      </div>
+                    </div>
+
+                    {/* Blocker Tickets */}
+                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Blocker Tickets
+                      </span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-mono text-slate-500 text-[11px]">
+                          {activeCycle.state_comparison.tickets_count_prior} prior
+                        </span>
+                        <span className="text-slate-400 text-[10px]">➔</span>
+                        <span className="font-mono font-bold text-slate-800 text-xs">
+                          {activeCycle.state_comparison.subsequent_tickets_count} active
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 pt-0.5">
+                        {activeCycle.state_comparison.subsequent_tickets_count < activeCycle.state_comparison.tickets_count_prior
+                          ? 'Resolutions confirmed'
+                          : activeCycle.state_comparison.subsequent_tickets_count === 0
+                          ? 'Zero open blockers'
+                          : 'Open blockers remain'}
+                      </div>
+                    </div>
+
+                    {/* Account Risk Score */}
+                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Risk Score
+                      </span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-mono text-slate-500 text-[11px]">
+                          {activeCycle.state_comparison.risk_score_prior.toFixed(0)}
+                        </span>
+                        <span className="text-slate-400 text-[10px]">➔</span>
+                        <span
+                          className={`font-mono font-bold text-xs ${
+                            activeCycle.state_comparison.subsequent_risk_score <= activeCycle.state_comparison.risk_score_prior
+                              ? 'text-emerald-700'
+                              : 'text-rose-700'
+                          }`}
+                        >
+                          {activeCycle.state_comparison.subsequent_risk_score.toFixed(0)}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 pt-0.5">
+                        {activeCycle.state_comparison.subsequent_risk_score <= activeCycle.state_comparison.risk_score_prior
+                          ? 'Risk stabilizing'
+                          : 'Elevated churn risk'}
+                      </div>
+                    </div>
+
+                    {/* Feedback CSAT / Rating */}
+                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Customer CSAT
+                      </span>
+                      <div className="flex items-baseline justify-between">
+                        <span className="font-mono text-slate-500 text-[11px]">
+                          {activeCycle.state_comparison.feedback_rating_prior != null
+                            ? `${activeCycle.state_comparison.feedback_rating_prior}/5`
+                            : 'None'}
+                        </span>
+                        <span className="text-slate-400 text-[10px]">➔</span>
+                        <span className="font-mono font-bold text-slate-800 text-xs">
+                          {activeCycle.state_comparison.subsequent_feedback_rating != null
+                            ? `${activeCycle.state_comparison.subsequent_feedback_rating}/5`
+                            : 'Pending'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 capitalize pt-0.5">
+                        {activeCycle.state_comparison.subsequent_sentiment || 'Neutral'} sentiment
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Verdict Explanation Narrative */}
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
+                      Analytical Assessment
+                    </span>
+                    <p className="leading-relaxed">{activeCycle.verdict_explanation}</p>
+                  </div>
+
+                  {/* Subsequent Signals Summary */}
+                  {activeCycle.subsequent_signals_summary?.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                        Observed Signals Since Action
+                      </span>
+                      <ul className="space-y-1">
+                        {activeCycle.subsequent_signals_summary.map((sig, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 text-[11px] text-slate-600">
+                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 shrink-0" />
+                            <span>{sig}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Unresolved Issue & Secondary Review Trigger */}
+                  {!activeCycle.is_issue_resolved ? (
+                    <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/70 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <ShieldAlert className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                        <div className="space-y-0.5">
+                          <h5 className="text-xs font-bold text-amber-900">
+                            Issue Unresolved: Secondary Review Recommended
+                          </h5>
+                          <p className="text-[11px] text-amber-800 leading-snug">
+                            Telemetry indicates customer has not recovered to expected baseline health.
+                          </p>
+                        </div>
+                      </div>
+
+                      {activeCycle.review_triggered ? (
+                        <div className="bg-white/80 p-2.5 rounded border border-amber-200 text-xs space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-semibold text-amber-900">
+                            <span>Secondary Review Active</span>
+                            <span className="font-mono text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                              {activeCycle.triggered_review_id}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 italic">
+                            "{activeCycle.triggered_review_reason}"
+                          </p>
+                          <span className="text-[10px] text-amber-700 font-medium block">
+                            ✓ Automated follow-up reminder synchronized with Task B engine
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReviewReason(
+                              `Subsequent telemetry indicates ${selectedItem.account_name} situation remains ${activeCycle.verdict.replace('_', ' ')} following action "${selectedItem.title}". Immediate escalation required.`
+                            );
+                            setShowTriggerReviewModal(true);
+                          }}
+                          className="w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <ShieldAlert className="w-3.5 h-3.5" />
+                          <span>Trigger Secondary Review & Escalation</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/70 flex items-center gap-2 text-xs text-emerald-800">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <div>
+                        <strong className="font-bold">Intervention Successful:</strong> Customer metrics have recovered. Feedback loop marked as stabilized.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 space-y-2">
+                  <p className="text-xs text-slate-500">
+                    No automated cycle evaluated yet for this action.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleReevaluateCycle(selectedItem.id)}
+                    disabled={evaluatingCycle}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 cursor-pointer disabled:opacity-50"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>{evaluatingCycle ? 'Evaluating Signals...' : 'Run Post-Action Cycle Evaluation'}</span>
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-[#E2E8F0] p-8 text-center text-slate-500 space-y-3">
+            <ClipboardCheck className="w-12 h-12 text-slate-300 mx-auto" />
+            <h4 className="text-sm font-bold text-[#020062]">Select an action to inspect</h4>
+            <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+              Select any action from the left panel to update execution progress, log customer responses, or review automated outcome ingestion.
+            </p>
+          </div>
+        )}
       </div>
     </div>
-  );
+
+    {/* Task C: Trigger Secondary Review Modal */}
+    {showTriggerReviewModal && selectedItem && (
+      <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+                <ShieldAlert className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#020062]">
+                  Trigger Secondary Review
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Member 3 • Task C Post-Action Escalation
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowTriggerReviewModal(false)}
+              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleTriggerSecondaryReviewSubmit} className="space-y-4">
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
+              <span className="font-semibold text-slate-700 block">Target Action:</span>
+              <p className="text-slate-600 font-mono text-[11px]">
+                {selectedItem.id} • {selectedItem.title}
+              </p>
+              <span className="font-semibold text-slate-700 block pt-1">Account:</span>
+              <p className="text-slate-600 text-[11px]">{selectedItem.account_name}</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Urgency Level
+              </label>
+              <select
+                value={reviewUrgency}
+                onChange={(e) => setReviewUrgency(e.target.value)}
+                className="w-full p-2 text-xs rounded-lg border border-[#E2E8F0] focus:outline-hidden focus:border-[#2563EB]"
+              >
+                <option value="critical">Critical (Immediate SLA)</option>
+                <option value="high">High (Within 24 Hours)</option>
+                <option value="medium">Medium (Next Planning Cycle)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Reason for Secondary Review & Escalation *
+              </label>
+              <textarea
+                required
+                rows={4}
+                value={reviewReason}
+                onChange={(e) => setReviewReason(e.target.value)}
+                placeholder="Describe why previous intervention did not resolve the problem..."
+                className="w-full p-2.5 text-xs rounded-lg border border-[#E2E8F0] focus:outline-hidden focus:border-[#2563EB]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowTriggerReviewModal(false)}
+                className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={triggeringReview || !reviewReason.trim()}
+                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>{triggeringReview ? 'Triggering...' : 'Confirm Secondary Review'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
 
 export default ActionOutcomeTrackerView;

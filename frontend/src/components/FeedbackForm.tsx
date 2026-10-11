@@ -18,13 +18,23 @@ import type { PublicSurveyFormData, FeedbackResponseSubmission, CustomerFeedback
 
 interface FeedbackFormProps {
   surveyCode?: string;
+  accountId?: string;
+  accountName?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  initialFeedbackType?: string;
   onSubmitted?: (record: CustomerFeedbackRecord) => void;
   onClose?: () => void;
   isStandalone?: boolean;
 }
 
 export function FeedbackForm({
-  surveyCode = 'rev-fb-acme-101',
+  surveyCode,
+  accountId,
+  accountName,
+  recipientName,
+  recipientEmail,
+  initialFeedbackType = 'customer_survey',
   onSubmitted,
   onClose,
   isStandalone = false
@@ -33,15 +43,18 @@ export function FeedbackForm({
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<PublicSurveyFormData | null>(null);
 
+  const activeSurveyCode = surveyCode || (accountId ? `rev-fb-${accountId}` : 'rev-fb-acme-101');
+
   // Form State
+  const [feedbackType, setFeedbackType] = useState<string>(initialFeedbackType);
   const [satisfactionScore, setSatisfactionScore] = useState<number | null>(7);
   const [usageTrend, setUsageTrend] = useState<string>('Usage is steady / as expected');
   const [primaryBlocker, setPrimaryBlocker] = useState<string>('No blockers, going smoothly');
   const [unresolvedIssues, setUnresolvedIssues] = useState<string>('');
   const [featureRequest, setFeatureRequest] = useState<string>('');
   const [additionalComments, setAdditionalComments] = useState<string>('');
-  const [respondentName, setRespondentName] = useState<string>('');
-  const [respondentEmail, setRespondentEmail] = useState<string>('');
+  const [respondentName, setRespondentName] = useState<string>(recipientName || '');
+  const [respondentEmail, setRespondentEmail] = useState<string>(recipientEmail || '');
 
   // Submission State
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -52,18 +65,38 @@ export function FeedbackForm({
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchPublicSurveyForm(surveyCode);
+        const data = await fetchPublicSurveyForm(activeSurveyCode);
         setFormData(data);
-        setRespondentName(data.recipient_name || '');
-        setRespondentEmail(data.recipient_email || '');
+        if (!respondentName && data.recipient_name) setRespondentName(data.recipient_name);
+        if (!respondentEmail && data.recipient_email) setRespondentEmail(data.recipient_email);
       } catch (err: any) {
-        setError(err.message || 'Unable to load survey form. It may be expired or invalid.');
+        if (accountId) {
+          // Graceful fallback for dynamic direct account feedback entry
+          setFormData({
+            survey_code: activeSurveyCode,
+            account_id: accountId,
+            account_name: accountName || 'Customer Account',
+            recipient_name: recipientName || '',
+            recipient_email: recipientEmail || '',
+            status: 'sent' as any,
+            custom_intro: `Direct customer feedback recorded for ${accountName || 'this account'}`,
+            template: {
+              id: 'survey-tpl-churn-early-warning',
+              name: 'Customer Experience & Feedback Form',
+              description: 'Your insights help our product and customer success teams remove blockers and improve platform value.'
+            } as any
+          });
+          if (recipientName) setRespondentName(recipientName);
+          if (recipientEmail) setRespondentEmail(recipientEmail);
+        } else {
+          setError(err.message || 'Unable to load survey form. It may be expired or invalid.');
+        }
       } finally {
         setLoading(false);
       }
     }
     loadForm();
-  }, [surveyCode]);
+  }, [activeSurveyCode, accountId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,10 +110,11 @@ export function FeedbackForm({
       setError(null);
 
       const submission: FeedbackResponseSubmission = {
-        survey_code: surveyCode,
-        account_id: formData?.account_id,
+        survey_code: activeSurveyCode,
+        account_id: formData?.account_id || accountId,
         respondent_name: respondentName,
         respondent_email: respondentEmail,
+        feedback_type: feedbackType,
         satisfaction_score: satisfactionScore,
         usage_trend_self_report: usageTrend,
         primary_blocker: primaryBlocker,
@@ -88,6 +122,7 @@ export function FeedbackForm({
         feature_improvement_request: featureRequest,
         additional_comments: additionalComments,
         answers: [
+          { question_id: 'q-type', category: 'metadata', prompt: 'Feedback Type', answer_value: feedbackType },
           { question_id: 'q-sat', category: 'satisfaction', prompt: 'Satisfaction score', answer_value: satisfactionScore },
           { question_id: 'q-trend', category: 'usage', prompt: 'Usage trend', answer_value: usageTrend },
           { question_id: 'q-blocker', category: 'blockers', prompt: 'Primary blocker', answer_value: primaryBlocker },
@@ -271,6 +306,39 @@ export function FeedbackForm({
               placeholder="e.g., david.kim@acmetech.io"
               className="w-full px-3 py-2 bg-white border border-[#CBD5E1] rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
             />
+          </div>
+        </div>
+
+        {/* Feedback Type / Channel */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-slate-700 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5 text-blue-600" /> Feedback Category / Type
+            </span>
+            <span className="text-[11px] font-mono font-bold text-[#0025AE] bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase">
+              {feedbackType.replace('_', ' ')}
+            </span>
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            {[
+              { id: 'customer_survey', label: 'Customer Survey' },
+              { id: 'csm_checkin', label: 'CSM Check-in / QBR' },
+              { id: 'support_escalation', label: 'Support Escalation' },
+              { id: 'adoption_review', label: 'Adoption Review' }
+            ].map((ft) => (
+              <button
+                type="button"
+                key={ft.id}
+                onClick={() => setFeedbackType(ft.id)}
+                className={`p-2 rounded-xl text-left font-medium transition-all cursor-pointer border ${
+                  feedbackType === ft.id
+                    ? 'bg-blue-50 border-[#2563EB] text-[#0025AE] font-semibold ring-1 ring-[#2563EB]/40 shadow-2xs'
+                    : 'bg-[#F8FAFC] hover:bg-slate-100 border-[#E2E8F0] text-slate-700'
+                }`}
+              >
+                {ft.label}
+              </button>
+            ))}
           </div>
         </div>
 

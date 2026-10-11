@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pydantic import BaseModel, Field, model_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -158,6 +159,7 @@ class AccountDetail(AccountRiskSummary):
     contacts: List[Contact] = []
     signals: List[Signal] = []
     customer_metrics: Optional[CustomerMetrics] = None
+    feedback_records: List[CustomerFeedbackRecord] = Field(default_factory=list)
 
 class AccountRiskDetail(BaseModel):
     account_id: str
@@ -449,6 +451,7 @@ class ActionTrackerItem(BaseModel):
     execution_mode: str = "simulated"
     execution_result: Optional[Dict[str, Any]] = None
     outcome: Optional[OutcomeRecord] = None
+    improvement_cycle: Optional[Dict[str, Any]] = None
     auto_capture_available: bool = False
     auto_capture_preview: Optional[Dict[str, Any]] = None
     created_at: str
@@ -775,6 +778,7 @@ class FeedbackResponseSubmission(BaseModel):
     account_id: Optional[str] = None
     respondent_email: Optional[str] = None
     respondent_name: Optional[str] = None
+    feedback_type: Optional[str] = "customer_survey"
     satisfaction_score: Optional[int] = Field(None, ge=1, le=10, description="Overall satisfaction 1-10")
     usage_trend_self_report: Optional[str] = None  # e.g., "decreased", "steady", "stopped"
     primary_blocker: Optional[str] = None
@@ -814,6 +818,7 @@ class CustomerFeedbackRecord(BaseModel):
     account_name: str
     recipient_email: str
     recipient_name: str
+    feedback_type: str = "customer_survey"
     submission: FeedbackResponseSubmission
     analysis: Optional[FeedbackAnalysisSummary] = None
     created_at: str
@@ -897,6 +902,263 @@ class PortfolioAutomationResult(BaseModel):
     emails_recorded: int
     timestamp: str
     automated_actions: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+# ==========================================
+# Dynamic Reminders Schemas (Task B)
+# ==========================================
+
+class ReminderType(str, Enum):
+    USAGE_DROP = "usage_drop"
+    REDUCED_ENGAGEMENT = "reduced_engagement"
+    OVERDUE_FOLLOWUP = "overdue_followup"
+    UNRESOLVED_FEEDBACK = "unresolved_feedback"
+    RENEWAL_PROXIMITY = "renewal_proximity"
+    CUSTOM = "custom"
+
+class ReminderStatus(str, Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    DISMISSED = "dismissed"
+    SNOOZED = "snoozed"
+
+class DynamicReminder(BaseModel):
+    id: str
+    account_id: str
+    account_name: str
+    reminder_type: ReminderType
+    title: str
+    description: str
+    severity: str = "high"  # critical, high, medium, low
+    trigger_condition: str
+    issue_key: str  # deduplication fingerprint: {account_id}:{reminder_type}[:{unique_id}]
+    status: ReminderStatus = ReminderStatus.ACTIVE
+    associated_task_id: Optional[str] = None
+    due_date: Optional[str] = None
+    created_at: str
+    updated_at: str
+    dismissed_reason: Optional[str] = None
+    evidence_ids: List[str] = Field(default_factory=list)
+    csm_owner: Optional[str] = None
+
+class CreateReminderRequest(BaseModel):
+    account_id: str
+    reminder_type: ReminderType = ReminderType.CUSTOM
+    title: str
+    description: str
+    severity: str = "high"
+    trigger_condition: Optional[str] = "Manual CSM creation"
+    due_date: Optional[str] = None
+    associated_task_id: Optional[str] = None
+    evidence_ids: List[str] = Field(default_factory=list)
+
+class UpdateReminderRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[ReminderStatus] = None
+    severity: Optional[str] = None
+    due_date: Optional[str] = None
+    dismissed_reason: Optional[str] = None
+
+class DismissReminderRequest(BaseModel):
+    reason: Optional[str] = "Addressed on call / no action required"
+
+class ReminderEvaluationResult(BaseModel):
+    total_accounts_scanned: int
+    new_reminders_triggered: int
+    duplicates_prevented: int
+    active_reminders_count: int
+    reminders: List[DynamicReminder] = Field(default_factory=list)
+
+class RelationshipType(str, Enum):
+    OBSERVED_CORRELATION = "observed_correlation"
+    CONFIRMED_ROOT_CAUSE = "confirmed_root_cause"
+
+class RootCauseStatus(str, Enum):
+    UNCONFIRMED_HYPOTHESIS = "unconfirmed_hypothesis"
+    PARTIALLY_VALIDATED = "partially_validated"
+    CONFIRMED_ROOT_CAUSE = "confirmed_root_cause"
+
+class EvidenceLink(BaseModel):
+    evidence_type: str  # feedback, support_ticket, usage_signal, crm_touchpoint
+    record_id: str
+    account_id: str
+    account_name: str
+    title: str
+    description_or_quote: str
+    severity: str = "medium"
+    timestamp: str
+    metric_value: Optional[str] = None
+
+class AffectedAccountSummary(BaseModel):
+    account_id: str
+    account_name: str
+    arr: float
+    csm_owner: str
+    health_score: int
+    risk_level: str
+    evidence_count: int
+    primary_complaint: str
+
+class RecurringProblem(BaseModel):
+    id: str
+    cluster_key: str
+    title: str
+    category: str
+    summary: str
+    severity: str = "high"  # critical, high, medium, low
+    frequency_score: int
+    total_affected_accounts: int
+    total_arr_affected: float
+    feedback_count: int
+    support_ticket_count: int
+    usage_drop_signal_count: int
+    first_observed_at: str
+    last_observed_at: str
+    repeated_complaints: List[str] = Field(default_factory=list)
+    adoption_difficulties: List[str] = Field(default_factory=list)
+    affected_accounts: List[AffectedAccountSummary] = Field(default_factory=list)
+    evidence_links: List[EvidenceLink] = Field(default_factory=list)
+    # Distinguish correlation from root cause
+    relationship_type: RelationshipType = RelationshipType.OBSERVED_CORRELATION
+    correlation_explanation: str
+    root_cause_status: RootCauseStatus = RootCauseStatus.UNCONFIRMED_HYPOTHESIS
+    investigation_needed: str
+    confounding_factors: List[str] = Field(default_factory=list)
+
+class RecurringProblemsReport(BaseModel):
+    total_problems_identified: int
+    critical_problems_count: int
+    total_accounts_impacted: int
+    total_arr_at_risk: float
+    problems: List[RecurringProblem] = Field(default_factory=list)
+    generated_at: str
+
+# ==========================================
+# Task E: Actionable Improvement Insights Schemas
+# ==========================================
+
+class ImprovementCategory(str, Enum):
+    ONBOARDING_IMPROVEMENT = "onboarding_improvement"
+    CUSTOMER_TRAINING = "customer_training"
+    PRODUCT_CHANGE = "product_change"
+    DOCUMENTATION_PROCESS = "documentation_process"
+
+class ImprovementStatus(str, Enum):
+    RECOMMENDED = "recommended"
+    PLANNED = "planned"
+    IMPLEMENTED = "implemented"
+    MONITORING = "monitoring"
+    COMPLETED = "completed"
+
+class BehavioralOutcomeVerdict(str, Enum):
+    IMPROVING = "improving"
+    STABLE = "stable"
+    DETERIORATING = "deteriorating"
+    PENDING_DATA = "pending_data"
+
+class SubsequentBehaviorTracker(BaseModel):
+    baseline_usage_avg: float
+    post_intervention_usage_avg: float
+    usage_delta_pct: float
+    subsequent_tickets_count: int
+    subsequent_feedback_rating: Optional[float] = None
+    verdict: BehavioralOutcomeVerdict = BehavioralOutcomeVerdict.PENDING_DATA
+    behavior_summary: str
+    last_evaluated_at: str
+
+class ActionableImprovementInsight(BaseModel):
+    id: str
+    problem_id: str
+    problem_title: str
+    title: str
+    category: ImprovementCategory
+    target_audience: str = "Managers & Customer Success Managers"
+    recommended_action: str
+    rationale: str
+    estimated_effort: str = "Medium (1-2 weeks)"  # Low, Medium, High
+    expected_retention_lift: str
+    owner_role: str
+    affected_customers: List[str] = Field(default_factory=list)
+    total_arr_protected: float
+    status: ImprovementStatus = ImprovementStatus.RECOMMENDED
+    implemented_at: Optional[str] = None
+    implemented_by: Optional[str] = None
+    subsequent_behavior: Optional[SubsequentBehaviorTracker] = None
+    created_at: str
+
+class ImplementImprovementRequest(BaseModel):
+    manager_name: str = "CS Manager"
+    notes: Optional[str] = "Approved for execution across affected accounts"
+    target_completion_date: Optional[str] = None
+
+class EvaluateImprovementOutcomeRequest(BaseModel):
+    override_verdict: Optional[BehavioralOutcomeVerdict] = None
+    evaluation_notes: Optional[str] = None
+
+class ImprovementInsightsReport(BaseModel):
+    total_insights: int
+    active_recommendations: int
+    implemented_initiatives: int
+    total_arr_protected: float
+    insights: List[ActionableImprovementInsight] = Field(default_factory=list)
+    generated_at: str
+
+# Task C: Post-Action Improvement Cycle Schemas
+class PostActionVerdict(str, Enum):
+    IMPROVED = "improved"
+    REMAINED_UNCHANGED = "remained_unchanged"
+    DETERIORATED = "deteriorated"
+
+class CustomerStateComparison(BaseModel):
+    # Pre-intervention baseline
+    usage_baseline: float
+    tickets_count_prior: int
+    risk_score_prior: int
+    feedback_rating_prior: Optional[float] = None
+    sentiment_prior: Optional[str] = "at_risk"
+
+    # Post-intervention state
+    subsequent_usage_avg: float
+    subsequent_usage_delta_pct: float
+    subsequent_tickets_count: int
+    subsequent_risk_score: int
+    subsequent_feedback_rating: Optional[float] = None
+    subsequent_sentiment: Optional[str] = "improving"
+
+class PostActionImprovementCycle(BaseModel):
+    id: str
+    action_tracker_id: str
+    account_id: str
+    account_name: str
+    action_title: str
+    action_type: str
+    executed_at: str
+    state_comparison: CustomerStateComparison
+    verdict: PostActionVerdict
+    verdict_explanation: str
+    subsequent_signals_count: int
+    subsequent_signals_summary: List[str] = Field(default_factory=list)
+    is_issue_resolved: bool
+    review_triggered: bool = False
+    triggered_review_id: Optional[str] = None
+    triggered_review_type: Optional[str] = None
+    triggered_review_reason: Optional[str] = None
+    evaluated_at: str
+    evaluated_by: str = "Automated Telemetry Evaluation Engine"
+
+class EvaluatePostActionCycleRequest(BaseModel):
+    override_verdict: Optional[PostActionVerdict] = None
+    evaluator_notes: Optional[str] = None
+    force_trigger_review: Optional[bool] = False
+
+class TriggerSecondaryReviewRequest(BaseModel):
+    reason: str
+    reviewer_name: Optional[str] = "CSM Director"
+    review_urgency: Optional[str] = "high"
+
+AccountDetail.model_rebuild()
+ActionTrackerItem.model_rebuild()
 
 
 

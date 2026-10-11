@@ -163,6 +163,15 @@ class TaskRepository:
             actor=task.assigned_to,
             details={"task_id": task.id, "new_status": task.status}
         )
+
+        # Synchronize linked reminder status (Task B requirement)
+        if req.status is not None:
+            try:
+                from app.services.reminder_repository import reminder_repo
+                reminder_repo.update_by_associated_task(task_id, req.status)
+            except Exception as rem_err:
+                logger.warning(f"Error syncing reminder status for task {task_id}: {rem_err}")
+
         return task
 
 task_repo = TaskRepository()

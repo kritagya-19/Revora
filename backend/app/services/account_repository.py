@@ -476,8 +476,17 @@ class AccountRepository:
             contributing_factors=eval_res["contributing_factors"],
             contacts=contacts,
             signals=signals,
-            customer_metrics=customer_metrics
+            customer_metrics=customer_metrics,
+            feedback_records=self._get_feedback_records_for_account(account_id)
         )
+
+    def _get_feedback_records_for_account(self, account_id: str):
+        try:
+            from app.services.feedback_repository import feedback_repo
+            return feedback_repo.list_feedback_records(account_id=account_id)
+        except Exception as e:
+            logger.warning(f"Could not load feedback records for {account_id}: {e}")
+            return []
 
     def get_account_risk_detail(self, account_id: str) -> Optional[AccountRiskDetail]:
         account = self.get_account_by_id(account_id)

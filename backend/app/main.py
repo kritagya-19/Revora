@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from app.core.config import settings
-from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations, tasks, tracker, analyzer, feedback
+from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations, tasks, tracker, analyzer, feedback, reminders, recurring_problems, improvement_insights
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("revora.api")
@@ -83,6 +83,18 @@ app.include_router(analyzer.router, prefix="/api/v1/outcome-analyzer", tags=["AI
 # Feedback Form & Early-Churn Survey Loop endpoints
 app.include_router(feedback.router, prefix="/api/feedback", tags=["Customer Feedback & Survey Loop"])
 app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Customer Feedback & Survey Loop"])
+
+# Dynamic Reminders endpoints (Task B)
+app.include_router(reminders.router, prefix="/api/reminders", tags=["Dynamic Reminders"])
+app.include_router(reminders.router, prefix="/api/v1/reminders", tags=["Dynamic Reminders"])
+
+# Recurring Customer Problems endpoints (Task D)
+app.include_router(recurring_problems.router, prefix="/api/recurring-problems", tags=["Recurring Customer Problems"])
+app.include_router(recurring_problems.router, prefix="/api/v1/recurring-problems", tags=["Recurring Customer Problems"])
+
+# Actionable Improvement Insights & Outcome Tracking endpoints (Task E)
+app.include_router(improvement_insights.router, prefix="/api/improvement-insights", tags=["Actionable Improvement Insights"])
+app.include_router(improvement_insights.router, prefix="/api/v1/improvement-insights", tags=["Actionable Improvement Insights"])
 
 # Global audit logs endpoints
 @app.get("/api/audit-logs", tags=["Audit Log"])

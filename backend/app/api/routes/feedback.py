@@ -100,6 +100,29 @@ def get_public_survey_form(survey_code: str):
     """
     survey = feedback_repo.get_survey_by_code(survey_code)
     if not survey:
+        from app.services.account_repository import account_repo
+        acc = account_repo.get_account_by_id(survey_code)
+        if not acc and survey_code.startswith("rev-fb-"):
+            clean_id = survey_code.replace("rev-fb-", "")
+            parts = clean_id.split("-")
+            if len(parts) >= 2:
+                candidate_id = f"{parts[0]}-{parts[1]}"
+                acc = account_repo.get_account_by_id(candidate_id) or account_repo.get_account_by_id(clean_id)
+            else:
+                acc = account_repo.get_account_by_id(clean_id)
+        if acc:
+            template = feedback_repo.get_template_by_id("survey-tpl-churn-early-warning")
+            first_contact = acc.contacts[0] if acc.contacts else None
+            return {
+                "survey_code": survey_code,
+                "account_id": acc.id,
+                "account_name": acc.name,
+                "recipient_name": first_contact.name if first_contact else "Customer Champion",
+                "recipient_email": first_contact.email if first_contact else f"champion@{acc.domain or 'customer.com'}",
+                "status": "active",
+                "custom_intro": f"Customer experience & feedback survey for {acc.name}",
+                "template": template
+            }
         raise HTTPException(status_code=404, detail=f"Survey with code {survey_code} not found")
 
     template = feedback_repo.get_template_by_id(survey.template_id)

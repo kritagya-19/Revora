@@ -68,6 +68,7 @@ export interface AccountDetail extends AccountRiskSummary {
   contacts: Contact[];
   signals: Signal[];
   customer_metrics?: CustomerMetrics;
+  feedback_records?: CustomerFeedbackRecord[];
 }
 
 export interface AccountRiskDetail {
@@ -504,10 +505,63 @@ export interface ActionTrackerItem {
   execution_mode: string;
   execution_result?: Record<string, any> | null;
   outcome?: OutcomeRecord | null;
+  improvement_cycle?: PostActionImprovementCycle | null;
   auto_capture_available: boolean;
   auto_capture_preview?: Record<string, any> | null;
   created_at: string;
   updated_at?: string | null;
+}
+
+// Task C: Post-Action Improvement Cycle Types
+export type PostActionVerdict = 'improved' | 'remained_unchanged' | 'deteriorated';
+
+export interface CustomerStateComparison {
+  usage_baseline: number;
+  tickets_count_prior: number;
+  risk_score_prior: number;
+  feedback_rating_prior?: number | null;
+  sentiment_prior?: string | null;
+
+  subsequent_usage_avg: number;
+  subsequent_usage_delta_pct: number;
+  subsequent_tickets_count: number;
+  subsequent_risk_score: number;
+  subsequent_feedback_rating?: number | null;
+  subsequent_sentiment?: string | null;
+}
+
+export interface PostActionImprovementCycle {
+  id: string;
+  action_tracker_id: string;
+  account_id: string;
+  account_name: string;
+  action_title: string;
+  action_type: string;
+  executed_at: string;
+  state_comparison: CustomerStateComparison;
+  verdict: PostActionVerdict;
+  verdict_explanation: string;
+  subsequent_signals_count: number;
+  subsequent_signals_summary: string[];
+  is_issue_resolved: boolean;
+  review_triggered: boolean;
+  triggered_review_id?: string | null;
+  triggered_review_type?: string | null;
+  triggered_review_reason?: string | null;
+  evaluated_at: string;
+  evaluated_by: string;
+}
+
+export interface EvaluatePostActionCycleRequest {
+  override_verdict?: PostActionVerdict | null;
+  evaluator_notes?: string | null;
+  force_trigger_review?: boolean;
+}
+
+export interface TriggerSecondaryReviewRequest {
+  reason: string;
+  reviewer_name?: string;
+  review_urgency?: string;
 }
 
 export interface CreateActionTrackerRequest {
@@ -774,6 +828,7 @@ export interface FeedbackResponseSubmission {
   account_id?: string;
   respondent_email?: string;
   respondent_name?: string;
+  feedback_type?: string;
   satisfaction_score?: number;
   usage_trend_self_report?: string;
   primary_blocker?: string;
@@ -820,6 +875,7 @@ export interface CustomerFeedbackRecord {
   account_name: string;
   recipient_email: string;
   recipient_name: string;
+  feedback_type?: string;
   submission: FeedbackResponseSubmission;
   analysis?: FeedbackAnalysisSummary | null;
   created_at: string;
@@ -926,5 +982,167 @@ export interface PortfolioAutomationResult {
     risk_score: number;
   }>;
 }
+
+export interface DynamicReminder {
+  id: string;
+  account_id: string;
+  account_name: string;
+  reminder_type: 'usage_drop' | 'reduced_engagement' | 'overdue_followup' | 'unresolved_feedback' | 'renewal_proximity' | 'custom';
+  title: string;
+  description: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  trigger_condition: string;
+  issue_key: string;
+  status: 'active' | 'completed' | 'dismissed' | 'snoozed';
+  associated_task_id?: string | null;
+  due_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  dismissed_reason?: string | null;
+  evidence_ids: string[];
+  csm_owner?: string | null;
+}
+
+export interface CreateReminderRequest {
+  account_id: string;
+  reminder_type?: 'usage_drop' | 'reduced_engagement' | 'overdue_followup' | 'unresolved_feedback' | 'renewal_proximity' | 'custom';
+  title: string;
+  description: string;
+  severity?: 'critical' | 'high' | 'medium' | 'low';
+  trigger_condition?: string;
+  due_date?: string | null;
+  associated_task_id?: string | null;
+  evidence_ids?: string[];
+}
+
+export interface DismissReminderRequest {
+  reason?: string;
+}
+
+export interface ReminderEvaluationResult {
+  total_accounts_scanned: number;
+  new_reminders_triggered: number;
+  duplicates_prevented: number;
+  active_reminders_count: number;
+  reminders: DynamicReminder[];
+}
+
+// Task D: Recurring Customer Problems Types
+export interface EvidenceLink {
+  evidence_type: 'feedback' | 'support_ticket' | 'usage_signal' | 'crm_touchpoint' | string;
+  record_id: string;
+  account_id: string;
+  account_name: string;
+  title: string;
+  description_or_quote: string;
+  severity: 'critical' | 'high' | 'medium' | 'low' | string;
+  timestamp: string;
+  metric_value?: string | null;
+}
+
+export interface AffectedAccountSummary {
+  account_id: string;
+  account_name: string;
+  arr: number;
+  csm_owner: string;
+  health_score: number;
+  risk_level: string;
+  evidence_count: number;
+  primary_complaint: string;
+}
+
+export interface RecurringProblem {
+  id: string;
+  cluster_key: string;
+  title: string;
+  category: string;
+  summary: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  frequency_score: number;
+  total_affected_accounts: number;
+  total_arr_affected: number;
+  feedback_count: number;
+  support_ticket_count: number;
+  usage_drop_signal_count: number;
+  first_observed_at: string;
+  last_observed_at: string;
+  repeated_complaints: string[];
+  adoption_difficulties: string[];
+  affected_accounts: AffectedAccountSummary[];
+  evidence_links: EvidenceLink[];
+  // Distinguish correlation from root cause
+  relationship_type: 'observed_correlation' | 'confirmed_root_cause';
+  correlation_explanation: string;
+  root_cause_status: 'unconfirmed_hypothesis' | 'partially_validated' | 'confirmed_root_cause';
+  investigation_needed: string;
+  confounding_factors: string[];
+}
+
+export interface RecurringProblemsReport {
+  total_problems_identified: number;
+  critical_problems_count: number;
+  total_accounts_impacted: number;
+  total_arr_at_risk: number;
+  problems: RecurringProblem[];
+  generated_at: string;
+}
+
+// Task E: Actionable Improvement Insights & Outcome Tracking Types
+export type ImprovementCategory = 'onboarding_improvement' | 'customer_training' | 'product_change' | 'documentation_process';
+export type ImprovementStatus = 'recommended' | 'planned' | 'implemented' | 'monitoring' | 'completed';
+export type BehavioralOutcomeVerdict = 'improving' | 'stable' | 'deteriorating' | 'pending_data';
+
+export interface SubsequentBehaviorTracker {
+  baseline_usage_avg: number;
+  post_intervention_usage_avg: number;
+  usage_delta_pct: number;
+  subsequent_tickets_count: number;
+  subsequent_feedback_rating?: number | null;
+  verdict: BehavioralOutcomeVerdict;
+  behavior_summary: string;
+  last_evaluated_at: string;
+}
+
+export interface ActionableImprovementInsight {
+  id: string;
+  problem_id: string;
+  problem_title: string;
+  title: string;
+  category: ImprovementCategory;
+  target_audience: string;
+  recommended_action: string;
+  rationale: string;
+  estimated_effort: string;
+  expected_retention_lift: string;
+  owner_role: string;
+  affected_customers: string[];
+  total_arr_protected: number;
+  status: ImprovementStatus;
+  implemented_at?: string | null;
+  implemented_by?: string | null;
+  subsequent_behavior?: SubsequentBehaviorTracker | null;
+  created_at: string;
+}
+
+export interface ImplementImprovementRequest {
+  manager_name: string;
+  implementation_notes?: string | null;
+}
+
+export interface EvaluateImprovementOutcomeRequest {
+  override_verdict?: BehavioralOutcomeVerdict | null;
+  evaluation_notes?: string | null;
+}
+
+export interface ImprovementInsightsReport {
+  total_insights: number;
+  active_recommendations: number;
+  implemented_initiatives: number;
+  total_arr_protected: number;
+  insights: ActionableImprovementInsight[];
+  generated_at: string;
+}
+
+
 
 
