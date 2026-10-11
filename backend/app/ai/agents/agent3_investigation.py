@@ -24,6 +24,7 @@ from app.ai.schemas import (
     SignalAnalysisOutput,
 )
 from app.core.config import settings
+from app.core.llm_client import llm_client
 
 logger = logging.getLogger("revora.ai.agent3_investigation")
 
@@ -57,8 +58,8 @@ class Agent3Investigation:
             valid_evidence_ids.add(item.signal_id)
             valid_evidence_ids.add(item.evidence_id)
 
-        # 1. Attempt LLM investigation if API key is active
-        if self.api_key and self.api_key.strip():
+        # 1. Attempt LLM investigation if OpenRouter or Gemini is active
+        if llm_client.is_available() or (self.api_key and self.api_key.strip()):
             try:
                 autopsy = self._run_llm_investigation(
                     context, deterministic_risk, signal_analysis, risk_explanation, valid_evidence_ids
@@ -82,25 +83,41 @@ class Agent3Investigation:
         valid_evidence_ids: Set[str]
     ) -> Optional[InvestigationAutopsy]:
         """
-        Prompts Gemini to perform causal synthesis, separating facts from interpretations.
+        Prompts OpenRouter (or Gemini) to perform causal synthesis, separating facts from interpretations.
         """
-        from google import genai
-        client = genai.Client(api_key=self.api_key)
-
         prompt = self._build_investigation_prompt(
             context, deterministic_risk, signal_analysis, risk_explanation
         )
 
-        response = client.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config={"response_mime_type": "application/json"}
-        )
+        parsed = None
 
-        if not response.text:
+        # 1. Attempt OpenRouter LLM first
+        if llm_client.is_available():
+            try:
+                parsed = llm_client.generate_json(
+                    prompt,
+                    system_prompt="You are Agent 3 (Revenue Risk Autopsy Investigator) for Revora. Separate verified facts from interpretations. Output strictly valid JSON."
+                )
+            except Exception as e:
+                logger.debug(f"OpenRouter investigation call error: {e}")
+
+        # 2. Fallback to Gemini if OpenRouter did not return parsed JSON
+        if not parsed and self.api_key and self.api_key.strip():
+            try:
+                from google import genai
+                client = genai.Client(api_key=self.api_key)
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config={"response_mime_type": "application/json"}
+                )
+                if response.text:
+                    parsed = json.loads(response.text)
+            except Exception as e:
+                logger.debug(f"Gemini investigation call error: {e}")
+
+        if not parsed:
             return None
-
-        parsed = json.loads(response.text)
 
         # Strict validation: Filter facts and interpretations to only valid evidence IDs
         verified_facts: List[FactItem] = []

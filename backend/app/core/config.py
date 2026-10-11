@@ -11,7 +11,11 @@ class Settings(BaseSettings):
     MONGODB_URI: str = "mongodb://localhost:27017"
     MONGODB_DB_NAME: str = "revora"
     
-    # AI
+    # AI (OpenRouter & Gemini)
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
     

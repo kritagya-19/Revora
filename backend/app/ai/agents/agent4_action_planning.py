@@ -21,6 +21,7 @@ from app.ai.schemas import (
     ProposedTaskDraft,
 )
 from app.core.config import settings
+from app.core.llm_client import llm_client
 
 logger = logging.getLogger("revora.ai.agent4_action_planning")
 
@@ -48,8 +49,8 @@ class Agent4ActionPlanning:
         recipient_email = primary_contact.email if primary_contact else f"exec@{account.domain or 'company.com'}"
         recipient_name = primary_contact.name if primary_contact else "Executive Team"
 
-        # 1. Attempt LLM action proposal if API key is active
-        if self.api_key and self.api_key.strip():
+        # 1. Attempt LLM action proposal if OpenRouter or Gemini is active
+        if llm_client.is_available() or (self.api_key and self.api_key.strip()):
             try:
                 plan = self._run_llm_planning(context, autopsy, recipient_email, recipient_name)
                 if plan:
@@ -68,11 +69,8 @@ class Agent4ActionPlanning:
         recipient_name: str
     ) -> Optional[ActionPlanOutput]:
         """
-        Prompts Gemini to draft personalized action proposal based on autopsy findings.
+        Prompts OpenRouter (or Gemini) to draft personalized action proposal based on autopsy findings.
         """
-        from google import genai
-        client = genai.Client(api_key=self.api_key)
-
         prompt = f"""
 You are Agent 4 (Action Planning Specialist) for Revora.
 Draft an actionable Next-Best-Action proposal for CSM {context.account.csm_owner} to engage {context.account.name}.
@@ -114,16 +112,36 @@ RETURN JSON:
   }}
 }}
 """
-        response = client.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config={"response_mime_type": "application/json"}
-        )
+        parsed = None
 
-        if not response.text:
+        # 1. Attempt OpenRouter LLM first
+        if llm_client.is_available():
+            try:
+                parsed = llm_client.generate_json(
+                    prompt,
+                    system_prompt="You are Agent 4 (Action Planning Specialist) for Revora. Return strictly valid JSON."
+                )
+            except Exception as e:
+                logger.debug(f"OpenRouter action planning error: {e}")
+
+        # 2. Fallback to Gemini if OpenRouter did not return parsed JSON
+        if not parsed and self.api_key and self.api_key.strip():
+            try:
+                from google import genai
+                client = genai.Client(api_key=self.api_key)
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config={"response_mime_type": "application/json"}
+                )
+                if response.text:
+                    parsed = json.loads(response.text)
+            except Exception as e:
+                logger.debug(f"Gemini action planning error: {e}")
+
+        if not parsed:
             return None
 
-        parsed = json.loads(response.text)
         email_data = parsed.get("email_draft", {})
         task_data = parsed.get("task_draft", {})
 
