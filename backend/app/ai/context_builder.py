@@ -152,6 +152,8 @@ class ContextBuilder:
         # First pass: Include all critical items if configured
         if config.include_all_critical:
             for item in scored_items:
+                if len(selected) >= config.max_evidence_count:
+                    break
                 if item.severity == "critical" and item not in selected:
                     selected.append(item)
                     catalog[item.evidence_id] = f"{item.title}: {item.summary}"

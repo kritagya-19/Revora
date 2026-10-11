@@ -1376,5 +1376,87 @@ AccountDetail.model_rebuild()
 ActionTrackerItem.model_rebuild()
 
 
+# ==========================================
+# 37-Node Retention & Reminders Flow Schemas (remainder.md)
+# ==========================================
 
+class RetentionReminderFlowNodeType(str, Enum):
+    SOURCE = "source"
+    AGENT = "agent"
+    DECISION = "decision"
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    ACTION = "action"
 
+class RetentionReminderFlowNode(BaseModel):
+    id: str  # A, B, C, D, E, F, G, H, I, J, K, L, M, N, P, Q, R, S, AF, O, T, U, V, W, AG, X, AH, Y, Z, AA, AB, AC, AE, AD, AI, AJ, AK
+    title: str
+    subtitle: str
+    node_type: RetentionReminderFlowNodeType
+    category_class: str
+    day_label: Optional[str] = None
+    status: str = "pending"  # pending, active, completed, skipped
+    summary: Optional[str] = None
+    output_payload: Optional[Dict[str, Any]] = None
+
+class RetentionReminderFlowEdge(BaseModel):
+    from_node: str
+    to_node: str
+    label: Optional[str] = None
+
+class RetentionReminderFlowGraph(BaseModel):
+    nodes: List[RetentionReminderFlowNode]
+    edges: List[RetentionReminderFlowEdge]
+
+class RetentionReminderFlowExecution(BaseModel):
+    execution_id: str
+    account_id: str
+    account_name: str
+    scenario: str
+    path_taken: List[str] = Field(default_factory=list)
+    current_node: str
+    node_states: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    status: str = "completed"  # running, waiting_approval, completed
+    started_at: str
+    completed_at: Optional[str] = None
+    outcome_summary: str
+    feedback_survey_id: Optional[str] = None
+    feedback_survey_code: Optional[str] = None
+    recovery_proposal_id: Optional[str] = None
+    direct_reminder_sent: bool = False
+    feedback_received: bool = False
+    sales_notified: bool = False
+    manager_notified: bool = False
+    recovery_message_sent: bool = False
+    crm_updated: bool = False
+    healthy_marked: bool = False
+
+class RunRetentionReminderFlowRequest(BaseModel):
+    account_id: str
+    scenario: str = "auto"
+    custom_satisfaction_score: Optional[int] = None
+    custom_blocker: Optional[str] = None
+    custom_comments: Optional[str] = None
+    recovery_offer_type: Optional[str] = None
+    human_approval_decision: Optional[str] = "approved"
+    post_action_risk_reduced: Optional[bool] = True
+    include_direct_reminder: Optional[bool] = True
+    connect_live_feedback: Optional[bool] = True
+
+class ApproveRetentionRecoveryRequest(BaseModel):
+    execution_id: str
+    decision: str = "approved"  # "approved" or "rejected"
+    reviewer: str = "CSM Director"
+    notes: Optional[str] = None
+
+class PortfolioRetentionAutomationResult(BaseModel):
+    scanned_accounts: int
+    at_risk_detected: int
+    retention_plans_created: int
+    direct_reminders_dispatched: int
+    feedback_forms_dispatched: int
+    sales_escalations: int
+    recovery_messages_approved: int
+    healthy_maintained: int
+    timestamp: str
+    accounts_detail: List[Dict[str, Any]] = Field(default_factory=list)
