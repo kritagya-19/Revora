@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Bell, User, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface TopbarProps {
   title: string;
@@ -9,6 +9,7 @@ interface TopbarProps {
   executionMode?: string;
   backendStatus?: string;
   unreadNotifications?: number;
+  onRefresh?: () => void;
 }
 
 export function Topbar({
@@ -18,9 +19,21 @@ export function Topbar({
   onSearchChange,
   executionMode = 'simulated',
   backendStatus = 'healthy',
-  unreadNotifications = 2
+  unreadNotifications = 2,
+  onRefresh
 }: TopbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshClick = async () => {
+    if (!onRefresh) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setTimeout(() => setRefreshing(false), 500);
+    }
+  };
 
   return (
     <header className="h-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-6 sticky top-0 z-30">
@@ -82,6 +95,19 @@ export function Topbar({
             </>
           )}
         </div>
+
+        {/* Refresh Data Button */}
+        {onRefresh && (
+          <button
+            onClick={handleRefreshClick}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-slate-800 bg-slate-900 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+            title="Fetch latest data from MongoDB"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline font-mono">Sync DB</span>
+          </button>
+        )}
 
         {/* Notifications Dropdown Button */}
         <div className="relative">

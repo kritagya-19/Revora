@@ -14,6 +14,7 @@ interface AppLayoutProps {
   pendingApprovalsCount?: number;
   executionMode?: string;
   backendHealthy?: boolean;
+  onRefresh?: () => void;
 }
 
 export function AppLayout({
@@ -27,7 +28,8 @@ export function AppLayout({
   accountCount = 0,
   pendingApprovalsCount = 0,
   executionMode = 'simulated',
-  backendHealthy = true
+  backendHealthy = true,
+  onRefresh
 }: AppLayoutProps) {
   return (
     <div className="min-h-screen flex bg-slate-950 text-slate-100 font-body selection:bg-blue-600 selection:text-white antialiased">
@@ -50,6 +52,7 @@ export function AppLayout({
           onSearchChange={onSearchChange}
           executionMode={executionMode}
           backendStatus={backendHealthy ? 'healthy' : 'offline'}
+          onRefresh={onRefresh}
         />
 
         {/* Dynamic Page Container */}
