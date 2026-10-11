@@ -38,7 +38,6 @@ interface RevenueRiskAutopsyViewProps {
   currency?: 'USD' | 'INR';
   onNavigateToApprovals?: () => void;
   onNavigateToCopilot?: (subtab?: 'email' | 'task' | 'crm') => void;
-  onNavigateToSystemFlow?: () => void;
 }
 
 interface ChatMessage {
@@ -59,8 +58,7 @@ export function RevenueRiskAutopsyView({
   onBackToRadar,
   currency = 'USD',
   onNavigateToApprovals,
-  onNavigateToCopilot,
-  onNavigateToSystemFlow
+  onNavigateToCopilot
 }: RevenueRiskAutopsyViewProps) {
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -548,16 +546,14 @@ export function RevenueRiskAutopsyView({
 
         {/* Footer View Link */}
         <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-slate-400 border-t border-slate-800">
-          <span>Evidence Grounded in Multi-Source Signals</span>
-          {onNavigateToSystemFlow && (
-            <button
-              onClick={onNavigateToSystemFlow}
-              className="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-            >
-              <span>View 6-Step System Architecture Flow</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
+          <span>Evidence Grounded in Multi-Source Telemetry & Deterministic Scoring</span>
+          <button
+            onClick={onBackToRadar}
+            className="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+          >
+            <span>Back to Revenue Radar</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

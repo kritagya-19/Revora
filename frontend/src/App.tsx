@@ -15,7 +15,6 @@ import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
 import { ApprovalCenterView } from './components/ApprovalCenterView';
 import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
-import { SystemFlowView } from './components/SystemFlowView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
@@ -25,7 +24,6 @@ import {
   AlertTriangle,
   Calendar,
   DollarSign,
-  ArrowRight,
   Database,
   LayoutDashboard,
   Sparkles,
@@ -196,12 +194,6 @@ export function App() {
   };
 
   const getPageTitle = () => {
-    if (currentTab === 'workflow') {
-      return {
-        title: 'How Revora Works — 6-Step Pipeline & Problem Matrix',
-        subtitle: 'End-to-End Flow: From scattered signals to verified, human-approved retention actions'
-      };
-    }
     if (currentTab === 'copilot' || viewMode === 'copilot') {
       return {
         title: selectedAccountDetail ? `${selectedAccountDetail.name} — Action Copilot` : 'Next-Best-Action Copilot',
@@ -289,13 +281,9 @@ export function App() {
                   Click any stage to understand the workflow and explore each capability
                 </span>
               </div>
-              <button
-                onClick={() => handleSelectTab('workflow')}
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer flex items-center gap-1.5"
-              >
-                <span>6-Step Methodology</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <span className="text-xs font-mono font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+                Deterministic Detection + Gated Execution
+              </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -410,6 +398,10 @@ export function App() {
           {(currentTab === 'customers' || viewMode === 'customer_detail') && selectedAccountDetail && (
             <CustomerDetailView
               account={selectedAccountDetail}
+              allAccounts={accounts}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
               onBackToRadar={() => {
                 setViewMode('radar');
                 setCurrentTab('dashboard');
@@ -449,9 +441,6 @@ export function App() {
                 if (subtab) setCopilotTab(subtab);
                 setViewMode('copilot');
                 setCurrentTab('copilot');
-              }}
-              onNavigateToSystemFlow={() => {
-                handleSelectTab('workflow');
               }}
             />
           )}
@@ -495,18 +484,7 @@ export function App() {
             />
           )}
 
-          {/* TAB 6: How Revora Works (6-Step Pipeline & Problem Matrix) */}
-          {currentTab === 'workflow' && (
-            <SystemFlowView
-              onNavigateToTab={handleSelectTab}
-              onOpenAutopsyForDemo={() => {
-                setViewMode('autopsy');
-                setCurrentTab('autopsy');
-              }}
-            />
-          )}
-
-          {/* TAB 7: Settings & Integrations */}
+          {/* TAB 6: Settings & Integrations */}
           {currentTab === 'settings' && (
             <SettingsAndIntegrationsView
               executionMode={executionMode}

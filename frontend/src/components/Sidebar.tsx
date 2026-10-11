@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity, Sparkles, Send, Layers } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity, Sparkles, Send } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'settings' | 'workflow';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -55,14 +55,6 @@ export function Sidebar({
       icon: CheckSquare,
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : null,
       badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold'
-    },
-    {
-      id: 'workflow' as NavItem,
-      label: 'How Revora Works',
-      sublabel: '6-Step Architecture & Value Matrix',
-      icon: Layers,
-      badge: 'Flow',
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold'
     },
     {
       id: 'settings' as NavItem,
