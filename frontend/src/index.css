@@ -3,12 +3,12 @@
 @theme {
   --color-background: #FFFFFF;
   --color-surface: #FFFFFF;
-  --color-text: #020062;
+  --color-text: #0F172A;
   --color-primary: #2563EB;
-  --color-accent: #0025AE;
+  --color-accent: #1D4ED8;
   --color-border: #E2E8F0;
 
-  --font-headline: "Gloock", Georgia, serif;
+  --font-headline: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
@@ -16,12 +16,12 @@
 :root {
   --color-background: #FFFFFF;
   --color-surface: #FFFFFF;
-  --color-text: #020062;
+  --color-text: #0F172A;
   --color-primary: #2563EB;
-  --color-accent: #0025AE;
+  --color-accent: #1D4ED8;
   --color-border: #E2E8F0;
 
-  --font-headline: "Gloock", Georgia, serif;
+  --font-headline: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
@@ -33,13 +33,13 @@
 html {
   font-size: 16px;
   background-color: #FFFFFF;
-  color: #020062;
+  color: #0F172A;
 }
 
 body {
   font-family: var(--font-body);
   background-color: #FFFFFF;
-  color: #020062;
+  color: #0F172A;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -48,7 +48,8 @@ body {
 
 .font-headline {
   font-family: var(--font-headline);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  word-spacing: normal;
 }
 
 /* Custom crisp light scrollbars */

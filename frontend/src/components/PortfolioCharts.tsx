@@ -6,7 +6,8 @@ import {
   ArrowRight,
   Sparkles,
   AlertTriangle,
-  CheckCircle2
+  Clock,
+  TrendingDown
 } from 'lucide-react';
 
 interface PortfolioChartsProps {
@@ -62,10 +63,10 @@ export function PortfolioCharts({
   // 2. Calculate Renewal Horizon Buckets
   const horizonMetrics = useMemo(() => {
     const buckets = [
-      { id: '30', label: '< 30 Days', desc: 'Critical Renewal Window', accounts: [] as AccountRiskSummary[], color: 'bg-rose-500' },
-      { id: '60', label: '30 - 60 Days', desc: 'Active Intervention Window', accounts: [] as AccountRiskSummary[], color: 'bg-amber-500' },
-      { id: '90', label: '60 - 90 Days', desc: 'Advance Preparation', accounts: [] as AccountRiskSummary[], color: 'bg-blue-500' },
-      { id: 'beyond', label: '90+ Days', desc: 'Stable Horizon', accounts: [] as AccountRiskSummary[], color: 'bg-emerald-500' }
+      { id: '30', label: '< 30 Days', desc: 'Critical Renewal', accounts: [] as AccountRiskSummary[], color: 'bg-rose-500' },
+      { id: '60', label: '30 - 60 Days', desc: 'Urgent Action', accounts: [] as AccountRiskSummary[], color: 'bg-amber-500' },
+      { id: '90', label: '60 - 90 Days', desc: 'Active Plan', accounts: [] as AccountRiskSummary[], color: 'bg-blue-600' },
+      { id: 'beyond', label: '90+ Days', desc: 'Stable Contract', accounts: [] as AccountRiskSummary[], color: 'bg-emerald-500' }
     ];
 
     accounts.forEach((acc) => {
@@ -80,7 +81,7 @@ export function PortfolioCharts({
 
     return buckets.map((b) => {
       const arr = b.accounts.reduce((s, a) => s + a.arr, 0);
-      const widthPct = Math.max(Math.round((arr / maxArr) * 100), 6);
+      const widthPct = Math.max(Math.round((arr / maxArr) * 100), 8);
       return {
         ...b,
         arr,
@@ -101,36 +102,50 @@ export function PortfolioCharts({
 
   return (
     <div className="space-y-6">
-      {/* ========================================================================= */}
-      {/* 1. GUIDANCE HERO BANNER: Tells the team immediately what to do!           */}
-      {/* ========================================================================= */}
+      {/* 1. CRITICAL AT-RISK ACCOUNT ALERT: Structured with Problem & Impact */}
       {topPriorityAccount && (
-        <div className="bg-[#F0F5FF] border border-[#2563EB]/30 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative overflow-hidden">
-          <div className="space-y-2.5 max-w-2xl relative z-10">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+        <div className="bg-white border border-rose-200 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 relative overflow-hidden">
+          <div className="space-y-3 max-w-2xl">
+            {/* Status & Priority Badge */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80 px-2.5 py-1 rounded-md flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                Immediate Action Required
+                Priority 1 Churn Risk
               </span>
-              <span className="text-xs text-slate-600 font-medium">
-                Rank #1 Priority: {topPriorityAccount.urgency_days_to_renewal}d until contract renewal
+              <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                Renews in {topPriorityAccount.urgency_days_to_renewal} days
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-headline font-normal text-[#020062] tracking-tight">
-              {topPriorityAccount.name} exhibits {topPriorityAccount.risk_score}/100 churn risk
-            </h2>
+            {/* Account & Exposure */}
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-normal leading-snug">
+                {topPriorityAccount.name}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Exposes <strong className="text-slate-900 font-semibold">{formatCur(topPriorityAccount.arr)}</strong> ARR • Churn Risk Score: <strong className="text-rose-600 font-bold">{topPriorityAccount.risk_score}/100</strong>
+              </p>
+            </div>
 
-            <p className="text-slate-600 text-sm leading-relaxed">
-              Detected concurrent telemetry contraction (<span className="text-rose-700 font-semibold">-38% to -52% usage</span>) alongside unanswered customer touchpoints. 
-              <strong className="text-[#020062] ml-1">{formatCur(topPriorityAccount.arr)}</strong> contract ARR is currently exposed.
-            </p>
+            {/* Structured Problem Breakdown */}
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-rose-800 bg-rose-50 border border-rose-200/60 px-2.5 py-1 rounded-md">
+                <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                -38% to -52% Telemetry Drop
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200/60 px-2.5 py-1 rounded-md">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                50 Days Inactive (No Contact)
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full lg:w-auto relative z-10">
+          {/* Action CTA */}
+          <div className="shrink-0 w-full sm:w-auto">
             <button
               onClick={() => onNavigateToAutopsy?.(topPriorityAccount.id)}
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer group"
+              className="w-full sm:w-auto bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer group"
             >
               <Sparkles className="w-4 h-4 text-amber-200" />
               <span>Diagnose {topPriorityAccount.name}</span>
@@ -140,90 +155,88 @@ export function PortfolioCharts({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 2. VISUAL CHARTS GRID: Risk Distribution & Renewal Exposure               */}
-      {/* ========================================================================= */}
+      {/* 2. VISUAL CHARTS GRID: Risk Breakdown & Renewal Horizon */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* CHART 1: Portfolio Risk Distribution (7 Cols) */}
-        <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+        <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div>
-              <h3 className="text-base sm:text-lg font-headline font-normal text-[#020062] tracking-tight flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-[#2563EB]" />
-                <span>Portfolio Risk Distribution</span>
+              <h3 className="text-sm font-semibold text-slate-900 tracking-normal flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-[#2563EB]" />
+                <span>Risk Distribution</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Total Portfolio ARR: <strong className="text-[#020062] font-semibold">{formatCur(riskMetrics.totalArr)}</strong> across {accounts.length} active customer accounts
+                Total Portfolio ARR: <strong className="text-slate-900">{formatCur(riskMetrics.totalArr)}</strong> ({accounts.length} accounts)
               </p>
             </div>
 
             {selectedRiskFilter !== 'all' && (
               <button
                 onClick={() => onSelectRiskFilter('all')}
-                className="text-xs text-[#2563EB] hover:text-[#0025AE] font-semibold cursor-pointer underline self-start sm:self-auto"
+                className="text-xs text-[#2563EB] hover:text-[#1D4ED8] font-semibold cursor-pointer underline"
               >
                 Reset Filter
               </button>
             )}
           </div>
 
-          {/* Stacked Horizontal Distribution Bar */}
-          <div className="space-y-2">
-            <div className="h-6 w-full rounded-xl overflow-hidden flex bg-slate-100 p-0.5 border border-[#E2E8F0]">
+          {/* Clean Segmented Distribution Bar */}
+          <div className="space-y-1.5">
+            <div className="h-4 w-full rounded-lg overflow-hidden flex bg-slate-100 p-0.5 border border-slate-200">
               <div 
                 style={{ width: `${Math.max(riskMetrics.critical.pct, 4)}%` }}
-                className="bg-rose-500 hover:bg-rose-600 transition-all cursor-pointer relative group rounded-l-lg"
+                className="bg-rose-500 hover:bg-rose-600 transition-all cursor-pointer rounded-l-md"
                 onClick={() => onSelectRiskFilter('critical')}
                 title={`Critical: ${riskMetrics.critical.count} accounts (${formatCur(riskMetrics.critical.arr)})`}
               />
               <div 
                 style={{ width: `${Math.max(riskMetrics.high.pct, 4)}%` }}
-                className="bg-amber-500 hover:bg-amber-600 transition-all cursor-pointer relative group"
+                className="bg-amber-500 hover:bg-amber-600 transition-all cursor-pointer"
                 onClick={() => onSelectRiskFilter('high')}
                 title={`High: ${riskMetrics.high.count} accounts (${formatCur(riskMetrics.high.arr)})`}
               />
               <div 
                 style={{ width: `${Math.max(riskMetrics.medium.pct, 4)}%` }}
-                className="bg-[#2563EB] hover:bg-[#1d4ed8] transition-all cursor-pointer relative group"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] transition-all cursor-pointer"
                 onClick={() => onSelectRiskFilter('medium')}
                 title={`Medium: ${riskMetrics.medium.count} accounts (${formatCur(riskMetrics.medium.arr)})`}
               />
               <div 
                 style={{ width: `${Math.max(riskMetrics.low.pct, 4)}%` }}
-                className="bg-emerald-500 hover:bg-emerald-600 transition-all cursor-pointer relative group rounded-r-lg"
+                className="bg-emerald-500 hover:bg-emerald-600 transition-all cursor-pointer rounded-r-md"
                 onClick={() => onSelectRiskFilter('low')}
                 title={`Healthy: ${riskMetrics.low.count} accounts (${formatCur(riskMetrics.low.arr)})`}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <div className="flex items-center justify-between text-[10px] text-slate-600 font-mono">
               <span>0%</span>
-              <span>Portfolio ARR Allocation</span>
+              <span>ARR by Risk Tier</span>
               <span>100%</span>
             </div>
           </div>
 
-          {/* Interactive Tier Cards (Clicking filters table below!) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+          {/* Interactive Tier Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
             {/* Critical */}
             <button
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'critical' ? 'all' : 'critical')}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'critical'
-                  ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-400 text-[#020062]'
-                  : 'bg-[#F8FAFC] hover:bg-rose-50/50 border-[#E2E8F0] text-slate-700'
+                  ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-400'
+                  : 'bg-[#FAFCFF] hover:bg-rose-50/40 border-slate-200'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-rose-700">Critical</span>
-                <span className="text-xs font-mono font-bold bg-white text-rose-700 px-1.5 py-0.5 rounded border border-rose-200">
+                <span className="text-[11px] font-mono font-bold bg-white text-rose-700 px-1.5 py-0.5 rounded border border-rose-200">
                   {riskMetrics.critical.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
+              <div className="text-base font-bold text-slate-900 mt-1.5">
                 {formatCur(riskMetrics.critical.arr)}
               </div>
-              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+              <div className="text-[10px] text-slate-600 font-mono mt-0.5">
                 {riskMetrics.critical.pct}% of ARR
               </div>
             </button>
@@ -231,22 +244,22 @@ export function PortfolioCharts({
             {/* High */}
             <button
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'high' ? 'all' : 'high')}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'high'
-                  ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400 text-[#020062]'
-                  : 'bg-[#F8FAFC] hover:bg-amber-50/50 border-[#E2E8F0] text-slate-700'
+                  ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400'
+                  : 'bg-[#FAFCFF] hover:bg-amber-50/40 border-slate-200'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-700">High Risk</span>
-                <span className="text-xs font-mono font-bold bg-white text-amber-700 px-1.5 py-0.5 rounded border border-amber-200">
+                <span className="text-xs font-bold text-amber-700">High</span>
+                <span className="text-[11px] font-mono font-bold bg-white text-amber-700 px-1.5 py-0.5 rounded border border-amber-200">
                   {riskMetrics.high.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
+              <div className="text-base font-bold text-slate-900 mt-1.5">
                 {formatCur(riskMetrics.high.arr)}
               </div>
-              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+              <div className="text-[10px] text-slate-600 font-mono mt-0.5">
                 {riskMetrics.high.pct}% of ARR
               </div>
             </button>
@@ -254,22 +267,22 @@ export function PortfolioCharts({
             {/* Medium */}
             <button
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'medium' ? 'all' : 'medium')}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'medium'
-                  ? 'bg-[#F0F5FF] border-[#2563EB] ring-2 ring-[#2563EB]/40 text-[#020062]'
-                  : 'bg-[#F8FAFC] hover:bg-[#F0F5FF]/50 border-[#E2E8F0] text-slate-700'
+                  ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-400'
+                  : 'bg-[#FAFCFF] hover:bg-blue-50/40 border-slate-200'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#0025AE]">Medium</span>
-                <span className="text-xs font-mono font-bold bg-white text-[#0025AE] px-1.5 py-0.5 rounded border border-blue-200">
+                <span className="text-xs font-bold text-[#2563EB]">Medium</span>
+                <span className="text-[11px] font-mono font-bold bg-white text-[#2563EB] px-1.5 py-0.5 rounded border border-blue-200">
                   {riskMetrics.medium.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
+              <div className="text-base font-bold text-slate-900 mt-1.5">
                 {formatCur(riskMetrics.medium.arr)}
               </div>
-              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+              <div className="text-[10px] text-slate-600 font-mono mt-0.5">
                 {riskMetrics.medium.pct}% of ARR
               </div>
             </button>
@@ -277,70 +290,62 @@ export function PortfolioCharts({
             {/* Healthy */}
             <button
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'low' ? 'all' : 'low')}
-              className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'low'
-                  ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400 text-[#020062]'
-                  : 'bg-[#F8FAFC] hover:bg-emerald-50/50 border-[#E2E8F0] text-slate-700'
+                  ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400'
+                  : 'bg-[#FAFCFF] hover:bg-emerald-50/40 border-slate-200'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-700">Healthy</span>
-                <span className="text-xs font-mono font-bold bg-white text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                <span className="text-[11px] font-mono font-bold bg-white text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
                   {riskMetrics.low.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
+              <div className="text-base font-bold text-slate-900 mt-1.5">
                 {formatCur(riskMetrics.low.arr)}
               </div>
-              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+              <div className="text-[10px] text-slate-600 font-mono mt-0.5">
                 {riskMetrics.low.pct}% of ARR
               </div>
             </button>
           </div>
         </div>
 
-        {/* CHART 2: Renewal Horizon & Urgency Exposure (5 Cols) */}
-        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-xs space-y-5 flex flex-col justify-between">
-          <div className="border-b border-[#E2E8F0] pb-4">
-            <h3 className="text-base sm:text-lg font-headline font-normal text-[#020062] tracking-tight flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[#0025AE]" />
-              <span>Renewal Horizon Exposure</span>
+        {/* CHART 2: Renewal Horizon Breakdown (5 Cols) */}
+        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="text-sm font-semibold text-slate-900 tracking-normal flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#2563EB]" />
+              <span>Renewal Horizon</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Urgency breakdown by upcoming contract expiration window
+              Urgency breakdown by expiration window
             </p>
           </div>
 
-          {/* Visual Bars for each renewal bucket */}
-          <div className="space-y-4">
+          {/* Renewal Bucket Progress Rows */}
+          <div className="space-y-3.5">
             {horizonMetrics.map((bucket) => (
-              <div key={bucket.id} className="space-y-1.5">
+              <div key={bucket.id} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#020062]">{bucket.label}</span>
-                    <span className="text-[11px] text-slate-500">({bucket.count} accounts)</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-slate-900">{bucket.label}</span>
+                    <span className="text-[11px] text-slate-600">({bucket.count})</span>
                   </div>
-                  <span className="font-mono font-bold text-[#020062]">
+                  <span className="font-mono font-bold text-slate-900">
                     {formatCur(bucket.arr)}
                   </span>
                 </div>
 
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-[#E2E8F0]">
+                <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/80">
                   <div
                     style={{ width: `${bucket.widthPct}%` }}
-                    className={`h-full ${bucket.color} rounded-full transition-all duration-500`}
+                    className={`h-full ${bucket.color} rounded-full transition-all duration-300`}
                   />
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center justify-between text-xs text-slate-600">
-            <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              Deterministic Rule Engine Active
-            </span>
-            <span className="font-mono text-slate-500 text-[11px]">Daily Synchronized</span>
           </div>
         </div>
 

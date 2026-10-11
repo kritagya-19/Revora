@@ -21,7 +21,7 @@ import type {
   HistoryAwareContext
 } from '../types/api';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || '';
 
 export async function checkBackendHealth(): Promise<{ status: string; execution_mode: string; service: string }> {
   const res = await fetch(`${API_BASE}/health`);
@@ -42,7 +42,8 @@ export async function fetchAccounts(params?: {
   sort_by?: string;
   search?: string;
 }): Promise<AccountRiskSummary[]> {
-  const url = new URL(`${API_BASE}/api/accounts`);
+  const base = API_BASE ? API_BASE : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
+  const url = new URL(`${API_BASE}/api/accounts`, base);
   if (params) {
     if (params.risk_level && params.risk_level !== 'all') url.searchParams.set('risk_level', params.risk_level);
     if (params.csm_owner) url.searchParams.set('csm_owner', params.csm_owner);

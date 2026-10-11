@@ -24,45 +24,45 @@ export function MetricCard({
 }: MetricCardProps) {
   return (
     <div
-      className={`rounded-xl p-6 transition-all duration-200 border bg-white ${
+      className={`rounded-2xl p-5 sm:p-6 transition-all duration-150 border bg-white shadow-xs ${
         highlight
-          ? 'border-rose-300 ring-1 ring-rose-200 shadow-xs'
-          : 'border-[#E2E8F0] hover:border-[#2563EB]/30 shadow-xs'
+          ? 'border-rose-200 ring-1 ring-rose-200/50'
+          : 'border-[#E2E8F0] hover:border-slate-300'
       }`}
     >
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-body">
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 font-mono">
           {label}
         </span>
         {icon && (
-          <div className="w-9 h-9 rounded-lg bg-[#F0F5FF] border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB] shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-center shrink-0">
             {icon}
           </div>
         )}
       </div>
 
-      <div className="flex items-baseline gap-2.5">
-        <span className="text-3xl sm:text-4xl font-headline font-bold text-[#020062] tracking-tight">
+      <div className="flex items-baseline gap-2">
+        <span className="text-2xl sm:text-3xl font-headline font-bold text-slate-900 tracking-tight">
           {value}
         </span>
         {trend && (
           <span
-            className={`text-xs font-bold px-2 py-0.5 rounded-md font-mono ${
-              trend.isPositive ? 'text-emerald-800 bg-emerald-50 border border-emerald-200' : 'text-rose-800 bg-rose-50 border border-rose-200'
+            className={`text-xs font-semibold px-2 py-0.5 rounded-md font-mono ${
+              trend.isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'
             }`}
           >
             {trend.value}
           </span>
         )}
         {badge && (
-          <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#0025AE] border border-blue-200">
+          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
             {badge}
           </span>
         )}
       </div>
 
       {subtext && (
-        <p className="text-xs text-slate-500 font-body mt-2.5">
+        <p className="text-xs text-slate-500 font-body mt-2 truncate">
           {subtext}
         </p>
       )}

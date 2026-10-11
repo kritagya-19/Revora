@@ -5,7 +5,7 @@ import os
 class Settings(BaseSettings):
     PORT: int = 8000
     ENVIRONMENT: str = "development"
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000"
     
     # Database (MongoDB)
     MONGODB_URI: str = "mongodb://localhost:27017"

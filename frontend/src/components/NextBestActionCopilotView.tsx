@@ -26,17 +26,21 @@ import {
   Calendar,
   AlertTriangle,
   FileText,
-  ShieldAlert,
-  Edit3,
-  RefreshCw,
-  ShieldCheck,
   Clock,
+  ArrowLeft,
+  ChevronRight,
+  ShieldCheck,
+  ShieldAlert,
+  TrendingDown,
+  Building,
+  RefreshCw,
   BarChart2,
   History,
   Lightbulb,
   Check,
+  Activity,
   Layers,
-  Activity
+  AtSign
 } from 'lucide-react';
 
 interface NextBestActionCopilotViewProps {
@@ -44,7 +48,7 @@ interface NextBestActionCopilotViewProps {
   allAccounts: AccountRiskSummary[];
   onSelectAccount: (accountId: string) => void;
   onBackToCustomer: () => void;
-  onBackToRadar: () => void;
+  onBackToRadar?: () => void;
   onNavigateToApprovals: () => void;
   currency?: 'USD' | 'INR';
   initialTab?: TabType;
@@ -57,8 +61,8 @@ export function NextBestActionCopilotView({
   allAccounts,
   onSelectAccount,
   onBackToCustomer,
-  onBackToRadar,
   onNavigateToApprovals,
+  currency = 'USD',
   initialTab = 'email'
 }: NextBestActionCopilotViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
@@ -71,7 +75,7 @@ export function NextBestActionCopilotView({
 
   const [loadingDrafts, setLoadingDrafts] = useState<boolean>(true);
   const [draftData, setDraftData] = useState<DraftActionsResponse | null>(null);
-  
+
   // Track saved proposals per category
   const [savedEmailProp, setSavedEmailProp] = useState<ActionProposal | null>(null);
   const [savedTaskProp, setSavedTaskProp] = useState<ActionProposal | null>(null);
@@ -133,31 +137,28 @@ export function NextBestActionCopilotView({
       // Populate Task Tab
       setTaskTitle(draftsRes.task_draft.title || '');
       setTaskDescription(draftsRes.task_draft.description || '');
-      setTaskAssignedTo(draftsRes.task_draft.assigned_to || account.csm_owner);
-      setTaskDueDate(draftsRes.task_draft.due_date || account.renewal_date);
+      setTaskAssignedTo(draftsRes.task_draft.assigned_to || account.csm_owner || '');
+      setTaskDueDate(draftsRes.task_draft.due_date || '');
       setTaskPriority(draftsRes.task_draft.priority || 'high');
 
       // Populate CRM Tab
       setCrmFieldName(draftsRes.crm_update.field_name || 'Account Risk Tier');
-      setCrmCurrentValue(draftsRes.crm_update.current_value || 'Healthy');
-      setCrmProposedValue(draftsRes.crm_update.proposed_value || 'High Churn Risk');
+      setCrmCurrentValue(draftsRes.crm_update.current_value || '');
+      setCrmProposedValue(draftsRes.crm_update.proposed_value || '');
       setCrmReason(draftsRes.crm_update.reason || '');
 
-      // Find any already created proposals for this account
-      const foundEmail = existingProps.find((p: ActionProposal) => p.action_type === 'csm_email' || p.action_type === 'csm_outreach_email');
-      const foundTask = existingProps.find((p: ActionProposal) => p.action_type === 'task_create');
-      const foundCrm = existingProps.find((p: ActionProposal) => p.action_type === 'crm_update');
+      // Check existing proposals
+      if (Array.isArray(existingProps)) {
+        const emailProp = existingProps.find((p) => p.action_type === 'email');
+        const taskProp = existingProps.find((p) => p.action_type === 'task_create');
+        const crmProp = existingProps.find((p) => p.action_type === 'crm_update');
 
-      if (foundEmail) setSavedEmailProp(foundEmail);
-      if (foundTask) setSavedTaskProp(foundTask);
-      if (foundCrm) setSavedCrmProp(foundCrm);
-
-    } catch (err: any) {
+        if (emailProp) setSavedEmailProp(emailProp);
+        if (taskProp) setSavedTaskProp(taskProp);
+        if (crmProp) setSavedCrmProp(crmProp);
+      }
+    } catch (err) {
       console.error('Error loading action drafts:', err);
-      setFeedbackBanner({
-        type: 'error',
-        message: err.message || 'Failed to load action drafts'
-      });
     } finally {
       setLoadingDrafts(false);
       setLoadingIntelligence(false);
@@ -168,7 +169,20 @@ export function NextBestActionCopilotView({
     loadActionsAndProposals();
   }, [account.id]);
 
-  // Handler: Save / Patch Draft
+  // Currency formatter
+  const formatCur = (amount: number) => {
+    if (currency === 'INR') {
+      const inrAmount = amount * 83;
+      if (inrAmount >= 10000000) return `₹${(inrAmount / 10000000).toFixed(2)} Cr`;
+      if (inrAmount >= 100000) return `₹${(inrAmount / 100000).toFixed(1)} L`;
+      return `₹${inrAmount.toLocaleString('en-IN')}`;
+    }
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(2)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
+    return `$${amount.toLocaleString()}`;
+  };
+
+  // Handler: Save Draft Proposal
   const handleSaveDraft = async (type: TabType) => {
     try {
       setSavingState('saving');
@@ -184,14 +198,14 @@ export function NextBestActionCopilotView({
 
         if (savedEmailProp) {
           const patched = await patchActionProposal(savedEmailProp.id, {
-            title: emailSubject,
+            title: `Outreach to ${emailRecipient || account.name}`,
             reason: emailReason,
             payload: payload
           });
           setSavedEmailProp(patched);
           setFeedbackBanner({
             type: 'success',
-            message: `Email proposal updated to v${patched.version} with content hash verification.`,
+            message: `Email proposal updated (v${patched.version}). Ready for approval.`,
             proposalId: patched.id,
             version: patched.version,
             hash: patched.content_hash
@@ -199,9 +213,9 @@ export function NextBestActionCopilotView({
         } else {
           const created = await createActionProposal({
             account_id: account.id,
-            action_type: 'csm_email',
-            title: emailSubject || `Outreach to ${account.name}`,
-            reason: emailReason || 'Proactive churn remediation email',
+            action_type: 'email',
+            title: `Outreach to ${emailRecipient || account.name}`,
+            reason: emailReason,
             payload: payload,
             evidence_ids: draftData?.email_draft.evidence_ids || [],
             investigation_id: draftData?.investigation_id
@@ -209,7 +223,7 @@ export function NextBestActionCopilotView({
           setSavedEmailProp(created);
           setFeedbackBanner({
             type: 'success',
-            message: `Email draft proposal created (ID: ${created.id}). Ready for Approval Gate.`,
+            message: `Email outreach proposal created (v${created.version}).`,
             proposalId: created.id,
             version: created.version,
             hash: created.content_hash
@@ -228,13 +242,13 @@ export function NextBestActionCopilotView({
         if (savedTaskProp) {
           const patched = await patchActionProposal(savedTaskProp.id, {
             title: taskTitle,
-            reason: taskDescription,
+            reason: `Remediation task for ${account.name}`,
             payload: payload
           });
           setSavedTaskProp(patched);
           setFeedbackBanner({
             type: 'success',
-            message: `Follow-up task updated to v${patched.version}.`,
+            message: `Follow-up task updated (v${patched.version}).`,
             proposalId: patched.id,
             version: patched.version,
             hash: patched.content_hash
@@ -244,7 +258,7 @@ export function NextBestActionCopilotView({
             account_id: account.id,
             action_type: 'task_create',
             title: taskTitle,
-            reason: taskDescription,
+            reason: `Remediation task for ${account.name}`,
             payload: payload,
             evidence_ids: draftData?.task_draft.evidence_ids || [],
             investigation_id: draftData?.investigation_id
@@ -252,7 +266,7 @@ export function NextBestActionCopilotView({
           setSavedTaskProp(created);
           setFeedbackBanner({
             type: 'success',
-            message: `Task proposal registered in approval queue (ID: ${created.id}).`,
+            message: `Operational task proposal created (v${created.version}).`,
             proposalId: created.id,
             version: created.version,
             hash: created.content_hash
@@ -293,7 +307,7 @@ export function NextBestActionCopilotView({
           setSavedCrmProp(created);
           setFeedbackBanner({
             type: 'success',
-            message: `Structured CRM update proposal created (ID: ${created.id}).`,
+            message: `CRM update proposal created (v${created.version}).`,
             proposalId: created.id,
             version: created.version,
             hash: created.content_hash
@@ -318,7 +332,7 @@ export function NextBestActionCopilotView({
       await handleSaveDraft(type);
       setFeedbackBanner({
         type: 'info',
-        message: 'Action proposal submitted to the Human-Gated Approval Center. Ready for CSM review and hash-bound signoff.'
+        message: 'Action proposal submitted to Approval Center. Ready for human sign-off.'
       });
     } catch (err: any) {
       setFeedbackBanner({
@@ -330,135 +344,153 @@ export function NextBestActionCopilotView({
     }
   };
 
+  const renewalDays = account.urgency_days_to_renewal || 15;
+  const primaryContact = account.contacts && account.contacts.length > 0 ? account.contacts[0] : null;
+
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-200">
-      {/* Top Breadcrumb & Account Switcher Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-4 lg:p-5 rounded-2xl shadow-xs">
-        <div className="flex items-center gap-2 text-sm text-slate-500 font-body flex-wrap">
-          <button
-            onClick={onBackToRadar}
-            className="hover:text-[#020062] text-slate-600 transition-colors cursor-pointer font-medium"
-          >
-            Revenue Radar
-          </button>
-          <span className="text-slate-300">/</span>
+    <div className="space-y-6 max-w-7xl mx-auto w-full pb-16">
+      {/* 1. TOP BREADCRUMB & ACCOUNT SELECTOR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E2E8F0] rounded-2xl px-5 py-3.5 shadow-xs">
+        {/* Navigation Breadcrumb */}
+        <div className="flex items-center gap-2 flex-wrap text-xs sm:text-sm">
           <button
             onClick={onBackToCustomer}
-            className="hover:text-[#020062] text-slate-600 transition-colors cursor-pointer font-medium"
+            className="text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1.5 cursor-pointer font-medium"
           >
-            {account.name}
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Customer Accounts</span>
           </button>
-          <span className="text-slate-300">/</span>
-          <span className="text-[#020062] font-semibold">Step 4 of 5: Next-Best-Action Copilot</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="font-semibold text-slate-900">{account.name}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-50 text-[#2563EB] font-semibold text-xs border border-blue-200/60">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Action Copilot</span>
+          </span>
         </div>
 
-        {/* Account Selector */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500 font-medium">Switch Account:</span>
-          <div className="relative">
-            <select
-              value={account.id}
-              onChange={(e) => onSelectAccount(e.target.value)}
-              className="text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2 font-medium text-[#020062] focus:outline-none focus:border-[#2563EB] cursor-pointer"
-            >
-              {allAccounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} ({a.risk_level.toUpperCase()} • Score: {a.risk_score})
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Company Switcher */}
+        <div className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 transition-colors">
+          <Building className="w-4 h-4 text-[#2563EB] shrink-0" />
+          <span className="text-xs font-semibold text-slate-600 shrink-0">Company:</span>
+          <select
+            id="action-company-selector"
+            aria-label="Change Company"
+            value={account.id}
+            onChange={(e) => onSelectAccount(e.target.value)}
+            className="bg-transparent text-xs sm:text-sm font-bold text-slate-900 focus:outline-none cursor-pointer pr-1"
+          >
+            {allAccounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} ({formatCur(a.arr)} • {a.risk_level.toUpperCase()})
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Hero Header Card */}
-      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 lg:p-8 shadow-xs relative overflow-hidden space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#F0F5FF] text-[#0025AE] border border-blue-200 text-xs font-semibold">
-              <Sparkles className="w-4 h-4 text-[#2563EB]" />
-              <span>Next-Best-Action Copilot</span>
-              <span className="text-slate-400">• Human-in-the-Loop Safe Action Gate</span>
-            </div>
-            <h1 className="font-headline text-3xl font-normal text-[#020062]">
-              Action Proposals for {account.name}
-            </h1>
-            <p className="text-sm text-slate-600 leading-relaxed font-body">
-              Once risk telemetry identifies churn probability, Revora prepares immediate, structured mitigation proposals.
-              Every proposed outreach or CRM modification is grounded in verified evidence with cryptographic hash integrity, 
-              guaranteeing zero unrestricted autonomous writes without human authorization.
-            </p>
+      {/* Feedback Alert Banner (Rendered when action is saved or submitted) */}
+      {feedbackBanner && (
+        <div
+          className={`p-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-between gap-3 transition-all ${
+            feedbackBanner.type === 'success'
+              ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+              : feedbackBanner.type === 'info'
+              ? 'bg-blue-50 text-blue-900 border border-blue-200'
+              : 'bg-rose-50 text-rose-900 border border-rose-200'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            {feedbackBanner.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <ShieldCheck className="w-4 h-4 text-[#2563EB] shrink-0" />
+            )}
+            <span>{feedbackBanner.message}</span>
           </div>
 
-          {/* Quick Context Pill */}
-          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-5 flex items-center gap-6 shrink-0">
-            <div>
-              <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block mb-1">
-                Primary Driver
-              </span>
-              <span className="text-sm font-bold text-[#020062] capitalize">
-                {account.primary_reason_code.replace('_', ' ')}
-              </span>
-            </div>
-            <div className="h-10 w-px bg-[#E2E8F0]" />
-            <div>
-              <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block mb-1">
-                Urgency
-              </span>
-              <span className="text-sm font-bold text-rose-700">
-                {account.urgency_days_to_renewal} days to renewal
-              </span>
-            </div>
-            <div className="h-10 w-px bg-[#E2E8F0]" />
-            <div>
-              <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block mb-1">
-                Account Owner
-              </span>
-              <span className="text-sm font-bold text-[#020062]">
-                {account.csm_owner}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Feedback Alert Banner */}
-        {feedbackBanner && (
-          <div
-            className={`p-4 rounded-xl text-sm flex items-center justify-between gap-4 transition-all ${
-              feedbackBanner.type === 'success'
-                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
-                : feedbackBanner.type === 'info'
-                ? 'bg-blue-50 text-blue-900 border border-blue-200'
-                : 'bg-rose-50 text-rose-900 border border-rose-200'
-            }`}
+          <button
+            onClick={onNavigateToApprovals}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white hover:bg-slate-50 font-semibold text-xs text-[#2563EB] border border-slate-200 shadow-2xs cursor-pointer shrink-0"
           >
-            <div className="flex items-center gap-3">
-              {feedbackBanner.type === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              ) : (
-                <ShieldCheck className="w-5 h-5 text-[#2563EB] shrink-0" />
+            <span>View in Approval Center</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* 3. WORKSPACE: ACTION DRAFTER (LEFT) + CONTEXT PROBLEM DOSSIER (RIGHT) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Column: Action Workspace */}
+        <div className="lg:col-span-8 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs overflow-hidden">
+          {/* Action Tabs Header */}
+          <div className="flex border-b border-slate-100 bg-[#FAFCFF] px-4 pt-3 gap-2">
+            <button
+              onClick={() => setActiveTab('email')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+                activeTab === 'email'
+                  ? 'border-[#2563EB] text-[#2563EB] bg-white shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'
+              }`}
+            >
+              <Mail className="w-4 h-4" />
+              <span>Executive Outreach</span>
+              {savedEmailProp && (
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded font-mono border border-emerald-200">
+                  v{savedEmailProp.version}
+                </span>
               )}
-              <div>
-                <span className="font-semibold block">{feedbackBanner.message}</span>
-                {feedbackBanner.hash && (
-                  <span className="font-mono text-xs block text-slate-600 mt-1">
-                    Proposal ID: <strong className="text-[#020062]">{feedbackBanner.proposalId}</strong> • Version: <strong>v{feedbackBanner.version}</strong> • Content Hash: <code className="bg-white px-2 py-0.5 rounded text-xs text-[#0025AE] font-mono border border-blue-200">{feedbackBanner.hash}</code>
-                  </span>
-                )}
-              </div>
-            </div>
+            </button>
 
             <button
-              onClick={onNavigateToApprovals}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 font-semibold text-xs text-[#020062] border border-[#E2E8F0] shadow-xs cursor-pointer shrink-0"
+              onClick={() => setActiveTab('task')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+                activeTab === 'task'
+                  ? 'border-[#2563EB] text-[#2563EB] bg-white shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'
+              }`}
             >
-              <span>View in Approval Center</span>
-              <ArrowRight className="w-4 h-4" />
+              <CheckSquare className="w-4 h-4" />
+              <span>Remediation Task</span>
+              {savedTaskProp && (
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded font-mono border border-emerald-200">
+                  v{savedTaskProp.version}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('crm')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+                activeTab === 'crm'
+                  ? 'border-[#2563EB] text-[#2563EB] bg-white shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'
+              }`}
+            >
+              <Database className="w-4 h-4" />
+              <span>CRM Risk Update</span>
+              {savedCrmProp && (
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded font-mono border border-emerald-200">
+                  v{savedCrmProp.version}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('intelligence')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+                activeTab === 'intelligence'
+                  ? 'border-[#2563EB] text-[#2563EB] bg-white shadow-2xs'
+                  : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'
+              }`}
+            >
+              <BarChart2 className="w-4 h-4 text-indigo-600" />
+              <span>Outcome Intelligence</span>
+              <span className="text-[10px] bg-indigo-50 text-indigo-800 px-1.5 py-0.2 rounded font-mono border border-indigo-200">
+                F4
+              </span>
             </button>
           </div>
-        )}
-      </div>
-
       {/* FEATURE 5: History-Aware Recommendation Engine Banner */}
       {draftData?.history_aware_context && (
         <div className="bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-5 lg:p-6 shadow-xs space-y-4">
@@ -557,481 +589,425 @@ export function NextBestActionCopilotView({
           </div>
         </div>
       )}
+          {/* TAB 1: Executive Email Draft */}
+          {activeTab === 'email' && (
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h2 className="text-sm sm:text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-[#2563EB]" />
+                    <span>Personalized Follow-up Email Draft</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Synthesized from verified customer telemetry and recent risk triggers.
+                  </p>
+                </div>
 
-      {/* Tabs Header */}
-      <div className="flex border-b border-[#E2E8F0] gap-3">
-        <button
-          onClick={() => setActiveTab('email')}
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
-            activeTab === 'email'
-              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
-              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
-          }`}
-        >
-          <Mail className="w-4 h-4" />
-          <span>Email Draft</span>
-          {savedEmailProp && (
-            <span className="text-xs bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
-              v{savedEmailProp.version}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('task')}
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
-            activeTab === 'task'
-              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
-              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
-          }`}
-        >
-          <CheckSquare className="w-4 h-4" />
-          <span>Follow-up Task</span>
-          {savedTaskProp && (
-            <span className="text-xs bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
-              v{savedTaskProp.version}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('crm')}
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
-            activeTab === 'crm'
-              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
-              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          <span>CRM Update</span>
-          {savedCrmProp && (
-            <span className="text-xs bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
-              v{savedCrmProp.version}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('intelligence')}
-          className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
-            activeTab === 'intelligence'
-              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
-              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
-          }`}
-        >
-          <BarChart2 className="w-4 h-4 text-indigo-600" />
-          <span>Outcome Intelligence</span>
-          <span className="text-[10px] bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded-full font-mono font-bold border border-indigo-200">
-            Feature 4
-          </span>
-        </button>
-      </div>
-
-      {/* TAB 1: Email Draft */}
-      {activeTab === 'email' && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-6 shadow-xs">
-          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
-            <div>
-              <h2 className="font-headline text-xl font-normal text-[#020062] flex items-center gap-2.5">
-                <Mail className="w-5 h-5 text-[#2563EB]" />
-                Personalized Follow-up Email Draft
-              </h2>
-              <p className="text-sm text-slate-500 font-body mt-0.5">
-                AI synthesized from verified account context and recent risk triggers. Edit directly before saving.
-              </p>
-            </div>
-
-            {loadingDrafts && (
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <RefreshCw className="w-4 h-4 animate-spin text-[#2563EB]" />
-                <span>Synthesizing from telemetry...</span>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Recipient */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <User className="w-4 h-4 text-slate-400" />
-                Recipient (Executive Sponsor or Primary Stakeholder)
-              </label>
-              <input
-                type="email"
-                value={emailRecipient}
-                onChange={(e) => setEmailRecipient(e.target.value)}
-                placeholder="recipient@customer.com"
-                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-mono text-[#020062] placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none"
-              />
-            </div>
-
-            {/* Subject */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
-                Subject Line
-              </label>
-              <input
-                type="text"
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                placeholder="Email Subject"
-                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-body font-medium text-[#020062] placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Reason for Outreach */}
-          <div className="p-4 bg-[#F0F5FF] border border-blue-200 rounded-xl space-y-1.5">
-            <span className="text-xs font-semibold text-[#0025AE] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#2563EB]" />
-              Strategic Reason for Outreach:
-            </span>
-            <input
-              type="text"
-              value={emailReason}
-              onChange={(e) => setEmailReason(e.target.value)}
-              className="w-full text-sm bg-transparent border-0 font-body text-[#020062] focus:outline-none focus:ring-0 p-0"
-            />
-          </div>
-
-          {/* Editable Email Body */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-slate-400" />
-                Editable Email Body
-              </label>
-              <span className="text-xs text-slate-500">
-                You can freely edit the content; edits increment versioning safely.
-              </span>
-            </div>
-            <textarea
-              rows={10}
-              value={emailBody}
-              onChange={(e) => setEmailBody(e.target.value)}
-              className="w-full text-sm font-body leading-relaxed bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-slate-800 focus:border-[#2563EB] focus:outline-none transition-all font-mono"
-            />
-          </div>
-
-          {/* Evidence References */}
-          {draftData?.email_draft.evidence_ids && draftData.email_draft.evidence_ids.length > 0 && (
-            <div className="flex items-center gap-2.5 text-sm text-slate-500 flex-wrap">
-              <span className="font-semibold text-slate-700">Grounded Evidence IDs:</span>
-              {draftData.email_draft.evidence_ids.map((eid) => (
-                <span
-                  key={eid}
-                  className="px-2.5 py-0.5 rounded-md bg-[#F0F5FF] font-mono text-xs text-[#0025AE] border border-blue-200"
-                >
-                  {eid}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between">
-            <div className="text-sm text-slate-500">
-              State: <strong className="text-[#020062]">{savedEmailProp ? `Saved (v${savedEmailProp.version})` : 'Unsaved Draft'}</strong>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleSaveDraft('email')}
-                disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-[#E2E8F0] cursor-pointer transition-all disabled:opacity-50"
-              >
-                <Save className="w-4 h-4 text-slate-400" />
-                <span>Save Draft</span>
-              </button>
-
-              <button
-                onClick={() => handleSubmitForApproval('email')}
-                disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-sm shadow-xs cursor-pointer transition-all disabled:opacity-50"
-              >
-                <Send className="w-4 h-4" />
-                <span>Submit for Approval</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: Follow-up Task */}
-      {activeTab === 'task' && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-6 shadow-xs">
-          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
-            <div>
-              <h2 className="font-headline text-xl font-normal text-[#020062] flex items-center gap-2.5">
-                <CheckSquare className="w-5 h-5 text-[#2563EB]" />
-                Follow-up Operational Task
-              </h2>
-              <p className="text-sm text-slate-500 font-body mt-0.5">
-                Structured operational task for the account owner to drive remediation through execution gates.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            {/* Task Title */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
-                Task Title
-              </label>
-              <input
-                type="text"
-                value={taskTitle}
-                onChange={(e) => setTaskTitle(e.target.value)}
-                placeholder="Task title"
-                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-medium text-[#020062] placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none"
-              />
-            </div>
-
-            {/* Task Description */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-slate-400" />
-                Task Description & Action Instructions
-              </label>
-              <textarea
-                rows={4}
-                value={taskDescription}
-                onChange={(e) => setTaskDescription(e.target.value)}
-                placeholder="Details of the operational follow-up"
-                className="w-full text-sm font-body leading-relaxed bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-slate-800 focus:border-[#2563EB] focus:outline-none"
-              />
-            </div>
-
-            {/* Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {/* Assigned Account Owner */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <User className="w-4 h-4 text-slate-400" />
-                  Assigned Account Owner
-                </label>
-                <input
-                  type="text"
-                  value={taskAssignedTo}
-                  onChange={(e) => setTaskAssignedTo(e.target.value)}
-                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[#020062] focus:border-[#2563EB] focus:outline-none"
-                />
-              </div>
-
-              {/* Due Date */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  value={taskDueDate}
-                  onChange={(e) => setTaskDueDate(e.target.value)}
-                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[#020062] focus:border-[#2563EB] focus:outline-none"
-                />
-              </div>
-
-              {/* Priority */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-slate-400" />
-                  Priority Level
-                </label>
-                <select
-                  value={taskPriority}
-                  onChange={(e) => setTaskPriority(e.target.value as any)}
-                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[#020062] focus:border-[#2563EB] focus:outline-none cursor-pointer"
-                >
-                  <option value="high">High Priority</option>
-                  <option value="medium">Medium Priority</option>
-                  <option value="low">Low Priority</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Evidence Citations */}
-          {draftData?.task_draft.evidence_ids && draftData.task_draft.evidence_ids.length > 0 && (
-            <div className="flex items-center gap-2.5 text-sm text-slate-500 flex-wrap">
-              <span className="font-semibold text-slate-700">Backing Evidence Signals:</span>
-              {draftData.task_draft.evidence_ids.map((eid) => (
-                <span
-                  key={eid}
-                  className="px-2.5 py-0.5 rounded-md bg-[#F0F5FF] font-mono text-xs text-[#0025AE] border border-blue-200"
-                >
-                  {eid}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between">
-            <div className="text-sm text-slate-500">
-              Action Ledger: <code className="bg-[#F8FAFC] px-2 py-0.5 rounded text-xs text-slate-600 border border-[#E2E8F0]">task_create proposal</code>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleSaveDraft('task')}
-                disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-[#E2E8F0] cursor-pointer transition-all disabled:opacity-50"
-              >
-                <Save className="w-4 h-4 text-slate-400" />
-                <span>Save Proposed Task</span>
-              </button>
-
-              <button
-                onClick={() => handleSubmitForApproval('task')}
-                disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-sm shadow-xs cursor-pointer transition-all disabled:opacity-50"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Create Proposed Task</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: CRM Update */}
-      {activeTab === 'crm' && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-6 shadow-xs">
-          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
-            <div>
-              <h2 className="font-headline text-xl font-normal text-[#020062] flex items-center gap-2.5">
-                <Database className="w-5 h-5 text-[#2563EB]" />
-                Structured CRM Update Proposal
-              </h2>
-              <p className="text-sm text-slate-500 font-body mt-0.5">
-                The AI prepares structured field modifications based on verified risk scores. Direct CRM writing is restricted.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            {/* Field Name */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
-                Target CRM Field
-              </label>
-              <input
-                type="text"
-                value={crmFieldName}
-                onChange={(e) => setCrmFieldName(e.target.value)}
-                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-mono text-[#020062] focus:border-[#2563EB] focus:outline-none"
-              />
-            </div>
-
-            {/* Current vs Proposed Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Current Value */}
-              <div className="p-5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-2.5">
-                <span className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 block">
-                  Current Field Value
-                </span>
-                <input
-                  type="text"
-                  value={crmCurrentValue}
-                  onChange={(e) => setCrmCurrentValue(e.target.value)}
-                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2 text-slate-800 font-medium focus:border-[#2563EB] focus:outline-none"
-                />
-                <span className="text-xs text-slate-500 block">
-                  Synchronized from Salesforce / HubSpot CRM snapshot
-                </span>
-              </div>
-
-              {/* Proposed Value */}
-              <div className="p-5 bg-[#F0F5FF] border border-blue-200 rounded-xl space-y-2.5">
-                <span className="text-xs uppercase font-mono font-bold tracking-wider text-[#0025AE] block">
-                  Proposed Field Value
-                </span>
-                <input
-                  type="text"
-                  value={crmProposedValue}
-                  onChange={(e) => setCrmProposedValue(e.target.value)}
-                  className="w-full text-sm bg-white border border-blue-300 rounded-xl px-4 py-2 font-bold text-[#020062] focus:border-[#2563EB] focus:outline-none"
-                />
-                <span className="text-xs text-[#0025AE] block">
-                  Calculated by deterministic risk rules and telemetry
-                </span>
-              </div>
-            </div>
-
-            {/* Reason for the Change */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-slate-400" />
-                Reason for the Change
-              </label>
-              <textarea
-                rows={3}
-                value={crmReason}
-                onChange={(e) => setCrmReason(e.target.value)}
-                placeholder="Strategic justification for updating CRM record"
-                className="w-full text-sm font-body leading-relaxed bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-slate-800 focus:border-[#2563EB] focus:outline-none"
-              />
-            </div>
-
-            {/* Evidence Supporting Proposal */}
-            <div className="p-5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
-              <span className="text-sm font-semibold text-slate-700 block">
-                Evidence Supporting the Proposal
-              </span>
-              <div className="space-y-2">
-                {account.signals.slice(0, 3).map((sig) => (
-                  <div
-                    key={sig.id}
-                    className="flex items-center justify-between text-xs bg-white p-3 rounded-xl border border-[#E2E8F0]"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className="px-2 py-0.5 rounded text-xs font-mono bg-[#F0F5FF] text-[#0025AE] border border-blue-200">
-                        {sig.id}
-                      </span>
-                      <span className="font-medium text-[#020062]">{sig.title}</span>
-                      <span className="text-slate-500">— {sig.summary}</span>
-                    </div>
-                    <span className="text-xs text-slate-500 font-mono uppercase">
-                      {sig.source_category}
-                    </span>
+                {loadingDrafts && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#2563EB]" />
+                    <span>Loading...</span>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* Recipient & Subject Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label htmlFor="email-recipient-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <AtSign className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Recipient</span>
+                  </label>
+                  <input
+                    id="email-recipient-input"
+                    type="email"
+                    value={emailRecipient}
+                    onChange={(e) => setEmailRecipient(e.target.value)}
+                    placeholder="recipient@customer.com"
+                    className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-mono text-slate-900 focus:border-[#2563EB] focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="email-subject-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Subject Line</span>
+                  </label>
+                  <input
+                    id="email-subject-input"
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="Email Subject"
+                    className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-medium text-slate-900 focus:border-[#2563EB] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Strategic Context Pill */}
+              <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/70 space-y-1">
+                <span className="text-[11px] font-semibold text-[#2563EB] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>Strategic Objective:</span>
+                </span>
+                <input
+                  type="text"
+                  value={emailReason}
+                  onChange={(e) => setEmailReason(e.target.value)}
+                  className="w-full text-xs text-slate-800 bg-transparent border-0 focus:outline-none focus:ring-0 p-0 font-medium"
+                />
+              </div>
+
+              {/* Email Body */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="email-body-input" className="text-xs font-semibold text-slate-700">
+                    Email Content (Editable)
+                  </label>
+                  <span className="text-[11px] text-slate-400">
+                    Edits increment proposal versioning
+                  </span>
+                </div>
+                <textarea
+                  id="email-body-input"
+                  rows={8}
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  className="w-full text-xs sm:text-sm leading-relaxed bg-[#FAFCFF] border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:border-[#2563EB] focus:bg-white focus:outline-none font-sans transition-all"
+                />
+              </div>
+
+              {/* Action Buttons Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <div className="text-xs text-slate-500">
+                  Status: <strong className="text-slate-800">{savedEmailProp ? `Saved (v${savedEmailProp.version})` : 'Draft'}</strong>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={() => handleSaveDraft('email')}
+                    disabled={savingState !== 'idle'}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <Save className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Save Draft</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSubmitForApproval('email')}
+                    disabled={savingState !== 'idle'}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Submit for Approval</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: Remediation Task */}
+          {activeTab === 'task' && (
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h2 className="text-sm sm:text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-[#2563EB]" />
+                    <span>Follow-up Remediation Task</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Structured operational assignment for the account CSM.
+                  </p>
+                </div>
+              </div>
+
+              {/* Task Title */}
+              <div className="space-y-1.5">
+                <label htmlFor="task-title-input" className="text-xs font-semibold text-slate-700">Task Title</label>
+                <input
+                  id="task-title-input"
+                  type="text"
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
+                  placeholder="Task title"
+                  className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-medium text-slate-900 focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              {/* Task Description */}
+              <div className="space-y-1.5">
+                <label htmlFor="task-desc-input" className="text-xs font-semibold text-slate-700">Task Instructions</label>
+                <textarea
+                  id="task-desc-input"
+                  rows={4}
+                  value={taskDescription}
+                  onChange={(e) => setTaskDescription(e.target.value)}
+                  placeholder="Details of the operational follow-up"
+                  className="w-full text-xs sm:text-sm bg-[#FAFCFF] border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:border-[#2563EB] focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              {/* Assigned To, Due Date, Priority */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="space-y-1.5">
+                  <label htmlFor="task-assigned-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Assigned CSM</span>
+                  </label>
+                  <input
+                    id="task-assigned-input"
+                    type="text"
+                    value={taskAssignedTo}
+                    onChange={(e) => setTaskAssignedTo(e.target.value)}
+                    className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 focus:border-[#2563EB] focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="task-due-date-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Due Date</span>
+                  </label>
+                  <input
+                    id="task-due-date-input"
+                    type="date"
+                    value={taskDueDate}
+                    onChange={(e) => setTaskDueDate(e.target.value)}
+                    className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 focus:border-[#2563EB] focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="task-priority-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Priority</span>
+                  </label>
+                  <select
+                    id="task-priority-input"
+                    value={taskPriority}
+                    onChange={(e) => setTaskPriority(e.target.value as any)}
+                    className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 focus:border-[#2563EB] focus:outline-none cursor-pointer"
+                  >
+                    <option value="high">High Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="low">Low Priority</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Action Buttons Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <div className="text-xs text-slate-500">
+                  Status: <strong className="text-slate-800">{savedTaskProp ? `Saved (v${savedTaskProp.version})` : 'Draft'}</strong>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={() => handleSaveDraft('task')}
+                    disabled={savingState !== 'idle'}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <Save className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Save Task</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSubmitForApproval('task')}
+                    disabled={savingState !== 'idle'}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Submit for Approval</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Structured CRM Update */}
+          {activeTab === 'crm' && (
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h2 className="text-sm sm:text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <Database className="w-4 h-4 text-[#2563EB]" />
+                    <span>Structured CRM Field Update</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Modifies CRM risk status to align forecasting with telemetry realities.
+                  </p>
+                </div>
+              </div>
+
+              {/* Target CRM Field */}
+              <div className="space-y-1.5">
+                <label htmlFor="crm-field-input" className="text-xs font-semibold text-slate-700">Target Field</label>
+                <input
+                  id="crm-field-input"
+                  type="text"
+                  value={crmFieldName}
+                  onChange={(e) => setCrmFieldName(e.target.value)}
+                  className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-mono text-slate-900 focus:border-[#2563EB] focus:outline-none"
+                />
+              </div>
+
+              {/* Current vs Proposed Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5">
+                  <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-slate-500 block">
+                    Current CRM Value
+                  </span>
+                  <input
+                    type="text"
+                    value={crmCurrentValue}
+                    onChange={(e) => setCrmCurrentValue(e.target.value)}
+                    className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 font-medium focus:border-[#2563EB] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-400 block">
+                    Synchronized from HubSpot / Salesforce
+                  </span>
+                </div>
+
+                <div className="p-3.5 bg-blue-50/60 border border-blue-200 rounded-xl space-y-1.5">
+                  <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-[#2563EB] block">
+                    Proposed CRM Value
+                  </span>
+                  <input
+                    type="text"
+                    value={crmProposedValue}
+                    onChange={(e) => setCrmProposedValue(e.target.value)}
+                    className="w-full text-xs sm:text-sm bg-white border border-blue-300 rounded-lg px-3 py-1.5 font-bold text-slate-900 focus:border-[#2563EB] focus:outline-none"
+                  />
+                  <span className="text-[10px] text-[#2563EB] block">
+                    Calculated by deterministic risk engine
+                  </span>
+                </div>
+              </div>
+
+              {/* Reason for Change */}
+              <div className="space-y-1.5">
+                <label htmlFor="crm-reason-input" className="text-xs font-semibold text-slate-700">Business Justification</label>
+                <textarea
+                  id="crm-reason-input"
+                  rows={3}
+                  value={crmReason}
+                  onChange={(e) => setCrmReason(e.target.value)}
+                  placeholder="Strategic justification for updating CRM record"
+                  className="w-full text-xs sm:text-sm bg-[#FAFCFF] border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:border-[#2563EB] focus:bg-white focus:outline-none"
+                />
+              </div>
+
+              {/* Action Buttons Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <div className="text-xs text-slate-500">
+                  Status: <strong className="text-slate-800">{savedCrmProp ? `Saved (v${savedCrmProp.version})` : 'Draft'}</strong>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={() => handleSaveDraft('crm')}
+                    disabled={savingState !== 'idle'}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <Save className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Save Draft</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSubmitForApproval('crm')}
+                    disabled={savingState !== 'idle'}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold text-xs shadow-xs cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Submit for Approval</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Context Problem Dossier & Target Stakeholder */}
+        <div className="lg:col-span-4 space-y-4">
+          {/* Card 1: Structured Problem Triggers */}
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-500">
+                Active Churn Triggers
+              </h3>
+              <span className="text-[10px] font-mono text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded font-semibold">
+                High Priority
+              </span>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="font-semibold text-slate-800">Usage Contraction</span>
+                </div>
+                <span className="font-mono font-bold text-rose-600">-52% MoM</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-purple-600" />
+                  <span className="font-semibold text-slate-800">Touchpoint Silence</span>
+                </div>
+                <span className="font-mono font-bold text-purple-700">16d without reply</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="font-semibold text-slate-800">Contract Expiration</span>
+                </div>
+                <span className="font-mono font-bold text-amber-700">{renewalDays}d remaining</span>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between">
-            <div className="text-sm text-slate-500">
-              Protection: <strong className="text-emerald-700">Direct write restricted • Requires gate signoff</strong>
-            </div>
+          {/* Card 2: Target Decision Maker */}
+          {primaryContact && (
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-500">
+                  Target Decision Maker
+                </h3>
+                <span className="text-[10px] font-mono text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.2 rounded font-semibold">
+                  Primary Champion
+                </span>
+              </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleSaveDraft('crm')}
-                disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-[#E2E8F0] cursor-pointer transition-all disabled:opacity-50"
-              >
-                <Save className="w-4 h-4 text-slate-400" />
-                <span>Save Draft Proposal</span>
-              </button>
-
-              <button
-                onClick={() => handleSubmitForApproval('crm')}
-                disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-sm shadow-xs cursor-pointer transition-all disabled:opacity-50"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Submit for Approval</span>
-              </button>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2 font-semibold text-slate-900">
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{primaryContact.name}</span>
+                </div>
+                <p className="text-slate-500 pl-5 text-[11px] font-mono">{primaryContact.role} • {primaryContact.email}</p>
+              </div>
             </div>
+          )}
+
+          {/* Card 3: Human Safe Gate Sign-off Card */}
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-900">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Safe Execution Gate Active</span>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Proposals are signed with SHA-256 hash integrity. Autonomous writes are blocked until explicitly verified in the Approval Center.
+            </p>
+            <button
+              onClick={onNavigateToApprovals}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800 cursor-pointer transition-colors"
+            >
+              <span>Go to Approval Center</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* TAB 4: Feature 4 — Outcome Intelligence */}
       {activeTab === 'intelligence' && (
@@ -1486,7 +1462,7 @@ export function NextBestActionCopilotView({
 
         <button
           onClick={onNavigateToApprovals}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-sm font-semibold text-white shadow-xs shrink-0 cursor-pointer transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold shadow-xs cursor-pointer transition-colors shrink-0"
         >
           <span>Open Approval Center</span>
           <ArrowRight className="w-4 h-4" />
