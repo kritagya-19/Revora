@@ -101,11 +101,11 @@ export function Topbar({
           <button
             onClick={handleRefreshClick}
             disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-slate-800 bg-slate-900 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] hover:border-[#2563EB]/40 text-slate-700 hover:text-[#020062] transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
             title="Fetch latest data from MongoDB"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline font-mono">Sync DB</span>
+            <RefreshCw className={`w-3.5 h-3.5 text-[#2563EB] ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline font-mono font-medium">Sync DB</span>
           </button>
         )}
 
