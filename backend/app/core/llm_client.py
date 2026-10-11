@@ -14,21 +14,35 @@ from typing import Any, Dict, List, Optional
 import httpx
 from app.core.config import settings
 
+import os
+
 logger = logging.getLogger("revora.llm_client")
 
 
 class LLMClient:
     def __init__(self):
-        self.api_key = settings.OPENROUTER_API_KEY or ""
-        self.model = settings.OPENROUTER_MODEL or "openai/gpt-4o-mini"
-        self.base_url = settings.OPENROUTER_BASE_URL or "https://openrouter.ai/api/v1"
-        self.headers = {
+        self._cache: Dict[str, str] = {}
+
+    @property
+    def api_key(self) -> str:
+        return settings.OPENROUTER_API_KEY or os.environ.get("OPENROUTER_API_KEY", "")
+
+    @property
+    def model(self) -> str:
+        return settings.OPENROUTER_MODEL or os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini")
+
+    @property
+    def base_url(self) -> str:
+        return settings.OPENROUTER_BASE_URL or os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {
             "Authorization": f"Bearer {self.api_key}",
             "HTTP-Referer": "http://localhost:5173",
             "X-Title": "Revora Revenue Defense Copilot",
             "Content-Type": "application/json"
         }
-        self._cache: Dict[str, str] = {}
 
     def is_available(self) -> bool:
         """Returns True if an OpenRouter API key is configured."""

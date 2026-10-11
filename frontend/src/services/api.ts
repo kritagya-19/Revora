@@ -544,9 +544,8 @@ export async function checkFeedbackTriggerEligibility(
   accountId: string,
   forceIgnoreCooldown?: boolean
 ): Promise<FeedbackTriggerCheck> {
-  const url = new URL(`${API_BASE}/api/feedback/check-trigger/${accountId}`);
-  if (forceIgnoreCooldown) url.searchParams.set('force_ignore_cooldown', 'true');
-  const res = await fetch(url.toString());
+  const query = forceIgnoreCooldown ? '?force_ignore_cooldown=true' : '';
+  const res = await fetch(`${API_BASE}/api/feedback/check-trigger/${accountId}${query}`);
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to check trigger eligibility: ${res.statusText}`);
@@ -557,9 +556,8 @@ export async function checkFeedbackTriggerEligibility(
 export async function scanPortfolioTriggers(
   forceIgnoreCooldown?: boolean
 ): Promise<BatchTriggerScanResult> {
-  const url = new URL(`${API_BASE}/api/feedback/scan-triggers`);
-  if (forceIgnoreCooldown) url.searchParams.set('force_ignore_cooldown', 'true');
-  const res = await fetch(url.toString(), {
+  const query = forceIgnoreCooldown ? '?force_ignore_cooldown=true' : '';
+  const res = await fetch(`${API_BASE}/api/feedback/scan-triggers${query}`, {
     method: 'POST'
   });
   if (!res.ok) {
