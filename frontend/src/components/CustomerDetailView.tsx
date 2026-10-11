@@ -15,7 +15,8 @@ import {
   Headphones,
   CalendarDays,
   FileText,
-  Heart
+  Heart,
+  MessageSquare
 } from 'lucide-react';
 
 interface CustomerDetailViewProps {
@@ -25,6 +26,7 @@ interface CustomerDetailViewProps {
   onNavigateToApprovals?: () => void;
   onInvestigateWithAI?: () => void;
   onNavigateToCopilot?: () => void;
+  onNavigateToFeedback?: () => void;
 }
 
 export function CustomerDetailView({
@@ -32,7 +34,8 @@ export function CustomerDetailView({
   onBackToAccounts,
   currency = 'USD',
   onInvestigateWithAI,
-  onNavigateToCopilot
+  onNavigateToCopilot,
+  onNavigateToFeedback
 }: CustomerDetailViewProps) {
   const [timelineFilter, setTimelineFilter] = useState<string>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
@@ -173,6 +176,17 @@ export function CustomerDetailView({
 
             {/* CTAs */}
             <div className="flex items-center gap-2">
+              {onNavigateToFeedback && (
+                <button
+                  onClick={onNavigateToFeedback}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 text-xs font-semibold cursor-pointer transition-colors"
+                  title="Trigger Survey & View Feedback Insights"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Feedback Loop</span>
+                </button>
+              )}
+
               {onNavigateToCopilot && (
                 <button
                   onClick={onNavigateToCopilot}

@@ -36,7 +36,7 @@ class AccountRepository:
         if settings.MONGODB_URI:
             try:
                 from pymongo import MongoClient
-                self.mongo_client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1500)
+                self.mongo_client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1500, connectTimeoutMS=1500, socketTimeoutMS=1500)
                 self.mongo_client.admin.command('ping')
                 self.db = self.mongo_client[settings.MONGODB_DB_NAME]
                 logger.info(f"MongoDB connected successfully to database: {settings.MONGODB_DB_NAME}")

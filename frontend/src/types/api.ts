@@ -431,3 +431,419 @@ export interface OutcomeIntelligenceReport {
   learned_patterns: LearnedPattern[];
   generated_at: string;
 }
+
+export interface FreePipelineStatus {
+  webhook: {
+    configured: boolean;
+    url: string;
+    provider: string;
+    supports: string[];
+  };
+  smtp: {
+    configured: boolean;
+    host: string;
+    port: number;
+    sender: string;
+    supports: string[];
+  };
+  outbox_count: number;
+  free_tier_notice: string;
+}
+
+export interface OutboxRecord {
+  id: string;
+  timestamp: string;
+  type?: string;
+  event_type?: string;
+  provider?: string;
+  to_email?: string;
+  to_name?: string;
+  subject?: string;
+  body_text?: string;
+  html_body?: string;
+  title?: string;
+  description?: string;
+  account_name?: string;
+  status: string;
+  status_code?: number;
+  error?: string;
+}
+
+// Feature 1: Action & Outcome Tracker Types
+export type ActionExecutionStatus = 'pending' | 'approved' | 'executing' | 'executed' | 'failed';
+export type WorkStatus = 'not started' | 'in progress' | 'completed';
+
+export interface OutcomeRecord {
+  outcome_id: string;
+  action_tracker_id: string;
+  notes: string;
+  customer_response: string;
+  commitments: string;
+  next_steps: string;
+  supporting_evidence_ids: string[];
+  recorded_by: string;
+  recorded_at: string;
+  auto_captured: boolean;
+  capture_source?: string | null;
+}
+
+export interface ActionTrackerItem {
+  id: string;
+  proposal_id?: string | null;
+  account_id: string;
+  account_name: string;
+  action_type: string;
+  title: string;
+  description?: string | null;
+  investigation_id?: string | null;
+  evidence_ids: string[];
+  recommendation_payload: Record<string, any>;
+  action_status: ActionExecutionStatus;
+  work_status: WorkStatus;
+  assigned_to: string;
+  execution_mode: string;
+  execution_result?: Record<string, any> | null;
+  outcome?: OutcomeRecord | null;
+  auto_capture_available: boolean;
+  auto_capture_preview?: Record<string, any> | null;
+  created_at: string;
+  updated_at?: string | null;
+}
+
+export interface CreateActionTrackerRequest {
+  account_id: string;
+  title: string;
+  action_type: string;
+  proposal_id?: string;
+  description?: string;
+  investigation_id?: string;
+  evidence_ids?: string[];
+  recommendation_payload?: Record<string, any>;
+  action_status?: ActionExecutionStatus;
+  work_status?: WorkStatus;
+  assigned_to?: string;
+}
+
+export interface SaveOutcomeRequest {
+  notes: string;
+  customer_response: string;
+  commitments: string;
+  next_steps: string;
+  recorded_by?: string;
+  supporting_evidence_ids?: string[];
+  auto_captured?: boolean;
+  capture_source?: string;
+}
+
+export interface UpdateActionTrackerStatusRequest {
+  action_status?: ActionExecutionStatus;
+  work_status?: WorkStatus;
+  assigned_to?: string;
+}
+
+// Feature 2: Customer Outcome Timeline Types
+export type TimelineEventType =
+  | 'signal'
+  | 'recommendation'
+  | 'approval'
+  | 'action_executed'
+  | 'customer_response'
+  | 'outcome_captured'
+  | 'risk_assessment'
+  | 'meeting_note'
+  | 'email_communication';
+
+export interface OutstandingCommitment {
+  commitment_id: string;
+  account_id: string;
+  title: string;
+  owner: string;
+  due_date?: string | null;
+  status: 'open' | 'in_progress' | 'fulfilled' | string;
+  source_event_id?: string | null;
+  created_at: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  account_id: string;
+  event_type: TimelineEventType;
+  category: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  author_or_actor: string;
+  severity?: string | null;
+  status?: string | null;
+  metadata?: Record<string, any>;
+  customer_response?: string | null;
+  commitments?: string | null;
+  next_steps?: string | null;
+  risk_score_at_time?: number | null;
+  risk_level_at_time?: string | null;
+  original_recommendation?: Record<string, any> | null;
+  evidence_ids?: string[];
+}
+
+export interface CustomerOutcomeTimelineResponse {
+  account_id: string;
+  account_name: string;
+  csm_owner: string;
+  arr: number;
+  current_risk_score: number;
+  current_risk_level: string;
+  events: TimelineEvent[];
+  outstanding_commitments: OutstandingCommitment[];
+  summary: {
+    total_events: number;
+    signals_count: number;
+    recommendations_count: number;
+    actions_executed_count: number;
+    outcomes_captured_count: number;
+    outstanding_commitments_count: number;
+    first_interaction?: string | null;
+    latest_interaction?: string | null;
+  };
+}
+
+// Feature 3: AI Outcome Analyzer Types
+export interface SentimentEvidence {
+  interpretation: string;
+  sentiment_label: string;
+  supporting_quote_or_evidence: string;
+  confidence: number;
+  is_interpretation_notice: string;
+}
+
+export interface AdoptionBlocker {
+  blocker_title: string;
+  severity: 'critical' | 'high' | 'medium' | 'low' | string;
+  feature_or_area: string;
+  evidence: string;
+  workaround_exists: boolean;
+}
+
+export interface RenewalObjection {
+  objection_type: string;
+  description: string;
+  direct_evidence: string;
+  impact_level: string;
+}
+
+export interface CustomerCommitmentItem {
+  commitment_text: string;
+  responsible_party: string;
+  agreed_timeline?: string | null;
+  status: string;
+}
+
+export interface UnresolvedIssue {
+  issue_title: string;
+  description: string;
+  recommended_follow_up: string;
+  target_owner: string;
+  urgency: string;
+}
+
+export interface OutcomeAnalysisRequest {
+  account_id: string;
+  source_type: 'meeting_note' | 'email_thread' | 'customer_feedback' | 'call_transcript' | string;
+  title?: string;
+  raw_text: string;
+  meeting_date?: string;
+  participants?: string;
+  auto_ingest_as_evidence?: boolean;
+}
+
+export interface OutcomeAnalysisResult {
+  id: string;
+  account_id: string;
+  account_name: string;
+  source_type: string;
+  title: string;
+  raw_text: string;
+  meeting_date?: string | null;
+  participants?: string | null;
+  analyzed_at: string;
+  sentiment_analysis: SentimentEvidence;
+  adoption_blockers: AdoptionBlocker[];
+  renewal_objections: RenewalObjection[];
+  commitments_and_next_steps: CustomerCommitmentItem[];
+  unresolved_issues: UnresolvedIssue[];
+  structured_investigation_brief: string;
+  generated_signal_id?: string | null;
+  rule_notice: string;
+}
+
+// ==========================================
+// Feature: Feedback Form & Survey Loop Types
+// ==========================================
+
+export type SurveyDeliveryChannel = 'email' | 'in_app' | 'portal' | 'slack';
+export type SurveyStatus = 'pending' | 'sent' | 'opened' | 'completed' | 'expired' | 'cancelled';
+
+export interface SurveyQuestion {
+  id: string;
+  question_type: 'rating_1_10' | 'rating_1_5' | 'multichoice' | 'text' | string;
+  prompt: string;
+  category: 'satisfaction' | 'product_usage' | 'blockers' | 'feature_requests' | string;
+  options?: string[];
+  required: boolean;
+}
+
+export interface SurveyFormTemplate {
+  id: string;
+  name: string;
+  description: string;
+  target_risk_level?: string | null;
+  questions: SurveyQuestion[];
+}
+
+export interface TriggerAuditRecord {
+  rule_id: string;
+  rule_name: string;
+  triggered: boolean;
+  description: string;
+  observed_value?: any;
+  threshold?: any;
+}
+
+export interface FeedbackTriggerCheck {
+  account_id: string;
+  account_name?: string | null;
+  eligible: boolean;
+  risk_level: string;
+  risk_score: number;
+  matched_rules?: TriggerAuditRecord[];
+  reasons: string[];
+  cooldown_active: boolean;
+  cooldown_days_remaining?: number;
+  duplicate_pending_survey?: boolean;
+  pending_survey_code?: string | null;
+  last_survey_sent_at?: string | null;
+  contact_preferences: {
+    preferred_channel?: string;
+    opt_in_surveys?: boolean;
+    max_frequency_days?: number;
+    primary_contact_available?: boolean;
+    [key: string]: any;
+  };
+  recommended_template_id?: string | null;
+  recommended_intro?: string | null;
+}
+
+export interface BatchTriggerScanResult {
+  scanned_accounts_count: number;
+  eligible_count: number;
+  cooldown_prevented_count: number;
+  duplicate_prevented_count: number;
+  auto_triggered_surveys: FeedbackSurveyDispatch[];
+  scan_timestamp: string;
+}
+
+export interface FeedbackSurveyDispatch {
+  id: string;
+  survey_code: string;
+  account_id: string;
+  account_name: string;
+  contact_id?: string | null;
+  recipient_email: string;
+  recipient_name: string;
+  delivery_channel: SurveyDeliveryChannel;
+  template_id: string;
+  status: SurveyStatus;
+  created_at: string;
+  sent_at?: string | null;
+  completed_at?: string | null;
+  trigger_risk_score?: number | null;
+  trigger_risk_level?: string | null;
+  trigger_factors?: string[];
+  form_url: string;
+  custom_intro?: string | null;
+}
+
+export interface FeedbackAnswer {
+  question_id: string;
+  category: string;
+  prompt: string;
+  answer_value: any;
+}
+
+export interface FeedbackResponseSubmission {
+  survey_code: string;
+  account_id?: string;
+  respondent_email?: string;
+  respondent_name?: string;
+  satisfaction_score?: number;
+  usage_trend_self_report?: string;
+  primary_blocker?: string;
+  unresolved_issues?: string;
+  feature_improvement_request?: string;
+  additional_comments?: string;
+  answers?: FeedbackAnswer[];
+  submitted_at?: string;
+}
+
+export interface FeedbackAnalysisSummary {
+  id: string;
+  response_id: string;
+  account_id: string;
+  account_name: string;
+  classified_churn_reason: 'adoption_blocker' | 'pricing' | 'poor_onboarding' | 'champion_left' | 'technical_bugs' | 'feature_gap' | string;
+  urgency_level: 'critical' | 'high' | 'medium' | 'low' | string;
+  sentiment_label: 'frustrated' | 'at_risk' | 'neutral' | 'satisfied' | string;
+  sentiment_interpretation: string;
+  executive_summary?: string;
+  key_blockers: string[];
+  customer_concerns?: string[];
+  improvement_requests: string[];
+  uncertainties?: string[];
+  recommended_retention_action: string;
+  action_type: 'csm_intervention' | 'training_session' | 'executive_sponsor_call' | 'bug_escalation' | string;
+  recommended_action_draft?: {
+    recipient?: string;
+    subject?: string;
+    body_outline?: string;
+    [key: string]: any;
+  };
+  evidence_connection: string[];
+  confidence_score?: number;
+  generated_signal_id?: string | null;
+  analyzed_at: string;
+  rule_notice: string;
+}
+
+export interface CustomerFeedbackRecord {
+  id: string;
+  survey_code: string;
+  account_id: string;
+  account_name: string;
+  recipient_email: string;
+  recipient_name: string;
+  submission: FeedbackResponseSubmission;
+  analysis?: FeedbackAnalysisSummary | null;
+  created_at: string;
+  submitted_at: string;
+  timeline_event_id?: string | null;
+}
+
+export interface CreateFeedbackSurveyRequest {
+  account_id: string;
+  contact_id?: string;
+  delivery_channel?: SurveyDeliveryChannel;
+  template_id?: string;
+  custom_intro?: string;
+  recipient_email?: string;
+  recipient_name?: string;
+}
+
+export interface PublicSurveyFormData {
+  survey_code: string;
+  account_id: string;
+  account_name: string;
+  recipient_name: string;
+  recipient_email: string;
+  status: SurveyStatus;
+  custom_intro?: string;
+  template: SurveyFormTemplate;
+}

@@ -15,7 +15,8 @@ import {
   TrendingDown,
   UserX,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquareQuote
 } from 'lucide-react';
 
 interface AccountTableProps {
@@ -25,6 +26,7 @@ interface AccountTableProps {
   currency?: 'USD' | 'INR';
   onCurrencyChange?: (currency: 'USD' | 'INR') => void;
   onInvestigateAccount?: (accountId: string) => void;
+  onOpenFeedback?: (accountId: string) => void;
 }
 
 type SortField = 'name' | 'arr' | 'risk_score' | 'urgency_days_to_renewal';
@@ -35,7 +37,8 @@ export function AccountTable({
   onSelectAccount,
   currency = 'USD',
   onCurrencyChange,
-  onInvestigateAccount
+  onInvestigateAccount,
+  onOpenFeedback
 }: AccountTableProps) {
   const [sortField, setSortField] = useState<SortField>('risk_score');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
@@ -445,24 +448,38 @@ export function AccountTable({
                       </div>
                     </td>
 
-                    {/* 7. Action CTA: Always in view without swiping */}
+                    {/* 7. Action CTA: Feedback & Diagnose buttons */}
                     <td className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onInvestigateAccount) {
-                            onInvestigateAccount(account.id);
-                          } else {
-                            onSelectAccount(account.id);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium px-2.5 py-1 rounded-lg transition-all shadow-xs cursor-pointer"
-                        title={`Diagnose risk for ${account.name}`}
-                      >
-                        <Sparkles className="w-3 h-3 text-amber-200" />
-                        <span>Diagnose</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {onOpenFeedback && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenFeedback(account.id);
+                            }}
+                            title="Inspect Survey Trigger & Feedback Insights"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-purple-700 hover:bg-purple-50 transition-colors border border-transparent hover:border-purple-200 cursor-pointer"
+                          >
+                            <MessageSquareQuote className="w-3.5 h-3.5 text-purple-600" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onInvestigateAccount) {
+                              onInvestigateAccount(account.id);
+                            } else {
+                              onSelectAccount(account.id);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium px-2.5 py-1 rounded-lg transition-all shadow-xs cursor-pointer"
+                          title={`Diagnose risk for ${account.name}`}
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-200" />
+                          <span>Diagnose</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

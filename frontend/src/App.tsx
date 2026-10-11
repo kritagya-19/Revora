@@ -15,6 +15,10 @@ import { CustomerDetailView } from './components/CustomerDetailView';
 import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
 import { ApprovalCenterView } from './components/ApprovalCenterView';
+import { ActionOutcomeTrackerView } from './components/ActionOutcomeTrackerView';
+import { CustomerOutcomeTimelineView } from './components/CustomerOutcomeTimelineView';
+import { AIOutcomeAnalyzerView } from './components/AIOutcomeAnalyzerView';
+import { FeedbackManagementView } from './components/FeedbackManagementView';
 import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
@@ -114,6 +118,14 @@ export function App() {
     } else if (tab === 'copilot') {
       setViewMode('copilot');
     } else if (tab === 'approvals') {
+      setViewMode('radar');
+    } else if (tab === 'tracker') {
+      setViewMode('radar');
+    } else if (tab === 'timeline') {
+      setViewMode('radar');
+    } else if (tab === 'analyzer') {
+      setViewMode('radar');
+    } else if (tab === 'feedback') {
       setViewMode('radar');
     } else if (tab === 'settings') {
       setViewMode('radar');
@@ -234,6 +246,21 @@ export function App() {
           title: 'Settings & Integrations',
           subtitle: 'Step 6: Connector Management — Configure and sync CRM, Email, Calendar, and Support data sources'
         };
+      case 'tracker':
+        return {
+          title: 'Action & Outcome Tracker',
+          subtitle: 'Feature 1: Closed-Loop Tracking — Knows what the team actually did, capturing execution status, responses & commitments'
+        };
+      case 'timeline':
+        return {
+          title: 'Customer Outcome Timeline',
+          subtitle: 'Feature 2: Account History & Memory — Chronological signals, previous autopsies, recommendations, actions, and customer feedback'
+        };
+      case 'analyzer':
+        return {
+          title: 'AI Outcome Analyzer',
+          subtitle: 'Feature 3: Unstructured Notes to Structured Intelligence — Extracts blockers, renewal objections, and commitments with verified citations'
+        };
       default:
         return { title: 'Revora AI', subtitle: 'Revenue Intelligence Platform' };
     }
@@ -339,6 +366,10 @@ export function App() {
                   currency={currency}
                   onCurrencyChange={setCurrency}
                   onInvestigateAccount={handleInvestigateAccount}
+                  onOpenFeedback={(accId) => {
+                    setSelectedAccountId(accId);
+                    setCurrentTab('feedback');
+                  }}
                 />
               )}
             </div>
@@ -380,6 +411,9 @@ export function App() {
                 onNavigateToCopilot={() => {
                   setViewMode('copilot');
                   setCurrentTab('copilot');
+                }}
+                onNavigateToFeedback={() => {
+                  setCurrentTab('feedback');
                 }}
               />
             ) : (
@@ -455,9 +489,106 @@ export function App() {
             />
           )}
 
-          {/* TAB 6 / Page 7: Settings & Integrations */}
+          {/* TAB 6 / Feature 1: Action & Outcome Tracker */}
+          {currentTab === 'tracker' && (
+            <ActionOutcomeTrackerView
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('customer_detail');
+                setCurrentTab('customers');
+              }}
+              onNavigateToCopilot={(accId) => {
+                if (accId) setSelectedAccountId(accId);
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+              onNavigateToAutopsy={(accId) => {
+                if (accId) setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+            />
+          )}
+
+          {/* TAB 7 / Feature 2: Customer Outcome Timeline */}
+          {currentTab === 'timeline' && (
+            <CustomerOutcomeTimelineView
+              initialAccountId={selectedAccountId || undefined}
+              accounts={accounts}
+              currency={currency}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onNavigateToCopilot={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+              onNavigateToAutopsy={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+              onNavigateToTracker={() => {
+                setCurrentTab('tracker');
+              }}
+            />
+          )}
+
+          {/* TAB 8 / Feature 3: AI Outcome Analyzer */}
+          {currentTab === 'analyzer' && (
+            <AIOutcomeAnalyzerView
+              initialAccountId={selectedAccountId || undefined}
+              accounts={accounts}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onNavigateToAutopsy={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+              onNavigateToTimeline={(accId) => {
+                setSelectedAccountId(accId);
+                setCurrentTab('timeline');
+              }}
+            />
+          )}
+
+          {/* TAB 9 / Feature: Feedback Form Loop */}
+          {currentTab === 'feedback' && (
+            <FeedbackManagementView
+              accounts={accounts}
+              initialAccountId={selectedAccountId || undefined}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onNavigateToAutopsy={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+              onNavigateToTimeline={(accId) => {
+                setSelectedAccountId(accId);
+                setCurrentTab('timeline');
+              }}
+              onNavigateToApprovals={() => {
+                setCurrentTab('approvals');
+              }}
+              onNavigateToCopilot={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+            />
+          )}
+
+          {/* TAB 10 / Settings & Free Hackathon Pipelines */}
           {currentTab === 'settings' && (
-            <SettingsAndIntegrationsView />
+            <SettingsAndIntegrationsView
+              executionMode="live"
+              backendHealthy={backendHealthy}
+            />
           )}
         </>
       )}

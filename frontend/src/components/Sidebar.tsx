@@ -6,10 +6,13 @@ import {
   Sparkles, 
   Send,
   Zap,
-  Settings
+  Settings,
+  ClipboardCheck,
+  History,
+  MessageSquare
 } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'settings';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'tracker' | 'timeline' | 'analyzer' | 'feedback' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -55,6 +58,14 @@ export function Sidebar({
           badge: accountCount > 0 ? accountCount : null,
           badgeStyle: 'bg-slate-100 text-slate-600 border border-slate-200/60',
           tooltip: 'Unified customer profiles & telemetry feed'
+        },
+        {
+          id: 'timeline',
+          label: 'Outcome Timeline',
+          icon: History,
+          badge: 'Memory',
+          badgeStyle: 'bg-purple-50 text-purple-700 border border-purple-200/80 font-medium',
+          tooltip: 'Chronological memory of signals, actions & outcomes'
         }
       ]
     },
@@ -76,11 +87,27 @@ export function Sidebar({
           badge: 'Agent',
           badgeStyle: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-semibold',
           tooltip: 'Draft outreach, CRM updates & playbooks'
+        },
+        {
+          id: 'analyzer',
+          label: 'Outcome Analyzer',
+          icon: Sparkles,
+          badge: 'NLP',
+          badgeStyle: 'bg-cyan-50 text-cyan-700 border border-cyan-200/80 font-medium',
+          tooltip: 'Unstructured notes & customer meeting parsing'
+        },
+        {
+          id: 'feedback',
+          label: 'Feedback Surveys',
+          icon: MessageSquare,
+          badge: 'New',
+          badgeStyle: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold',
+          tooltip: 'Early-warning feedback triggers, forms & analysis'
         }
       ]
     },
     {
-      title: 'GOVERNANCE & SETTINGS',
+      title: 'GOVERNANCE & EXECUTION',
       items: [
         {
           id: 'approvals',
@@ -93,11 +120,20 @@ export function Sidebar({
           tooltip: 'Human verification & safe execution gate'
         },
         {
+          id: 'tracker',
+          label: 'Outcome Tracker',
+          icon: ClipboardCheck,
+          badge: 'Loop',
+          badgeStyle: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium',
+          tooltip: 'Execution tracking & closed-loop verification'
+        },
+        {
           id: 'settings',
-          label: 'Settings & Sync',
+          label: 'Settings & Pipelines',
           icon: Settings,
-          badge: null,
-          tooltip: 'Connectors & Integrations'
+          badge: 'Free',
+          badgeStyle: 'bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold',
+          tooltip: 'Zero-cost webhooks, outbox inspector & connectors'
         }
       ]
     }

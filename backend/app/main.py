@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from app.core.config import settings
-from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations, tasks, tracker
+from app.api.routes import accounts, proposals, dashboard, signals, investigations, approvals, integrations, tasks, tracker, analyzer, feedback
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("revora.api")
@@ -75,6 +75,14 @@ app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["Se
 # Feature 1: Action & Outcome Tracker endpoints
 app.include_router(tracker.router, prefix="/api/tracker", tags=["Action & Outcome Tracker"])
 app.include_router(tracker.router, prefix="/api/v1/tracker", tags=["Action & Outcome Tracker"])
+
+# Feature 3: AI Outcome Analyzer endpoints
+app.include_router(analyzer.router, prefix="/api/outcome-analyzer", tags=["AI Outcome Analyzer"])
+app.include_router(analyzer.router, prefix="/api/v1/outcome-analyzer", tags=["AI Outcome Analyzer"])
+
+# Feedback Form & Early-Churn Survey Loop endpoints
+app.include_router(feedback.router, prefix="/api/feedback", tags=["Customer Feedback & Survey Loop"])
+app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Customer Feedback & Survey Loop"])
 
 # Global audit logs endpoints
 @app.get("/api/audit-logs", tags=["Audit Log"])

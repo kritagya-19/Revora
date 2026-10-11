@@ -546,4 +546,286 @@ class OutcomeIntelligenceReport(BaseModel):
     action_signal_associations: List[ActionSignalAssociation]
     learned_patterns: List[LearnedPattern]
     generated_at: str
+# Feature 2: Customer Outcome Timeline Schemas
+class TimelineEventType(str, Enum):
+    SIGNAL = "signal"
+    RECOMMENDATION = "recommendation"
+    APPROVAL = "approval"
+    ACTION_EXECUTED = "action_executed"
+    CUSTOMER_RESPONSE = "customer_response"
+    OUTCOME_CAPTURED = "outcome_captured"
+    RISK_ASSESSMENT = "risk_assessment"
+    MEETING_NOTE = "meeting_note"
+    EMAIL_COMMUNICATION = "email_communication"
+
+class OutstandingCommitment(BaseModel):
+    commitment_id: str
+    account_id: str
+    title: str
+    owner: str
+    due_date: Optional[str] = None
+    status: str = "open"  # open, in_progress, fulfilled
+    source_event_id: Optional[str] = None
+    created_at: str
+
+class TimelineEvent(BaseModel):
+    id: str
+    account_id: str
+    event_type: TimelineEventType
+    category: str  # telemetry, intervention, review, feedback, diagnosis, commitment
+    title: str
+    description: str
+    timestamp: str
+    author_or_actor: str
+    severity: Optional[str] = None  # critical, high, medium, low, info, success
+    status: Optional[str] = None  # proposed, approved, executed, completed, etc.
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Specific fields for Feature 2
+    customer_response: Optional[str] = None
+    commitments: Optional[str] = None
+    next_steps: Optional[str] = None
+    risk_score_at_time: Optional[int] = None
+    risk_level_at_time: Optional[str] = None
+    original_recommendation: Optional[Dict[str, Any]] = None
+    evidence_ids: List[str] = []
+
+class CustomerOutcomeTimelineResponse(BaseModel):
+    account_id: str
+    account_name: str
+    csm_owner: str
+    arr: float
+    current_risk_score: int
+    current_risk_level: str
+    events: List[TimelineEvent]
+    outstanding_commitments: List[OutstandingCommitment]
+    summary: Dict[str, Any] = Field(default_factory=dict)
+
+# Feature 3: AI Outcome Analyzer Schemas
+class SentimentEvidence(BaseModel):
+    interpretation: str  # Interpretation of sentiment/concern (not asserted as ground-truth mental state)
+    sentiment_label: str  # e.g., positive, cautiously_optimistic, neutral, frustrated, critical_risk
+    supporting_quote_or_evidence: str  # Direct quote or observed signal excerpt
+    confidence: float = 0.85
+    is_interpretation_notice: str = "Treated as an interpretation, not a verified fact about internal mental state."
+
+class AdoptionBlocker(BaseModel):
+    blocker_title: str
+    severity: str  # critical, high, medium, low
+    feature_or_area: str
+    evidence: str
+    workaround_exists: bool = False
+
+class RenewalObjection(BaseModel):
+    objection_type: str  # pricing, competitor, roi, executive_change, sso_security, contract_terms
+    description: str
+    direct_evidence: str
+    impact_level: str  # critical, moderate, minor
+
+class CustomerCommitmentItem(BaseModel):
+    commitment_text: str
+    responsible_party: str  # customer, vendor_csm, engineering
+    agreed_timeline: Optional[str] = None
+    status: str = "open"
+
+class UnresolvedIssue(BaseModel):
+    issue_title: str
+    description: str
+    recommended_follow_up: str
+    target_owner: str = "CSM Team"
+    urgency: str = "high"  # immediate, within_week, next_review
+
+class OutcomeAnalysisRequest(BaseModel):
+    account_id: str
+    source_type: str = "meeting_note"  # meeting_note, email_thread, customer_feedback, call_transcript
+    title: Optional[str] = None
+    raw_text: str
+    meeting_date: Optional[str] = None
+    participants: Optional[str] = None
+    auto_ingest_as_evidence: bool = False
+
+class OutcomeAnalysisResult(BaseModel):
+    id: str
+    account_id: str
+    account_name: str
+    source_type: str
+    title: str
+    raw_text: str
+    meeting_date: Optional[str] = None
+    participants: Optional[str] = None
+    analyzed_at: str
+    sentiment_analysis: SentimentEvidence
+    adoption_blockers: List[AdoptionBlocker] = []
+    renewal_objections: List[RenewalObjection] = []
+    commitments_and_next_steps: List[CustomerCommitmentItem] = []
+    unresolved_issues: List[UnresolvedIssue] = []
+    structured_investigation_brief: str
+    generated_signal_id: Optional[str] = None
+    rule_notice: str = "Sentiment is treated as an interpretation, not a verified fact about the customer's internal state."
+
+
+# ==========================================
+# Feature: Feedback Form & Survey Loop
+# ==========================================
+
+class SurveyDeliveryChannel(str, Enum):
+    EMAIL = "email"
+    IN_APP = "in_app"
+    PORTAL = "portal"
+    SLACK = "slack"
+
+class SurveyStatus(str, Enum):
+    PENDING = "pending"
+    SENT = "sent"
+    OPENED = "opened"
+    COMPLETED = "completed"
+    EXPIRED = "expired"
+    CANCELLED = "cancelled"
+
+class SurveyQuestion(BaseModel):
+    id: str
+    question_type: str = "rating"  # rating_1_10, rating_1_5, multichoice, text
+    prompt: str
+    category: str = "satisfaction"  # satisfaction, product_usage, blockers, feature_requests
+    options: List[str] = Field(default_factory=list)
+    required: bool = True
+
+class SurveyFormTemplate(BaseModel):
+    id: str
+    name: str
+    description: str
+    target_risk_level: Optional[str] = None  # critical, high, medium, all
+    questions: List[SurveyQuestion] = Field(default_factory=list)
+
+class FeedbackTriggerRule(str, Enum):
+    USAGE_DROP_SEVERE = "usage_drop_severe"           # >= 30% drop in active usage/seats
+    TOUCHPOINT_LAG = "touchpoint_lag"                 # >= 25 days without CSM interaction
+    RENEWAL_WINDOW_RISK = "renewal_window_risk"       # <= 60 days to renewal with elevated risk
+    CRITICAL_SUPPORT_BUGS = "critical_support_bugs"   # >= 1 unresolved critical support ticket
+    RISK_SCORE_THRESHOLD = "risk_score_threshold"     # deterministic risk score >= 50
+    MANUAL_PROACTIVE = "manual_proactive"
+
+class TriggerAuditRecord(BaseModel):
+    rule_id: str
+    rule_name: str
+    triggered: bool
+    description: str
+    observed_value: Any = None
+    threshold: Any = None
+
+class FeedbackTriggerCheck(BaseModel):
+    account_id: str
+    account_name: Optional[str] = None
+    eligible: bool
+    risk_level: str
+    risk_score: int
+    matched_rules: List[TriggerAuditRecord] = Field(default_factory=list)
+    reasons: List[str] = Field(default_factory=list)
+    cooldown_active: bool = False
+    cooldown_days_remaining: int = 0
+    duplicate_pending_survey: bool = False
+    pending_survey_code: Optional[str] = None
+    last_survey_sent_at: Optional[str] = None
+    contact_preferences: Dict[str, Any] = Field(default_factory=dict)
+    recommended_template_id: Optional[str] = "survey-tpl-churn-early-warning"
+    recommended_intro: Optional[str] = None
+
+class FeedbackSurveyDispatch(BaseModel):
+    id: str
+    survey_code: str  # unique token for the public form URL, e.g. rev-fb-xxxx
+    account_id: str
+    account_name: str
+    contact_id: Optional[str] = None
+    recipient_email: str
+    recipient_name: str
+    delivery_channel: SurveyDeliveryChannel = SurveyDeliveryChannel.EMAIL
+    template_id: str
+    status: SurveyStatus = SurveyStatus.PENDING
+    created_at: str
+    sent_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    trigger_risk_score: Optional[int] = None
+    trigger_risk_level: Optional[str] = None
+    trigger_factors: List[str] = Field(default_factory=list)
+    form_url: str
+    custom_intro: Optional[str] = None
+
+class BatchTriggerScanResult(BaseModel):
+    scanned_accounts_count: int
+    eligible_count: int
+    cooldown_prevented_count: int
+    duplicate_prevented_count: int
+    auto_triggered_surveys: List[FeedbackSurveyDispatch] = Field(default_factory=list)
+    scan_timestamp: str
+
+class AutoTriggerRequest(BaseModel):
+    account_id: Optional[str] = None
+    force_ignore_cooldown: bool = False
+    delivery_channel: SurveyDeliveryChannel = SurveyDeliveryChannel.EMAIL
+    custom_intro: Optional[str] = None
+
+class FeedbackAnswer(BaseModel):
+    question_id: str
+    category: str
+    prompt: str
+    answer_value: Any  # numeric rating, string text, or list of selected choices
+
+class FeedbackResponseSubmission(BaseModel):
+    survey_code: str
+    account_id: Optional[str] = None
+    respondent_email: Optional[str] = None
+    respondent_name: Optional[str] = None
+    satisfaction_score: Optional[int] = Field(None, ge=1, le=10, description="Overall satisfaction 1-10")
+    usage_trend_self_report: Optional[str] = None  # e.g., "decreased", "steady", "stopped"
+    primary_blocker: Optional[str] = None
+    unresolved_issues: Optional[str] = None
+    feature_improvement_request: Optional[str] = None
+    additional_comments: Optional[str] = None
+    answers: List[FeedbackAnswer] = Field(default_factory=list)
+    submitted_at: Optional[str] = None
+
+class FeedbackAnalysisSummary(BaseModel):
+    id: str
+    response_id: str
+    account_id: str
+    account_name: str
+    classified_churn_reason: str  # adoption_blocker, pricing, poor_onboarding, champion_left, technical_bugs, feature_gap
+    urgency_level: str  # critical, high, medium, low
+    sentiment_label: str  # frustrated, at_risk, neutral, satisfied
+    sentiment_interpretation: str  # explicitly treated as an interpretation, not verified fact
+    executive_summary: str = ""   # concise multi-sentence evidence-linked causal summary
+    key_blockers: List[str] = Field(default_factory=list)
+    customer_concerns: List[str] = Field(default_factory=list)
+    improvement_requests: List[str] = Field(default_factory=list)
+    uncertainties: List[str] = Field(default_factory=list)  # explicitly separates what is unknown from facts
+    recommended_retention_action: str  # e.g. "Arrange technical unblocker workshop with solutions engineer"
+    action_type: str = "csm_intervention"  # csm_intervention, training_session, executive_sponsor_call, bug_escalation
+    recommended_action_draft: Dict[str, Any] = Field(default_factory=dict) # prepared draft email/task for action copilot
+    evidence_connection: List[str] = Field(default_factory=list)  # connected to telemetry / usage signals
+    confidence_score: float = 0.88
+    generated_signal_id: Optional[str] = None
+    analyzed_at: str
+    rule_notice: str = "Sentiment is treated as an interpretation, not a verified fact about internal mental state."
+
+class CustomerFeedbackRecord(BaseModel):
+    id: str
+    survey_code: str
+    account_id: str
+    account_name: str
+    recipient_email: str
+    recipient_name: str
+    submission: FeedbackResponseSubmission
+    analysis: Optional[FeedbackAnalysisSummary] = None
+    created_at: str
+    submitted_at: str
+    timeline_event_id: Optional[str] = None
+
+class CreateFeedbackSurveyRequest(BaseModel):
+    account_id: str
+    contact_id: Optional[str] = None
+    delivery_channel: SurveyDeliveryChannel = SurveyDeliveryChannel.EMAIL
+    template_id: Optional[str] = "survey-tpl-churn-early-warning"
+    custom_intro: Optional[str] = None
+    recipient_email: Optional[str] = None
+    recipient_name: Optional[str] = None
 

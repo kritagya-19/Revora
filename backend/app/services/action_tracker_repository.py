@@ -30,7 +30,7 @@ class ActionTrackerRepository:
         if settings.MONGODB_URI:
             try:
                 from pymongo import MongoClient
-                client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1500)
+                client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1500, connectTimeoutMS=1500, socketTimeoutMS=1500)
                 client.admin.command('ping')
                 self.db = client[settings.MONGODB_DB_NAME]
             except Exception as e:
