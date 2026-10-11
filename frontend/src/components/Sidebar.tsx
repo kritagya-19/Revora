@@ -43,13 +43,13 @@ export function Sidebar({
 }: SidebarProps) {
   const sections: NavSection[] = [
     {
-      title: 'INTELLIGENCE',
+      title: 'OVERVIEW & ACCOUNTS',
       items: [
         {
           id: 'dashboard',
           label: 'Revenue Radar',
           icon: LayoutDashboard,
-          tooltip: 'Multi-signal churn detection & portfolio ranking'
+          tooltip: 'See overall portfolio health and high-risk accounts'
         },
         {
           id: 'customers',
@@ -57,57 +57,57 @@ export function Sidebar({
           icon: Users,
           badge: accountCount > 0 ? accountCount : null,
           badgeStyle: 'bg-slate-100 text-slate-600 border border-slate-200/60',
-          tooltip: 'Unified customer profiles & telemetry feed'
+          tooltip: 'Customer details, renewal dates, and recent activity'
         },
         {
           id: 'timeline',
-          label: 'Outcome Timeline',
+          label: 'Activity Timeline',
           icon: History,
-          badge: 'Memory',
+          badge: 'History',
           badgeStyle: 'bg-purple-50 text-purple-700 border border-purple-200/80 font-medium',
-          tooltip: 'Chronological memory of signals, actions & outcomes'
+          tooltip: 'Full history of customer activity, alerts, and team actions'
         }
       ]
     },
     {
-      title: 'AI WORKFLOWS',
+      title: 'AI ASSISTANT',
       items: [
         {
           id: 'autopsy',
-          label: 'Risk Autopsy',
+          label: 'Risk Analysis',
           icon: Sparkles,
           badge: 'AI',
           badgeStyle: 'bg-blue-50 text-[#2563EB] border border-blue-200/80 font-bold',
-          tooltip: 'Root-cause diagnosis & unknown factor detection'
+          tooltip: 'Find out why an account is at risk and see missing info'
         },
         {
           id: 'copilot',
           label: 'Action Copilot',
           icon: Send,
-          badge: 'Agent',
+          badge: 'Drafts',
           badgeStyle: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-semibold',
-          tooltip: 'Draft outreach, CRM updates & playbooks'
+          tooltip: 'Ready-to-use email drafts, team tasks, and CRM updates'
         },
         {
           id: 'analyzer',
-          label: 'Outcome Analyzer',
+          label: 'Notes & Call Analyzer',
           icon: Sparkles,
-          badge: 'NLP',
+          badge: 'Summary',
           badgeStyle: 'bg-cyan-50 text-cyan-700 border border-cyan-200/80 font-medium',
-          tooltip: 'Unstructured notes & customer meeting parsing'
+          tooltip: 'Turn meeting notes or call transcripts into clear action items'
         },
         {
           id: 'feedback',
-          label: 'Feedback Surveys',
+          label: 'Customer Feedback',
           icon: MessageSquare,
-          badge: 'New',
+          badge: 'Surveys',
           badgeStyle: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold',
-          tooltip: 'Early-warning feedback triggers, forms & analysis'
+          tooltip: 'Send quick surveys and catch customer frustration early'
         }
       ]
     },
     {
-      title: 'GOVERNANCE & EXECUTION',
+      title: 'REVIEW & ACTIONS',
       items: [
         {
           id: 'approvals',
@@ -117,23 +117,23 @@ export function Sidebar({
           badgeStyle: pendingApprovalsCount > 0 
             ? 'bg-amber-50 text-amber-800 border border-amber-300 font-bold animate-pulse'
             : 'bg-slate-100 text-slate-500',
-          tooltip: 'Human verification & safe execution gate'
+          tooltip: 'Review and approve AI suggestions before anything is sent'
         },
         {
           id: 'tracker',
-          label: 'Outcome Tracker',
+          label: 'Action Tracker',
           icon: ClipboardCheck,
-          badge: 'Loop',
+          badge: 'Results',
           badgeStyle: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-medium',
-          tooltip: 'Execution tracking & closed-loop verification'
+          tooltip: 'Track sent actions and see if customer health improved'
         },
         {
           id: 'settings',
-          label: 'Settings & Pipelines',
+          label: 'Settings & Tools',
           icon: Settings,
-          badge: 'Free',
+          badge: 'Connect',
           badgeStyle: 'bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold',
-          tooltip: 'Zero-cost webhooks, outbox inspector & connectors'
+          tooltip: 'Connect your tools, test alerts, and view sent messages'
         }
       ]
     }

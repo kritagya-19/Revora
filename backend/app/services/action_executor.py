@@ -104,8 +104,16 @@ class ActionExecutor:
             )
 
         # Build execution result object
+        from app.core.config import settings
         exec_id = f"exec-{uuid.uuid4().hex[:8]}"
-        is_live = free_pipelines.webhook_url != "" or free_pipelines.smtp_host != ""
+        is_live = (execution_mode == "live" or settings.EXECUTION_MODE == "live") and (free_pipelines.webhook_url != "" or free_pipelines.smtp_host != "")
+
+        pipeline_details = {
+            "webhook_dispatch": webhook_result,
+            "email_dispatch": email_result,
+            "provider_code": 200,
+            "provider_message": "OK (Delivered via Free Webhook / Outbox Pipeline)"
+        }
 
         result = {
             "execution_id": exec_id,
@@ -114,12 +122,8 @@ class ActionExecutor:
             "action_type": proposal.action_type,
             "target": recipient,
             "message": f"Successfully executed {proposal.action_type} via Free Pipeline Engine",
-            "free_pipeline_details": {
-                "webhook_dispatch": webhook_result,
-                "email_dispatch": email_result,
-                "provider_code": 200,
-                "provider_message": "OK (Delivered via Free Webhook / Outbox Pipeline)"
-            }
+            "free_pipeline_details": pipeline_details,
+            "simulated_details": pipeline_details
         }
 
         proposal_repo.record_execution_outcome(proposal.id, ActionStatus.SUCCEEDED, result)

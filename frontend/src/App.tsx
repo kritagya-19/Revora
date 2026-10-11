@@ -208,61 +208,66 @@ export function App() {
   const getPageTitle = () => {
     if (currentTab === 'copilot' || viewMode === 'copilot') {
       return {
-        title: selectedAccountDetail ? `${selectedAccountDetail.name} — Action Copilot` : 'Next-Best-Action Copilot',
-        subtitle: 'AI-assisted intervention drafts & customer outreach'
+        title: selectedAccountDetail ? `${selectedAccountDetail.name} — Action Copilot` : 'Action Copilot',
+        subtitle: 'Ready-to-use email drafts, team tasks, and account updates'
       };
     }
     if (currentTab === 'autopsy' || viewMode === 'autopsy') {
       return {
-        title: selectedAccountDetail ? `${selectedAccountDetail.name} — Risk Autopsy` : 'Revenue Risk Autopsy',
-        subtitle: 'Root-cause diagnosis & unknown factor investigation'
+        title: selectedAccountDetail ? `${selectedAccountDetail.name} — Risk Analysis` : 'Customer Risk Analysis',
+        subtitle: 'See why this customer is at risk and uncover missing information'
       };
     }
     if (currentTab === 'customers') {
       if (viewMode === 'customer_detail' && selectedAccountDetail) {
         return {
           title: selectedAccountDetail.name,
-          subtitle: `${selectedAccountDetail.tier || 'Enterprise'} Tier • CSM: ${selectedAccountDetail.csm_owner}`
+          subtitle: `${selectedAccountDetail.tier || 'Enterprise'} Plan • Account Owner: ${selectedAccountDetail.csm_owner}`
         };
       }
       return {
         title: 'Customer Accounts',
-        subtitle: 'Portfolio directory, contract health, and multi-source telemetry'
+        subtitle: 'All customer accounts, renewal dates, and recent activity'
       };
     }
     switch (currentTab) {
       case 'dashboard':
         return {
           title: 'Revenue Radar',
-          subtitle: 'Multi-signal churn detection & portfolio ranking'
+          subtitle: 'Spot high-risk accounts early and check overall account health'
         };
       case 'approvals':
         return {
           title: 'Approval Center',
-          subtitle: 'Human verification & safe execution gate'
+          subtitle: 'Review and approve AI suggestions before anything is sent'
         };
       case 'settings':
         return {
-          title: 'Settings & Integrations',
-          subtitle: 'Step 6: Connector Management — Configure and sync CRM, Email, Calendar, and Support data sources'
+          title: 'Settings & Tools',
+          subtitle: 'Connect your business tools, test alerts, and view outbox'
         };
       case 'tracker':
         return {
-          title: 'Action & Outcome Tracker',
-          subtitle: 'Feature 1: Closed-Loop Tracking — Knows what the team actually did, capturing execution status, responses & commitments'
+          title: 'Action Tracker',
+          subtitle: 'Track sent actions and see if customer risk actually decreased'
         };
       case 'timeline':
         return {
-          title: 'Customer Outcome Timeline',
-          subtitle: 'Feature 2: Account History & Memory — Chronological signals, previous autopsies, recommendations, actions, and customer feedback'
+          title: 'Activity Timeline',
+          subtitle: 'Full history of customer activity, AI reports, and team actions'
         };
       case 'analyzer':
         return {
-          title: 'AI Outcome Analyzer',
-          subtitle: 'Feature 3: Unstructured Notes to Structured Intelligence — Extracts blockers, renewal objections, and commitments with verified citations'
+          title: 'Notes & Call Analyzer',
+          subtitle: 'Paste meeting notes or transcripts to find risks and next steps'
+        };
+      case 'feedback':
+        return {
+          title: 'Customer Feedback',
+          subtitle: 'Send quick surveys and catch customer frustration early'
         };
       default:
-        return { title: 'Revora AI', subtitle: 'Revenue Intelligence Platform' };
+        return { title: 'Revora AI', subtitle: 'Customer Success Assistant' };
     }
   };
 
@@ -285,16 +290,16 @@ export function App() {
       {/* Loading State */}
       {loading && (
         <LoadingState
-          message="Collecting Customer Signals & Ingesting Telemetry..."
-          subtext="Harmonizing cross-source records into unified accounts and detecting revenue risks"
+          message="Loading Customer Data..."
+          subtext="Checking account activity, renewal deadlines, and health rules"
         />
       )}
 
       {/* Error State */}
       {!loading && error && (
         <ErrorState
-          title="Database & API Unavailable"
-          message={`Failed to retrieve customer accounts: ${error}. Ensure FastAPI is running on port 8000.`}
+          title="Could Not Connect to Backend"
+          message={`Failed to retrieve customer accounts: ${error}. Please make sure the FastAPI server is running.`}
           onRetry={loadData}
         />
       )}
@@ -308,32 +313,32 @@ export function App() {
               {/* 1. TOP KPI SUMMARY STATS: High-Level Portfolio Overview */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 <MetricCard
-                  label="Portfolio Accounts"
+                  label="Total Accounts"
                   value={metrics.totalMonitored}
-                  subtext="Monitored customer accounts"
+                  subtext="Customer accounts monitored"
                   icon={<Users className="w-4 h-4 text-[#2563EB]" />}
                 />
 
                 <MetricCard
                   label="High-Risk Accounts"
                   value={metrics.highRiskCount}
-                  subtext="Compounding churn alerts"
+                  subtext="Need urgent attention"
                   icon={<AlertTriangle className="w-4 h-4 text-rose-500" />}
                   highlight={metrics.highRiskCount > 0}
                   badge={metrics.highRiskCount > 0 ? "Critical" : undefined}
                 />
 
                 <MetricCard
-                  label="Urgent Renewals"
+                  label="Upcoming Renewals"
                   value={metrics.renewalSoonCount}
-                  subtext="Expiring in ≤ 60 days"
+                  subtext="Expiring within 60 days"
                   icon={<Calendar className="w-4 h-4 text-amber-500" />}
                 />
 
                 <MetricCard
-                  label="At-Risk ARR"
+                  label="Revenue at Risk"
                   value={formatCurrency(metrics.highRiskArr)}
-                  subtext="Exposed contract revenue"
+                  subtext="Annual revenue at risk"
                   icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
                 />
               </div>
@@ -425,53 +430,67 @@ export function App() {
           )}
 
           {/* TAB 3 / Page 4: Revenue Risk Autopsy (Central AI Wow Feature) */}
-          {(currentTab === 'autopsy' || (currentTab === 'dashboard' && viewMode === 'autopsy')) && selectedAccountDetail && (
-            <RevenueRiskAutopsyView
-              account={selectedAccountDetail}
-              allAccounts={accounts}
-              onSelectAccount={(accId) => {
-                setSelectedAccountId(accId);
-              }}
-              onBackToCustomer={() => {
-                setViewMode('customer_detail');
-                setCurrentTab('customers');
-              }}
-              onBackToRadar={() => {
-                setViewMode('radar');
-                setCurrentTab('dashboard');
-              }}
-              currency={currency}
-              onNavigateToApprovals={() => setCurrentTab('approvals')}
-              onNavigateToCopilot={(subtab) => {
-                if (subtab) setCopilotTab(subtab);
-                setViewMode('copilot');
-                setCurrentTab('copilot');
-              }}
-            />
+          {(currentTab === 'autopsy' || (currentTab === 'dashboard' && viewMode === 'autopsy')) && (
+            selectedAccountDetail ? (
+              <RevenueRiskAutopsyView
+                account={selectedAccountDetail}
+                allAccounts={accounts}
+                onSelectAccount={(accId) => {
+                  setSelectedAccountId(accId);
+                }}
+                onBackToCustomer={() => {
+                  setViewMode('customer_detail');
+                  setCurrentTab('customers');
+                }}
+                onBackToRadar={() => {
+                  setViewMode('radar');
+                  setCurrentTab('dashboard');
+                }}
+                currency={currency}
+                onNavigateToApprovals={() => setCurrentTab('approvals')}
+                onNavigateToCopilot={(subtab) => {
+                  if (subtab) setCopilotTab(subtab);
+                  setViewMode('copilot');
+                  setCurrentTab('copilot');
+                }}
+              />
+            ) : (
+              <LoadingState
+                message="Loading Risk Autopsy..."
+                subtext="Synthesizing multi-signal evidence, causal thesis, and deterministic scores"
+              />
+            )
           )}
 
           {/* TAB 4 / Page 5: Next-Best-Action Copilot (Editable Proposals) */}
-          {(currentTab === 'copilot' || (currentTab === 'dashboard' && viewMode === 'copilot')) && selectedAccountDetail && (
-            <NextBestActionCopilotView
-              account={selectedAccountDetail}
-              allAccounts={accounts}
-              onSelectAccount={(accId) => {
-                setSelectedAccountId(accId);
-              }}
-              onBackToCustomer={() => {
-                setViewMode('customer_detail');
-                setCurrentTab('customers');
-              }}
-              onBackToRadar={() => {
-                setViewMode('radar');
-                setCurrentTab('dashboard');
-              }}
-              onNavigateToApprovals={() => {
-                setCurrentTab('approvals');
-              }}
-              currency={currency}
-              initialTab={copilotTab}
-            />
+          {(currentTab === 'copilot' || (currentTab === 'dashboard' && viewMode === 'copilot')) && (
+            selectedAccountDetail ? (
+              <NextBestActionCopilotView
+                account={selectedAccountDetail}
+                allAccounts={accounts}
+                onSelectAccount={(accId) => {
+                  setSelectedAccountId(accId);
+                }}
+                onBackToCustomer={() => {
+                  setViewMode('customer_detail');
+                  setCurrentTab('customers');
+                }}
+                onBackToRadar={() => {
+                  setViewMode('radar');
+                  setCurrentTab('dashboard');
+                }}
+                onNavigateToApprovals={() => {
+                  setCurrentTab('approvals');
+                }}
+                currency={currency}
+                initialTab={copilotTab}
+              />
+            ) : (
+              <LoadingState
+                message="Loading Action Copilot..."
+                subtext="Generating tailored outreach emails, tasks, and CRM proposals"
+              />
+            )
           )}
 
           {/* TAB 5 / Page 6: Trust & Approval Center */}

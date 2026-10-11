@@ -130,34 +130,34 @@ export function AccountTable({
     const code = account.primary_reason_code || '';
     if (code.includes('usage') || code.includes('drop')) {
       return {
-        label: 'Usage Contraction (-52%)',
+        label: 'Drop in Usage',
         color: 'text-rose-700 bg-rose-50 border-rose-200/70',
         icon: TrendingDown
       };
     }
     if (code.includes('champion') || code.includes('sponsor')) {
       return {
-        label: 'Champion Departure',
+        label: 'Main Contact Left',
         color: 'text-amber-800 bg-amber-50 border-amber-200/70',
         icon: UserX
       };
     }
     if (code.includes('sla') || code.includes('ticket')) {
       return {
-        label: 'Critical SLA Escalation',
+        label: 'Urgent Support Ticket',
         color: 'text-rose-700 bg-rose-50 border-rose-200/70',
         icon: AlertTriangle
       };
     }
     if (code.includes('renewal')) {
       return {
-        label: 'Contract Expiration Near',
+        label: 'Renewal Coming Up Soon',
         color: 'text-amber-800 bg-amber-50 border-amber-200/70',
         icon: Clock
       };
     }
     return {
-      label: 'Stable Engagement',
+      label: 'Healthy & Active',
       color: 'text-emerald-700 bg-emerald-50 border-emerald-200/70',
       icon: CheckCircle2
     };
@@ -171,10 +171,10 @@ export function AccountTable({
           {/* Section Title */}
           <div>
             <h3 className="text-base sm:text-lg font-semibold text-slate-900 tracking-normal">
-              Customer Risk Ranking
+              Customer Accounts & Health
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Prioritized by compound churn risk score and renewal timeline
+              Ranked by highest churn risk and upcoming renewal dates
             </p>
           </div>
 

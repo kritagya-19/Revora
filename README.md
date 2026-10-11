@@ -2,6 +2,8 @@
 
 Evidence-first revenue intelligence and next-best-action assistant for B2B SaaS Customer Success teams.
 
+📖 **Complete Architecture & Mentor Presentation Guide:** See [SYSTEM_FLOW.md](file:///d:/Kritagya/Revora/SYSTEM_FLOW.md) for the end-to-end working flow, page-by-page breakdown, and demo script.
+
 ## Project Structure
 
 ```
