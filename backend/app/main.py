@@ -123,13 +123,14 @@ def run_agent_pipeline(account_id: str):
                     "rule_version": result.deterministic_risk.rule_version,
                 },
                 "signal_analysis": {
-                    "baseline_comparison": result.signal_analysis.baseline_comparison,
-                    "missing_data_flags": result.signal_analysis.missing_data_flags,
+                    "baseline_comparison": getattr(result.signal_analysis, "usage_baseline_comparison", getattr(result.signal_analysis, "baseline_comparison", {})),
+                    "missing_data_flags": getattr(result.signal_analysis, "missing_data_gaps", getattr(result.signal_analysis, "missing_data_flags", [])),
                 },
                 "investigation": {
                     "verified_facts_count": len(result.investigation.verified_facts),
                     "uncertainties": result.investigation.uncertainties,
-                    "causal_narrative": result.investigation.causal_narrative,
+                    "causal_narrative": getattr(result.investigation, "causal_explanation", getattr(result.investigation, "causal_narrative", "")),
+                    "causal_explanation": getattr(result.investigation, "causal_explanation", getattr(result.investigation, "causal_narrative", "")),
                 },
                 "action_plan": {
                     "action_type": result.action_plan.action_type,

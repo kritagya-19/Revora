@@ -33,17 +33,24 @@ class AccountRepository:
         self._load_seed_data()
 
     def _init_mongodb(self):
-        if settings.MONGODB_URI:
+        uris = [settings.MONGODB_URI]
+        if settings.MONGODB_URI != "mongodb://localhost:27017":
+            uris.append("mongodb://localhost:27017")
+        for uri in uris:
+            if not uri:
+                continue
             try:
                 from pymongo import MongoClient
-                self.mongo_client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=1500, connectTimeoutMS=1500, socketTimeoutMS=1500)
+                self.mongo_client = MongoClient(uri, serverSelectionTimeoutMS=1500, connectTimeoutMS=1500, socketTimeoutMS=1500)
                 self.mongo_client.admin.command('ping')
                 self.db = self.mongo_client[settings.MONGODB_DB_NAME]
-                logger.info(f"MongoDB connected successfully to database: {settings.MONGODB_DB_NAME}")
+                logger.info(f"MongoDB connected successfully to database: {settings.MONGODB_DB_NAME} via {uri.split('@')[-1] if '@' in uri else uri}")
+                return
             except Exception as e:
-                logger.warning(f"Could not connect to MongoDB: {e}. Falling back to local store.")
-                self.mongo_client = None
-                self.db = None
+                logger.debug(f"Could not connect to MongoDB at {uri}: {e}")
+        logger.warning("Could not connect to MongoDB. Falling back to local store.")
+        self.mongo_client = None
+        self.db = None
 
     def _load_seed_data(self):
         if not SEED_FILE.exists():
@@ -86,7 +93,7 @@ class AccountRepository:
             id=sig_data["id"],
             account_id=sig_data["account_id"],
             source_category=source_cat,
-            source_type=source_cat,
+            source_type=sig_data.get("source_type") or source_cat,
             evidence_id=evidence_id,
             signal_type=sig_type,
             event_type=sig_type,
