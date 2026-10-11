@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, Settings, ShieldCheck, Activity, Sparkles, Send } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'settings';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -21,64 +21,57 @@ export function Sidebar({
     {
       id: 'dashboard' as NavItem,
       label: 'Revenue Radar',
-      sublabel: 'Step 3: Churn Detection & Ranking',
+      sublabel: 'Churn Detection & Ranking',
       icon: LayoutDashboard,
       badge: null
     },
     {
       id: 'customers' as NavItem,
       label: 'Customer Details',
-      sublabel: 'Step 1 & 2: Unified Evidence Timeline',
+      sublabel: 'Directory & 360 Telemetry',
       icon: Users,
       badge: accountCount > 0 ? accountCount : null
     },
     {
       id: 'autopsy' as NavItem,
       label: 'Risk Autopsy',
-      sublabel: 'Step 3 & 4: Deep-Dive Diagnosis',
+      sublabel: 'Deep-Dive AI Diagnosis',
       icon: Sparkles,
       badge: 'AI',
-      badgeColor: 'bg-blue-500/20 text-blue-300 border border-blue-500/40 font-bold'
+      badgeColor: 'bg-blue-50 text-[#0025AE] border border-blue-200 font-bold'
     },
     {
       id: 'copilot' as NavItem,
       label: 'Action Copilot',
-      sublabel: 'Step 4: AI Intervention Drafts',
+      sublabel: 'AI Intervention Drafts',
       icon: Send,
       badge: 'Copilot',
-      badgeColor: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-semibold'
+      badgeColor: 'bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold'
     },
     {
       id: 'approvals' as NavItem,
       label: 'Approval Center',
-      sublabel: 'Step 5 & 6: Human Review Gate',
+      sublabel: 'Human Review & Safe Gate',
       icon: CheckSquare,
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : null,
-      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold'
-    },
-    {
-      id: 'settings' as NavItem,
-      label: 'Connectors & Rules',
-      sublabel: 'Step 1: Signal Ingestion Sources',
-      icon: Settings,
-      badge: null
+      badgeColor: 'bg-amber-50 text-amber-800 border border-amber-200 font-bold'
     }
   ];
 
   return (
-    <aside className="w-72 border-r border-slate-800 bg-slate-950 flex flex-col justify-between shrink-0 select-none min-h-screen">
+    <aside className="w-72 border-r border-[#E2E8F0] bg-white flex flex-col justify-between shrink-0 select-none min-h-screen">
       <div>
         {/* Brand Header */}
-        <div className="h-20 px-6 border-b border-slate-800 flex items-center justify-between">
+        <div className="h-20 px-6 border-b border-[#E2E8F0] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-900/30">
+            <div className="w-9 h-9 rounded-lg bg-[#2563EB] flex items-center justify-center text-white shadow-xs">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-headline text-xl text-white tracking-tight block leading-tight font-bold">
+              <span className="font-headline text-2xl text-[#020062] tracking-tight block leading-tight font-bold">
                 Revora
               </span>
-              <span className="text-[11px] tracking-wider uppercase font-semibold text-slate-400 block font-mono">
+              <span className="text-[10px] tracking-widest uppercase font-semibold text-[#0025AE] block font-mono">
                 SignalBridge AI
               </span>
             </div>
@@ -97,14 +90,14 @@ export function Sidebar({
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium font-body transition-all text-left cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-lg text-sm font-medium font-body transition-all text-left cursor-pointer ${
                   isActive
-                    ? 'bg-blue-600/15 text-blue-400 font-semibold border border-blue-500/30 shadow-xs'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                    ? 'bg-[#F0F5FF] text-[#0025AE] font-semibold border border-[#2563EB]/30 shadow-2xs'
+                    : 'text-slate-600 hover:text-[#020062] hover:bg-[#F8FAFC]'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-slate-400'}`} />
                   <div>
                     <span className="block leading-none text-sm font-semibold">{item.label}</span>
                     <span className="text-xs text-slate-500 block mt-1 line-clamp-1">{item.sublabel}</span>
@@ -114,7 +107,7 @@ export function Sidebar({
                 {item.badge !== null && (
                   <span
                     className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-medium ${
-                      item.badgeColor || (isActive ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400')
+                      item.badgeColor || (isActive ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600')
                     }`}
                   >
                     {item.badge}
@@ -127,31 +120,31 @@ export function Sidebar({
       </div>
 
       {/* Footer System Status */}
-      <div className="p-5 border-t border-slate-800 bg-slate-900/60 space-y-3">
+      <div className="p-5 border-t border-[#E2E8F0] bg-[#F8FAFC] space-y-3">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-400" />
-            <span className="text-slate-300 font-medium font-body text-xs">Customer Signal Sync</span>
+            <Activity className="w-4 h-4 text-[#2563EB]" />
+            <span className="text-slate-700 font-medium font-body text-xs">Customer Signal Sync</span>
           </div>
           <span
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-md border font-mono ${
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded border font-mono ${
               backendHealthy
-                ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/80'
-                : 'text-rose-400 bg-rose-950/60 border-rose-800/80'
+                ? 'text-emerald-800 bg-emerald-50 border-emerald-200'
+                : 'text-rose-800 bg-rose-50 border-rose-200'
             }`}
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                backendHealthy ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                backendHealthy ? 'bg-emerald-600 animate-pulse' : 'bg-rose-600'
               }`}
             />
             {backendHealthy ? 'Live Synced' : 'Offline'}
           </span>
         </div>
 
-        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-body">
+        <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-slate-500 font-body">
           <span>Revora Engine v1.0</span>
-          <span className="font-mono text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+          <span className="font-mono text-xs bg-white text-[#020062] px-2 py-0.5 rounded border border-[#E2E8F0]">
             Deterministic + AI
           </span>
         </div>

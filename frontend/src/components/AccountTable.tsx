@@ -122,20 +122,20 @@ export function AccountTable({
     tableSearch.trim().length > 0;
 
   return (
-    <div className="border border-slate-800 rounded-2xl bg-slate-900 overflow-hidden shadow-xl">
+    <div className="border border-[#E2E8F0] rounded-2xl bg-white overflow-hidden shadow-xs">
       {/* Table Header & Controls Bar */}
-      <div className="p-6 border-b border-slate-800 bg-slate-950/60 space-y-4">
+      <div className="p-6 border-b border-[#E2E8F0] bg-white space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Section Title */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <div className="w-10 h-10 rounded-xl bg-[#F0F5FF] border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB]">
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-headline text-lg sm:text-xl font-bold text-white tracking-tight">
+              <h3 className="font-headline text-lg sm:text-xl font-normal text-[#020062] tracking-tight">
                 Ranked Customer Accounts
               </h3>
-              <p className="text-xs sm:text-sm text-slate-400 font-body">
+              <p className="text-xs sm:text-sm text-slate-500 font-body">
                 Deterministic risk priority · Verified against multi-source evidence
               </p>
             </div>
@@ -144,13 +144,13 @@ export function AccountTable({
           {/* Right Controls: Currency Toggle & Reset */}
           <div className="flex items-center gap-3">
             {onCurrencyChange && (
-              <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs font-semibold">
+              <div className="flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1 text-xs font-semibold">
                 <button
                   onClick={() => onCurrencyChange('USD')}
                   className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
                     currency === 'USD'
-                      ? 'bg-blue-600 text-white font-bold'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#2563EB] text-white font-bold'
+                      : 'text-slate-600 hover:text-[#020062]'
                   }`}
                 >
                   $ USD
@@ -159,8 +159,8 @@ export function AccountTable({
                   onClick={() => onCurrencyChange('INR')}
                   className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
                     currency === 'INR'
-                      ? 'bg-blue-600 text-white font-bold'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#2563EB] text-white font-bold'
+                      : 'text-slate-600 hover:text-[#020062]'
                   }`}
                 >
                   ₹ INR
@@ -171,7 +171,7 @@ export function AccountTable({
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-xs font-medium text-slate-600 hover:text-[#020062] hover:bg-slate-100 cursor-pointer transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
                 Reset
@@ -181,13 +181,13 @@ export function AccountTable({
         </div>
 
         {/* Filter Controls Row */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-[#E2E8F0]">
           {/* Risk Level Pills */}
           <div className="flex items-center gap-2 flex-wrap text-xs">
-            <span className="text-slate-400 font-medium font-mono uppercase tracking-wider">
+            <span className="text-slate-500 font-medium font-mono uppercase tracking-wider">
               Risk:
             </span>
-            <div className="inline-flex rounded-xl border border-slate-800 bg-slate-950 p-1 gap-1">
+            <div className="inline-flex rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-1 gap-1">
               {[
                 { key: 'all', label: 'All' },
                 { key: 'critical', label: 'Critical' },
@@ -200,8 +200,8 @@ export function AccountTable({
                   onClick={() => setFilterRisk(tier.key)}
                   className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                     filterRisk === tier.key
-                      ? 'bg-blue-600 text-white font-bold shadow-xs'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                      ? 'bg-[#2563EB] text-white font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-[#020062] hover:bg-white'
                   }`}
                 >
                   {tier.label}
@@ -216,7 +216,7 @@ export function AccountTable({
             <select
               value={filterOwner}
               onChange={(e) => setFilterOwner(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="bg-white border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#2563EB] cursor-pointer"
             >
               <option value="all">All CSM Owners</option>
               {csmOwners.map((owner) => (
@@ -230,7 +230,7 @@ export function AccountTable({
             <select
               value={filterRenewal}
               onChange={(e) => setFilterRenewal(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="bg-white border border-[#E2E8F0] rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:border-[#2563EB] cursor-pointer"
             >
               <option value="all">All Renewal Windows</option>
               <option value="30">Within 30 Days</option>
@@ -240,13 +240,13 @@ export function AccountTable({
 
             {/* In-table Search */}
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="Search rows..."
                 value={tableSearch}
                 onChange={(e) => setTableSearch(e.target.value)}
-                className="pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-44 sm:w-56"
+                className="pl-9 pr-3 py-2 bg-white border border-[#E2E8F0] rounded-xl text-xs text-[#020062] placeholder-slate-400 focus:outline-none focus:border-[#2563EB] w-44 sm:w-56"
               />
             </div>
           </div>
@@ -257,68 +257,68 @@ export function AccountTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse text-sm font-body">
           <thead>
-            <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-400 uppercase tracking-wider text-xs font-mono font-bold">
+            <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-slate-600 uppercase tracking-wider text-xs font-mono font-bold">
               <th
                 onClick={() => handleSort('name')}
-                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-[#020062] transition-colors select-none"
               >
                 <div className="flex items-center gap-2">
-                  <Building className="w-4 h-4 text-slate-500" />
+                  <Building className="w-4 h-4 text-slate-400" />
                   <span>Account</span>
-                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'name' ? 'text-blue-400' : 'text-slate-600'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'name' ? 'text-[#2563EB]' : 'text-slate-400'}`} />
                 </div>
               </th>
 
               <th
                 onClick={() => handleSort('arr')}
-                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-[#020062] transition-colors select-none"
               >
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-slate-500" />
+                  <DollarSign className="w-4 h-4 text-slate-400" />
                   <span>ARR</span>
-                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'arr' ? 'text-blue-400' : 'text-slate-600'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'arr' ? 'text-[#2563EB]' : 'text-slate-400'}`} />
                 </div>
               </th>
 
               <th
                 onClick={() => handleSort('risk_score')}
-                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-[#020062] transition-colors select-none"
               >
                 <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-slate-500" />
+                  <Flame className="w-4 h-4 text-slate-400" />
                   <span>Risk Score</span>
-                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'risk_score' ? 'text-blue-400' : 'text-slate-600'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'risk_score' ? 'text-[#2563EB]' : 'text-slate-400'}`} />
                 </div>
               </th>
 
               <th
                 onClick={() => handleSort('urgency_days_to_renewal')}
-                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-[#020062] transition-colors select-none"
               >
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-500" />
+                  <Clock className="w-4 h-4 text-slate-400" />
                   <span>Urgency</span>
-                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'urgency_days_to_renewal' ? 'text-blue-400' : 'text-slate-600'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'urgency_days_to_renewal' ? 'text-[#2563EB]' : 'text-slate-400'}`} />
                 </div>
               </th>
 
               <th className="py-4 px-6 min-w-[240px]">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-slate-500" />
+                  <AlertCircle className="w-4 h-4 text-slate-400" />
                   <span>Primary Trigger</span>
                 </div>
               </th>
 
               <th className="py-4 px-6">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-500" />
+                  <Calendar className="w-4 h-4 text-slate-400" />
                   <span>Renewal</span>
                 </div>
               </th>
 
               <th className="py-4 px-6">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-slate-500" />
+                  <User className="w-4 h-4 text-slate-400" />
                   <span>Owner</span>
                 </div>
               </th>
@@ -329,10 +329,10 @@ export function AccountTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-800/80">
+          <tbody className="divide-y divide-[#E2E8F0]">
             {sortedAccounts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-slate-400 text-sm">
+                <td colSpan={8} className="py-12 text-center text-slate-500 text-sm">
                   No customer accounts match the selected filter criteria.
                 </td>
               </tr>
@@ -347,24 +347,24 @@ export function AccountTable({
                     onClick={() => onSelectAccount(account.id)}
                     className={`cursor-pointer transition-all group ${
                       isSelected
-                        ? 'bg-blue-950/40 border-l-4 border-l-blue-500 text-white'
-                        : 'hover:bg-slate-850/80 bg-slate-900 text-slate-200'
+                        ? 'bg-[#F0F5FF] border-l-4 border-l-[#2563EB] text-[#020062]'
+                        : 'hover:bg-[#F8FAFC] bg-white text-slate-800'
                     }`}
                   >
                     {/* 1. Account Name & Industry */}
                     <td className="py-4 px-6">
-                      <div className="font-bold text-base text-white group-hover:text-blue-400 transition-colors">
+                      <div className="font-bold text-base text-[#020062] group-hover:text-[#2563EB] transition-colors">
                         {account.name}
                       </div>
-                      <div className="text-xs text-slate-400 flex items-center gap-2 mt-1">
-                        <span className="font-mono text-slate-400">{account.domain || 'saas.app'}</span>
-                        <span className="text-slate-600">•</span>
+                      <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+                        <span className="font-mono text-slate-500">{account.domain || 'saas.app'}</span>
+                        <span className="text-slate-300">•</span>
                         <span>{account.industry || 'B2B SaaS'}</span>
                       </div>
                     </td>
 
                     {/* 2. ARR */}
-                    <td className="py-4 px-6 font-mono font-bold text-base text-white whitespace-nowrap">
+                    <td className="py-4 px-6 font-mono font-bold text-base text-[#020062] whitespace-nowrap">
                       {formatCurrency(account.arr)}
                     </td>
 
@@ -378,10 +378,10 @@ export function AccountTable({
                       <span
                         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold border ${
                           isUrgent
-                            ? 'bg-rose-950/80 text-rose-300 border-rose-800/80'
+                            ? 'bg-rose-50 text-rose-800 border-rose-200'
                             : (account.urgency_days_to_renewal || 999) <= 60
-                            ? 'bg-amber-950/80 text-amber-300 border-amber-800/80'
-                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-slate-100 text-slate-700 border-slate-200'
                         }`}
                       >
                         <Clock className="w-3.5 h-3.5" />
@@ -391,20 +391,20 @@ export function AccountTable({
 
                     {/* 5. Primary Warning Trigger */}
                     <td className="py-4 px-6">
-                      <div className="text-xs font-medium text-slate-200 line-clamp-1">
+                      <div className="text-xs font-medium text-slate-800 line-clamp-1">
                         {account.main_warning || account.primary_reason_code.replace(/_/g, ' ')}
                       </div>
-                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mt-1">
+                      <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block mt-1">
                         {account.primary_reason_code.replace(/_/g, ' ')}
                       </span>
                     </td>
 
                     {/* 6. Renewal Date */}
                     <td className="py-4 px-6 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-white font-mono">
+                      <div className="text-sm font-semibold text-[#020062] font-mono">
                         {account.renewal_date}
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">
+                      <div className="text-xs text-slate-500 mt-0.5">
                         in {account.urgency_days_to_renewal} days
                       </div>
                     </td>
@@ -412,7 +412,7 @@ export function AccountTable({
                     {/* 7. CSM Owner */}
                     <td className="py-4 px-6 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-blue-600/30 text-blue-300 flex items-center justify-center font-bold text-xs border border-blue-500/40">
+                        <div className="w-7 h-7 rounded-full bg-[#F0F5FF] text-[#0025AE] flex items-center justify-center font-bold text-xs border border-blue-200">
                           {account.csm_owner
                             ? account.csm_owner
                                 .split(' ')
@@ -420,7 +420,7 @@ export function AccountTable({
                                 .join('')
                             : 'CS'}
                         </div>
-                        <span className="text-xs font-medium text-slate-300">
+                        <span className="text-xs font-medium text-slate-700">
                           {account.csm_owner || 'Unassigned'}
                         </span>
                       </div>
@@ -437,9 +437,9 @@ export function AccountTable({
                             onSelectAccount(account.id);
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer group-hover:scale-105"
+                        className="inline-flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer group-hover:scale-105"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <Sparkles className="w-3.5 h-3.5 text-amber-200" />
                         <span>Diagnose</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>

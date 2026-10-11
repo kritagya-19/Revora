@@ -105,34 +105,34 @@ export function PortfolioCharts({
       {/* 1. GUIDANCE HERO BANNER: Tells the team immediately what to do!           */}
       {/* ========================================================================= */}
       {topPriorityAccount && (
-        <div className="bg-linear-to-r from-slate-900 via-slate-850 to-blue-950 border border-slate-850 rounded-2xl p-6 sm:p-7 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-2.5 max-w-2xl">
+        <div className="bg-[#F0F5FF] border border-[#2563EB]/30 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="space-y-2.5 max-w-2xl relative z-10">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+              <span className="text-xs font-mono font-bold uppercase tracking-wider bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
                 Immediate Action Required
               </span>
-              <span className="text-xs text-slate-300 font-medium">
+              <span className="text-xs text-slate-600 font-medium">
                 Rank #1 Priority: {topPriorityAccount.urgency_days_to_renewal}d until contract renewal
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-headline font-normal text-[#020062] tracking-tight">
               {topPriorityAccount.name} exhibits {topPriorityAccount.risk_score}/100 churn risk
             </h2>
 
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Detected concurrent telemetry contraction (<span className="text-rose-300 font-semibold">-38% to -52% usage</span>) alongside unanswered customer touchpoints. 
-              {formatCur(topPriorityAccount.arr)} contract ARR is currently exposed.
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Detected concurrent telemetry contraction (<span className="text-rose-700 font-semibold">-38% to -52% usage</span>) alongside unanswered customer touchpoints. 
+              <strong className="text-[#020062] ml-1">{formatCur(topPriorityAccount.arr)}</strong> contract ARR is currently exposed.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full lg:w-auto relative z-10">
             <button
               onClick={() => onNavigateToAutopsy?.(topPriorityAccount.id)}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group"
+              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer group"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <Sparkles className="w-4 h-4 text-amber-200" />
               <span>Diagnose {topPriorityAccount.name}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -146,22 +146,22 @@ export function PortfolioCharts({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* CHART 1: Portfolio Risk Distribution (7 Cols) */}
-        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-lg space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+        <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-4">
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-blue-400" />
+              <h3 className="text-base sm:text-lg font-headline font-normal text-[#020062] tracking-tight flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-[#2563EB]" />
                 <span>Portfolio Risk Distribution</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Total Portfolio ARR: <strong className="text-slate-200">{formatCur(riskMetrics.totalArr)}</strong> across {accounts.length} active customer accounts
+              <p className="text-xs text-slate-500 mt-0.5">
+                Total Portfolio ARR: <strong className="text-[#020062] font-semibold">{formatCur(riskMetrics.totalArr)}</strong> across {accounts.length} active customer accounts
               </p>
             </div>
 
             {selectedRiskFilter !== 'all' && (
               <button
                 onClick={() => onSelectRiskFilter('all')}
-                className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer underline self-start sm:self-auto"
+                className="text-xs text-[#2563EB] hover:text-[#0025AE] font-semibold cursor-pointer underline self-start sm:self-auto"
               >
                 Reset Filter
               </button>
@@ -170,33 +170,33 @@ export function PortfolioCharts({
 
           {/* Stacked Horizontal Distribution Bar */}
           <div className="space-y-2">
-            <div className="h-6 w-full rounded-xl overflow-hidden flex shadow-inner bg-slate-950 p-0.5 border border-slate-800">
+            <div className="h-6 w-full rounded-xl overflow-hidden flex bg-slate-100 p-0.5 border border-[#E2E8F0]">
               <div 
                 style={{ width: `${Math.max(riskMetrics.critical.pct, 4)}%` }}
-                className="bg-rose-500 hover:bg-rose-400 transition-all cursor-pointer relative group rounded-l-lg"
+                className="bg-rose-500 hover:bg-rose-600 transition-all cursor-pointer relative group rounded-l-lg"
                 onClick={() => onSelectRiskFilter('critical')}
                 title={`Critical: ${riskMetrics.critical.count} accounts (${formatCur(riskMetrics.critical.arr)})`}
               />
               <div 
                 style={{ width: `${Math.max(riskMetrics.high.pct, 4)}%` }}
-                className="bg-amber-500 hover:bg-amber-400 transition-all cursor-pointer relative group"
+                className="bg-amber-500 hover:bg-amber-600 transition-all cursor-pointer relative group"
                 onClick={() => onSelectRiskFilter('high')}
                 title={`High: ${riskMetrics.high.count} accounts (${formatCur(riskMetrics.high.arr)})`}
               />
               <div 
                 style={{ width: `${Math.max(riskMetrics.medium.pct, 4)}%` }}
-                className="bg-blue-500 hover:bg-blue-400 transition-all cursor-pointer relative group"
+                className="bg-[#2563EB] hover:bg-[#1d4ed8] transition-all cursor-pointer relative group"
                 onClick={() => onSelectRiskFilter('medium')}
                 title={`Medium: ${riskMetrics.medium.count} accounts (${formatCur(riskMetrics.medium.arr)})`}
               />
               <div 
                 style={{ width: `${Math.max(riskMetrics.low.pct, 4)}%` }}
-                className="bg-emerald-500 hover:bg-emerald-400 transition-all cursor-pointer relative group rounded-r-lg"
+                className="bg-emerald-500 hover:bg-emerald-600 transition-all cursor-pointer relative group rounded-r-lg"
                 onClick={() => onSelectRiskFilter('low')}
                 title={`Healthy: ${riskMetrics.low.count} accounts (${formatCur(riskMetrics.low.arr)})`}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono">
               <span>0%</span>
               <span>Portfolio ARR Allocation</span>
               <span>100%</span>
@@ -210,20 +210,20 @@ export function PortfolioCharts({
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'critical' ? 'all' : 'critical')}
               className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'critical'
-                  ? 'bg-rose-950/60 border-rose-500 ring-2 ring-rose-500/40 text-white'
-                  : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
+                  ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-400 text-[#020062]'
+                  : 'bg-[#F8FAFC] hover:bg-rose-50/50 border-[#E2E8F0] text-slate-700'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-rose-400">Critical</span>
-                <span className="text-xs font-mono font-bold bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800">
+                <span className="text-xs font-bold text-rose-700">Critical</span>
+                <span className="text-xs font-mono font-bold bg-white text-rose-700 px-1.5 py-0.5 rounded border border-rose-200">
                   {riskMetrics.critical.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-bold text-white font-mono mt-2">
+              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
                 {formatCur(riskMetrics.critical.arr)}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                 {riskMetrics.critical.pct}% of ARR
               </div>
             </button>
@@ -233,20 +233,20 @@ export function PortfolioCharts({
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'high' ? 'all' : 'high')}
               className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'high'
-                  ? 'bg-amber-950/60 border-amber-500 ring-2 ring-amber-500/40 text-white'
-                  : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
+                  ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400 text-[#020062]'
+                  : 'bg-[#F8FAFC] hover:bg-amber-50/50 border-[#E2E8F0] text-slate-700'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-400">High Risk</span>
-                <span className="text-xs font-mono font-bold bg-amber-950 text-amber-300 px-1.5 py-0.5 rounded border border-amber-800">
+                <span className="text-xs font-bold text-amber-700">High Risk</span>
+                <span className="text-xs font-mono font-bold bg-white text-amber-700 px-1.5 py-0.5 rounded border border-amber-200">
                   {riskMetrics.high.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-bold text-white font-mono mt-2">
+              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
                 {formatCur(riskMetrics.high.arr)}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                 {riskMetrics.high.pct}% of ARR
               </div>
             </button>
@@ -256,20 +256,20 @@ export function PortfolioCharts({
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'medium' ? 'all' : 'medium')}
               className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'medium'
-                  ? 'bg-blue-950/60 border-blue-500 ring-2 ring-blue-500/40 text-white'
-                  : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
+                  ? 'bg-[#F0F5FF] border-[#2563EB] ring-2 ring-[#2563EB]/40 text-[#020062]'
+                  : 'bg-[#F8FAFC] hover:bg-[#F0F5FF]/50 border-[#E2E8F0] text-slate-700'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-400">Medium</span>
-                <span className="text-xs font-mono font-bold bg-blue-950 text-blue-300 px-1.5 py-0.5 rounded border border-blue-800">
+                <span className="text-xs font-bold text-[#0025AE]">Medium</span>
+                <span className="text-xs font-mono font-bold bg-white text-[#0025AE] px-1.5 py-0.5 rounded border border-blue-200">
                   {riskMetrics.medium.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-bold text-white font-mono mt-2">
+              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
                 {formatCur(riskMetrics.medium.arr)}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                 {riskMetrics.medium.pct}% of ARR
               </div>
             </button>
@@ -279,20 +279,20 @@ export function PortfolioCharts({
               onClick={() => onSelectRiskFilter(selectedRiskFilter === 'low' ? 'all' : 'low')}
               className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedRiskFilter === 'low'
-                  ? 'bg-emerald-950/60 border-emerald-500 ring-2 ring-emerald-500/40 text-white'
-                  : 'bg-slate-950/60 hover:bg-slate-800 border-slate-800 text-slate-300'
+                  ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400 text-[#020062]'
+                  : 'bg-[#F8FAFC] hover:bg-emerald-50/50 border-[#E2E8F0] text-slate-700'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-400">Healthy</span>
-                <span className="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800">
+                <span className="text-xs font-bold text-emerald-700">Healthy</span>
+                <span className="text-xs font-mono font-bold bg-white text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
                   {riskMetrics.low.count}
                 </span>
               </div>
-              <div className="text-base sm:text-lg font-bold text-white font-mono mt-2">
+              <div className="text-base sm:text-lg font-headline font-normal text-[#020062] mt-2">
                 {formatCur(riskMetrics.low.arr)}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
                 {riskMetrics.low.pct}% of ARR
               </div>
             </button>
@@ -300,13 +300,13 @@ export function PortfolioCharts({
         </div>
 
         {/* CHART 2: Renewal Horizon & Urgency Exposure (5 Cols) */}
-        <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-lg space-y-5 flex flex-col justify-between">
-          <div className="border-b border-slate-800 pb-4">
-            <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-indigo-400" />
+        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-xs space-y-5 flex flex-col justify-between">
+          <div className="border-b border-[#E2E8F0] pb-4">
+            <h3 className="text-base sm:text-lg font-headline font-normal text-[#020062] tracking-tight flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-[#0025AE]" />
               <span>Renewal Horizon Exposure</span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Urgency breakdown by upcoming contract expiration window
             </p>
           </div>
@@ -317,15 +317,15 @@ export function PortfolioCharts({
               <div key={bucket.id} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">{bucket.label}</span>
-                    <span className="text-[11px] text-slate-400">({bucket.count} accounts)</span>
+                    <span className="font-semibold text-[#020062]">{bucket.label}</span>
+                    <span className="text-[11px] text-slate-500">({bucket.count} accounts)</span>
                   </div>
-                  <span className="font-mono font-bold text-white">
+                  <span className="font-mono font-bold text-[#020062]">
                     {formatCur(bucket.arr)}
                   </span>
                 </div>
 
-                <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-[#E2E8F0]">
                   <div
                     style={{ width: `${bucket.widthPct}%` }}
                     className={`h-full ${bucket.color} rounded-full transition-all duration-500`}
@@ -335,12 +335,12 @@ export function PortfolioCharts({
             ))}
           </div>
 
-          <div className="p-3 bg-slate-950/70 border border-slate-850 rounded-xl flex items-center justify-between text-xs text-slate-300">
+          <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center justify-between text-xs text-slate-600">
             <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               Deterministic Rule Engine Active
             </span>
-            <span className="font-mono text-slate-400 text-[11px]">Daily Synchronized</span>
+            <span className="font-mono text-slate-500 text-[11px]">Daily Synchronized</span>
           </div>
         </div>
 

@@ -14,7 +14,6 @@ import { CustomerDetailView } from './components/CustomerDetailView';
 import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
 import { ApprovalCenterView } from './components/ApprovalCenterView';
-import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
@@ -24,7 +23,6 @@ import {
   AlertTriangle,
   Calendar,
   DollarSign,
-  Database,
   LayoutDashboard,
   Sparkles,
   Send,
@@ -117,6 +115,8 @@ export function App() {
       setViewMode('autopsy');
     } else if (tab === 'copilot') {
       setViewMode('copilot');
+    } else if (tab === 'approvals') {
+      setViewMode('radar');
     }
   };
 
@@ -221,12 +221,7 @@ export function App() {
       case 'approvals':
         return {
           title: 'Approval Center',
-          subtitle: 'Step 5 & 6: Human Review & Execution Gate — Verifies evidence, approves proposals, and records audit history'
-        };
-      case 'settings':
-        return {
-          title: 'Connectors & Rules',
-          subtitle: 'Step 1: Signal Ingestion Connectors & Detection Rules — CRM, Email, Calendar, and Telemetry streams'
+          subtitle: 'Step 5: Human Review & Safe Execution Gate — Authorizes proposed interventions with cryptographic verification'
         };
       default:
         return { title: 'Revora | SignalBridge AI', subtitle: 'Evidence-First Revenue Intelligence' };
@@ -269,31 +264,30 @@ export function App() {
       {!loading && !error && (
         <>
           {/* ========================================================================= */}
-          {/* INTERACTIVE 6-STEP PIPELINE STEPPER: Instant Guidance Across All Views    */}
+          {/* INTERACTIVE 5-STEP PIPELINE STEPPER: Instant Guidance Across All Views    */}
           {/* ========================================================================= */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs">
             <div className="flex items-center justify-between gap-4 mb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-400">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0025AE]">
                   Revenue Intelligence Journey
                 </span>
-                <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+                <span className="text-xs text-slate-500 font-medium hidden sm:inline">
                   Click any stage to understand the workflow and explore each capability
                 </span>
               </div>
-              <span className="text-xs font-mono font-medium text-slate-400 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+              <span className="text-xs font-mono font-medium text-slate-600 bg-[#F8FAFC] px-3 py-1 rounded-lg border border-[#E2E8F0]">
                 Deterministic Detection + Gated Execution
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {[
-                { step: 1, label: 'Ingest Signals', tab: 'settings' as NavItem, icon: Database, isCurrent: currentTab === 'settings' },
-                { step: 2, label: 'Unified Profile', tab: 'customers' as NavItem, icon: Users, isCurrent: currentTab === 'customers' || viewMode === 'customer_detail' },
-                { step: 3, label: 'Risk Radar', tab: 'dashboard' as NavItem, icon: LayoutDashboard, isCurrent: currentTab === 'dashboard' && viewMode === 'radar' },
-                { step: 4, label: 'Risk Autopsy', tab: 'autopsy' as NavItem, icon: Sparkles, isCurrent: currentTab === 'autopsy' || viewMode === 'autopsy' },
-                { step: 5, label: 'Action Copilot', tab: 'copilot' as NavItem, icon: Send, isCurrent: currentTab === 'copilot' || viewMode === 'copilot' },
-                { step: 6, label: 'Approval Gate', tab: 'approvals' as NavItem, icon: CheckCircle2, isCurrent: currentTab === 'approvals' }
+                { step: 1, label: 'Customer Details', tab: 'customers' as NavItem, icon: Users, isCurrent: currentTab === 'customers' || viewMode === 'customer_detail' },
+                { step: 2, label: 'Revenue Radar', tab: 'dashboard' as NavItem, icon: LayoutDashboard, isCurrent: currentTab === 'dashboard' && viewMode === 'radar' },
+                { step: 3, label: 'Risk Autopsy', tab: 'autopsy' as NavItem, icon: Sparkles, isCurrent: currentTab === 'autopsy' || viewMode === 'autopsy' },
+                { step: 4, label: 'Action Copilot', tab: 'copilot' as NavItem, icon: Send, isCurrent: currentTab === 'copilot' || viewMode === 'copilot' },
+                { step: 5, label: 'Approval Center', tab: 'approvals' as NavItem, icon: CheckCircle2, isCurrent: currentTab === 'approvals' }
               ].map((s) => {
                 const Icon = s.icon;
                 return (
@@ -302,17 +296,17 @@ export function App() {
                     onClick={() => handleSelectTab(s.tab)}
                     className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       s.isCurrent
-                        ? 'bg-blue-600/20 border-blue-500 text-white ring-1 ring-blue-500/50 shadow-md shadow-blue-950/30'
-                        : 'bg-slate-950/80 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-white'
+                        ? 'bg-[#F0F5FF] border-[#2563EB] text-[#020062] ring-1 ring-[#2563EB]/40 shadow-xs'
+                        : 'bg-white hover:bg-[#F8FAFC] border-[#E2E8F0] text-slate-600 hover:text-[#020062]'
                     }`}
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      s.isCurrent ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                      s.isCurrent ? 'bg-[#2563EB] text-white' : 'bg-[#F1F5F9] text-slate-500'
                     }`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <span className="text-[10px] font-mono font-bold block text-slate-500 leading-tight">
+                      <span className="text-[10px] font-mono font-bold block text-slate-400 leading-tight">
                         STEP {s.step}
                       </span>
                       <span className="text-xs font-semibold block truncate leading-tight mt-0.5">
@@ -395,7 +389,7 @@ export function App() {
           )}
 
           {/* TAB 2 or Detail View: Customer Details and Unified Evidence Timeline */}
-          {(currentTab === 'customers' || viewMode === 'customer_detail') && selectedAccountDetail && (
+          {(currentTab === 'customers' || (currentTab === 'dashboard' && viewMode === 'customer_detail')) && selectedAccountDetail && (
             <CustomerDetailView
               account={selectedAccountDetail}
               allAccounts={accounts}
@@ -420,7 +414,7 @@ export function App() {
           )}
 
           {/* TAB 3 / Page 4: Revenue Risk Autopsy (Central AI Wow Feature) */}
-          {(currentTab === 'autopsy' || viewMode === 'autopsy') && selectedAccountDetail && (
+          {(currentTab === 'autopsy' || (currentTab === 'dashboard' && viewMode === 'autopsy')) && selectedAccountDetail && (
             <RevenueRiskAutopsyView
               account={selectedAccountDetail}
               allAccounts={accounts}
@@ -446,7 +440,7 @@ export function App() {
           )}
 
           {/* TAB 4 / Page 5: Next-Best-Action Copilot (Editable Proposals) */}
-          {(currentTab === 'copilot' || viewMode === 'copilot') && selectedAccountDetail && (
+          {(currentTab === 'copilot' || (currentTab === 'dashboard' && viewMode === 'copilot')) && selectedAccountDetail && (
             <NextBestActionCopilotView
               account={selectedAccountDetail}
               allAccounts={accounts}
@@ -481,14 +475,6 @@ export function App() {
                 setViewMode('copilot');
                 setCurrentTab('copilot');
               }}
-            />
-          )}
-
-          {/* TAB 6: Settings & Integrations */}
-          {currentTab === 'settings' && (
-            <SettingsAndIntegrationsView
-              executionMode={executionMode}
-              backendHealthy={backendHealthy}
             />
           )}
         </>

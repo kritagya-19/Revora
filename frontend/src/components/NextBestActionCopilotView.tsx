@@ -318,33 +318,33 @@ export function NextBestActionCopilotView({
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-200">
       {/* Top Breadcrumb & Account Switcher Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-4 lg:p-5 rounded-2xl shadow-md">
-        <div className="flex items-center gap-2 text-sm text-slate-400 font-body flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E2E8F0] p-4 lg:p-5 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-2 text-sm text-slate-500 font-body flex-wrap">
           <button
             onClick={onBackToRadar}
-            className="hover:text-blue-400 text-slate-300 transition-colors cursor-pointer font-medium"
+            className="hover:text-[#020062] text-slate-600 transition-colors cursor-pointer font-medium"
           >
             Revenue Radar
           </button>
-          <span className="text-slate-600">/</span>
+          <span className="text-slate-300">/</span>
           <button
             onClick={onBackToCustomer}
-            className="hover:text-blue-400 text-slate-300 transition-colors cursor-pointer font-medium"
+            className="hover:text-[#020062] text-slate-600 transition-colors cursor-pointer font-medium"
           >
             {account.name}
           </button>
-          <span className="text-slate-600">/</span>
-          <span className="text-white font-semibold">Step 4 of 6: Next-Best-Action Copilot</span>
+          <span className="text-slate-300">/</span>
+          <span className="text-[#020062] font-semibold">Step 4 of 5: Next-Best-Action Copilot</span>
         </div>
 
         {/* Account Selector */}
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400 font-medium">Switch Account:</span>
+          <span className="text-xs text-slate-500 font-medium">Switch Account:</span>
           <div className="relative">
             <select
               value={account.id}
               onChange={(e) => onSelectAccount(e.target.value)}
-              className="text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 font-medium text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+              className="text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2 font-medium text-[#020062] focus:outline-none focus:border-[#2563EB] cursor-pointer"
             >
               {allAccounts.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -357,18 +357,18 @@ export function NextBestActionCopilotView({
       </div>
 
       {/* Hero Header Card */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 lg:p-8 shadow-xl relative overflow-hidden space-y-6">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 lg:p-8 shadow-xs relative overflow-hidden space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 text-xs font-semibold">
-              <Sparkles className="w-4 h-4 text-blue-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#F0F5FF] text-[#0025AE] border border-blue-200 text-xs font-semibold">
+              <Sparkles className="w-4 h-4 text-[#2563EB]" />
               <span>Next-Best-Action Copilot</span>
-              <span className="text-slate-500">• Human-in-the-Loop Safe Action Gate</span>
+              <span className="text-slate-400">• Human-in-the-Loop Safe Action Gate</span>
             </div>
-            <h1 className="font-headline text-3xl font-bold text-white">
+            <h1 className="font-headline text-3xl font-normal text-[#020062]">
               Action Proposals for {account.name}
             </h1>
-            <p className="text-sm text-slate-300 leading-relaxed font-body">
+            <p className="text-sm text-slate-600 leading-relaxed font-body">
               Once risk telemetry identifies churn probability, Revora prepares immediate, structured mitigation proposals.
               Every proposed outreach or CRM modification is grounded in verified evidence with cryptographic hash integrity, 
               guaranteeing zero unrestricted autonomous writes without human authorization.
@@ -376,30 +376,30 @@ export function NextBestActionCopilotView({
           </div>
 
           {/* Quick Context Pill */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-5 flex items-center gap-6 shrink-0">
+          <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-5 flex items-center gap-6 shrink-0">
             <div>
-              <span className="text-xs uppercase font-mono tracking-wider text-slate-400 block mb-1">
+              <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block mb-1">
                 Primary Driver
               </span>
-              <span className="text-sm font-bold text-white capitalize">
+              <span className="text-sm font-bold text-[#020062] capitalize">
                 {account.primary_reason_code.replace('_', ' ')}
               </span>
             </div>
-            <div className="h-10 w-px bg-slate-800" />
+            <div className="h-10 w-px bg-[#E2E8F0]" />
             <div>
-              <span className="text-xs uppercase font-mono tracking-wider text-slate-400 block mb-1">
+              <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block mb-1">
                 Urgency
               </span>
-              <span className="text-sm font-bold text-rose-400">
+              <span className="text-sm font-bold text-rose-700">
                 {account.urgency_days_to_renewal} days to renewal
               </span>
             </div>
-            <div className="h-10 w-px bg-slate-800" />
+            <div className="h-10 w-px bg-[#E2E8F0]" />
             <div>
-              <span className="text-xs uppercase font-mono tracking-wider text-slate-400 block mb-1">
+              <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block mb-1">
                 Account Owner
               </span>
-              <span className="text-sm font-bold text-slate-200">
+              <span className="text-sm font-bold text-[#020062]">
                 {account.csm_owner}
               </span>
             </div>
@@ -411,23 +411,23 @@ export function NextBestActionCopilotView({
           <div
             className={`p-4 rounded-xl text-sm flex items-center justify-between gap-4 transition-all ${
               feedbackBanner.type === 'success'
-                ? 'bg-emerald-950/40 text-emerald-200 border border-emerald-800/60'
+                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
                 : feedbackBanner.type === 'info'
-                ? 'bg-blue-950/40 text-blue-200 border border-blue-800/60'
-                : 'bg-rose-950/40 text-rose-200 border border-rose-800/60'
+                ? 'bg-blue-50 text-blue-900 border border-blue-200'
+                : 'bg-rose-50 text-rose-900 border border-rose-200'
             }`}
           >
             <div className="flex items-center gap-3">
               {feedbackBanner.type === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               ) : (
-                <ShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
+                <ShieldCheck className="w-5 h-5 text-[#2563EB] shrink-0" />
               )}
               <div>
                 <span className="font-semibold block">{feedbackBanner.message}</span>
                 {feedbackBanner.hash && (
-                  <span className="font-mono text-xs block text-slate-300 mt-1">
-                    Proposal ID: <strong className="text-white">{feedbackBanner.proposalId}</strong> • Version: <strong>v{feedbackBanner.version}</strong> • Content Hash: <code className="bg-slate-900 px-2 py-0.5 rounded text-xs text-blue-300 font-mono">{feedbackBanner.hash}</code>
+                  <span className="font-mono text-xs block text-slate-600 mt-1">
+                    Proposal ID: <strong className="text-[#020062]">{feedbackBanner.proposalId}</strong> • Version: <strong>v{feedbackBanner.version}</strong> • Content Hash: <code className="bg-white px-2 py-0.5 rounded text-xs text-[#0025AE] font-mono border border-blue-200">{feedbackBanner.hash}</code>
                   </span>
                 )}
               </div>
@@ -435,7 +435,7 @@ export function NextBestActionCopilotView({
 
             <button
               onClick={onNavigateToApprovals}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-semibold text-xs text-white border border-slate-700 shadow-xs cursor-pointer shrink-0"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 font-semibold text-xs text-[#020062] border border-[#E2E8F0] shadow-xs cursor-pointer shrink-0"
             >
               <span>View in Approval Center</span>
               <ArrowRight className="w-4 h-4" />
@@ -445,19 +445,19 @@ export function NextBestActionCopilotView({
       </div>
 
       {/* Three Tabs Header */}
-      <div className="flex border-b border-slate-800 gap-3">
+      <div className="flex border-b border-[#E2E8F0] gap-3">
         <button
           onClick={() => setActiveTab('email')}
           className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
             activeTab === 'email'
-              ? 'border-blue-500 text-blue-400 bg-slate-900 shadow-sm'
-              : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
+              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
+              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
           }`}
         >
           <Mail className="w-4 h-4" />
           <span>Email Draft</span>
           {savedEmailProp && (
-            <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono border border-emerald-500/30">
+            <span className="text-xs bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
               v{savedEmailProp.version}
             </span>
           )}
@@ -467,14 +467,14 @@ export function NextBestActionCopilotView({
           onClick={() => setActiveTab('task')}
           className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
             activeTab === 'task'
-              ? 'border-blue-500 text-blue-400 bg-slate-900 shadow-sm'
-              : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
+              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
+              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
           }`}
         >
           <CheckSquare className="w-4 h-4" />
           <span>Follow-up Task</span>
           {savedTaskProp && (
-            <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono border border-emerald-500/30">
+            <span className="text-xs bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
               v{savedTaskProp.version}
             </span>
           )}
@@ -484,14 +484,14 @@ export function NextBestActionCopilotView({
           onClick={() => setActiveTab('crm')}
           className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
             activeTab === 'crm'
-              ? 'border-blue-500 text-blue-400 bg-slate-900 shadow-sm'
-              : 'border-transparent text-slate-400 hover:text-white hover:bg-slate-900/50'
+              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
+              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
           }`}
         >
           <Database className="w-4 h-4" />
           <span>CRM Update</span>
           {savedCrmProp && (
-            <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono border border-emerald-500/30">
+            <span className="text-xs bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-mono border border-emerald-200">
               v{savedCrmProp.version}
             </span>
           )}
@@ -500,21 +500,21 @@ export function NextBestActionCopilotView({
 
       {/* TAB 1: Email Draft */}
       {activeTab === 'email' && (
-        <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 lg:p-8 space-y-6 shadow-md">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
             <div>
-              <h2 className="font-headline text-xl font-bold text-white flex items-center gap-2.5">
-                <Mail className="w-5 h-5 text-blue-400" />
+              <h2 className="font-headline text-xl font-normal text-[#020062] flex items-center gap-2.5">
+                <Mail className="w-5 h-5 text-[#2563EB]" />
                 Personalized Follow-up Email Draft
               </h2>
-              <p className="text-sm text-slate-400 font-body mt-0.5">
+              <p className="text-sm text-slate-500 font-body mt-0.5">
                 AI synthesized from verified account context and recent risk triggers. Edit directly before saving.
               </p>
             </div>
 
             {loadingDrafts && (
-              <div className="flex items-center gap-2 text-sm text-slate-400">
-                <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <RefreshCw className="w-4 h-4 animate-spin text-[#2563EB]" />
                 <span>Synthesizing from telemetry...</span>
               </div>
             )}
@@ -523,7 +523,7 @@ export function NextBestActionCopilotView({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Recipient */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <User className="w-4 h-4 text-slate-400" />
                 Recipient (Executive Sponsor or Primary Stakeholder)
               </label>
@@ -532,13 +532,13 @@ export function NextBestActionCopilotView({
                 value={emailRecipient}
                 onChange={(e) => setEmailRecipient(e.target.value)}
                 placeholder="recipient@customer.com"
-                className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 font-mono text-white placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-mono text-[#020062] placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none"
               />
             </div>
 
             {/* Subject */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-slate-400" />
                 Subject Line
               </label>
@@ -547,33 +547,33 @@ export function NextBestActionCopilotView({
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
                 placeholder="Email Subject"
-                className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 font-body font-medium text-white placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-body font-medium text-[#020062] placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none"
               />
             </div>
           </div>
 
           {/* Reason for Outreach */}
-          <div className="p-4 bg-blue-950/20 border border-blue-800/40 rounded-xl space-y-1.5">
-            <span className="text-xs font-semibold text-blue-300 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-400" />
+          <div className="p-4 bg-[#F0F5FF] border border-blue-200 rounded-xl space-y-1.5">
+            <span className="text-xs font-semibold text-[#0025AE] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#2563EB]" />
               Strategic Reason for Outreach:
             </span>
             <input
               type="text"
               value={emailReason}
               onChange={(e) => setEmailReason(e.target.value)}
-              className="w-full text-sm bg-transparent border-0 font-body text-slate-200 focus:outline-none focus:ring-0 p-0"
+              className="w-full text-sm bg-transparent border-0 font-body text-[#020062] focus:outline-none focus:ring-0 p-0"
             />
           </div>
 
           {/* Editable Email Body */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-slate-400" />
                 Editable Email Body
               </label>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-500">
                 You can freely edit the content; edits increment versioning safely.
               </span>
             </div>
@@ -581,18 +581,18 @@ export function NextBestActionCopilotView({
               rows={10}
               value={emailBody}
               onChange={(e) => setEmailBody(e.target.value)}
-              className="w-full text-sm font-body leading-relaxed bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-mono"
+              className="w-full text-sm font-body leading-relaxed bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-slate-800 focus:border-[#2563EB] focus:outline-none transition-all font-mono"
             />
           </div>
 
           {/* Evidence References */}
           {draftData?.email_draft.evidence_ids && draftData.email_draft.evidence_ids.length > 0 && (
-            <div className="flex items-center gap-2.5 text-sm text-slate-400 flex-wrap">
-              <span className="font-semibold text-slate-300">Grounded Evidence IDs:</span>
+            <div className="flex items-center gap-2.5 text-sm text-slate-500 flex-wrap">
+              <span className="font-semibold text-slate-700">Grounded Evidence IDs:</span>
               {draftData.email_draft.evidence_ids.map((eid) => (
                 <span
                   key={eid}
-                  className="px-2.5 py-0.5 rounded-md bg-slate-950 font-mono text-xs text-blue-300 border border-slate-800"
+                  className="px-2.5 py-0.5 rounded-md bg-[#F0F5FF] font-mono text-xs text-[#0025AE] border border-blue-200"
                 >
                   {eid}
                 </span>
@@ -601,16 +601,16 @@ export function NextBestActionCopilotView({
           )}
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-            <div className="text-sm text-slate-400">
-              State: <strong className="text-white">{savedEmailProp ? `Saved (v${savedEmailProp.version})` : 'Unsaved Draft'}</strong>
+          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between">
+            <div className="text-sm text-slate-500">
+              State: <strong className="text-[#020062]">{savedEmailProp ? `Saved (v${savedEmailProp.version})` : 'Unsaved Draft'}</strong>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => handleSaveDraft('email')}
                 disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm border border-slate-700 cursor-pointer transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-[#E2E8F0] cursor-pointer transition-all disabled:opacity-50"
               >
                 <Save className="w-4 h-4 text-slate-400" />
                 <span>Save Draft</span>
@@ -619,7 +619,7 @@ export function NextBestActionCopilotView({
               <button
                 onClick={() => handleSubmitForApproval('email')}
                 disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md cursor-pointer transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-sm shadow-xs cursor-pointer transition-all disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
                 <span>Submit for Approval</span>
@@ -631,14 +631,14 @@ export function NextBestActionCopilotView({
 
       {/* TAB 2: Follow-up Task */}
       {activeTab === 'task' && (
-        <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 lg:p-8 space-y-6 shadow-md">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
             <div>
-              <h2 className="font-headline text-xl font-bold text-white flex items-center gap-2.5">
-                <CheckSquare className="w-5 h-5 text-blue-400" />
+              <h2 className="font-headline text-xl font-normal text-[#020062] flex items-center gap-2.5">
+                <CheckSquare className="w-5 h-5 text-[#2563EB]" />
                 Follow-up Operational Task
               </h2>
-              <p className="text-sm text-slate-400 font-body mt-0.5">
+              <p className="text-sm text-slate-500 font-body mt-0.5">
                 Structured operational task for the account owner to drive remediation through execution gates.
               </p>
             </div>
@@ -647,7 +647,7 @@ export function NextBestActionCopilotView({
           <div className="space-y-5">
             {/* Task Title */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-slate-400" />
                 Task Title
               </label>
@@ -656,13 +656,13 @@ export function NextBestActionCopilotView({
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
                 placeholder="Task title"
-                className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 font-medium text-white placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-medium text-[#020062] placeholder:text-slate-400 focus:border-[#2563EB] focus:outline-none"
               />
             </div>
 
             {/* Task Description */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-slate-400" />
                 Task Description & Action Instructions
               </label>
@@ -671,7 +671,7 @@ export function NextBestActionCopilotView({
                 value={taskDescription}
                 onChange={(e) => setTaskDescription(e.target.value)}
                 placeholder="Details of the operational follow-up"
-                className="w-full text-sm font-body leading-relaxed bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full text-sm font-body leading-relaxed bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-slate-800 focus:border-[#2563EB] focus:outline-none"
               />
             </div>
 
@@ -679,7 +679,7 @@ export function NextBestActionCopilotView({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {/* Assigned Account Owner */}
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <User className="w-4 h-4 text-slate-400" />
                   Assigned Account Owner
                 </label>
@@ -687,13 +687,13 @@ export function NextBestActionCopilotView({
                   type="text"
                   value={taskAssignedTo}
                   onChange={(e) => setTaskAssignedTo(e.target.value)}
-                  className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[#020062] focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
 
               {/* Due Date */}
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   Due Date
                 </label>
@@ -701,20 +701,20 @@ export function NextBestActionCopilotView({
                   type="date"
                   value={taskDueDate}
                   onChange={(e) => setTaskDueDate(e.target.value)}
-                  className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[#020062] focus:border-[#2563EB] focus:outline-none"
                 />
               </div>
 
               {/* Priority */}
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-slate-400" />
                   Priority Level
                 </label>
                 <select
                   value={taskPriority}
                   onChange={(e) => setTaskPriority(e.target.value as any)}
-                  className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-[#020062] focus:border-[#2563EB] focus:outline-none cursor-pointer"
                 >
                   <option value="high">High Priority</option>
                   <option value="medium">Medium Priority</option>
@@ -726,12 +726,12 @@ export function NextBestActionCopilotView({
 
           {/* Evidence Citations */}
           {draftData?.task_draft.evidence_ids && draftData.task_draft.evidence_ids.length > 0 && (
-            <div className="flex items-center gap-2.5 text-sm text-slate-400 flex-wrap">
-              <span className="font-semibold text-slate-300">Backing Evidence Signals:</span>
+            <div className="flex items-center gap-2.5 text-sm text-slate-500 flex-wrap">
+              <span className="font-semibold text-slate-700">Backing Evidence Signals:</span>
               {draftData.task_draft.evidence_ids.map((eid) => (
                 <span
                   key={eid}
-                  className="px-2.5 py-0.5 rounded-md bg-slate-950 font-mono text-xs text-blue-300 border border-slate-800"
+                  className="px-2.5 py-0.5 rounded-md bg-[#F0F5FF] font-mono text-xs text-[#0025AE] border border-blue-200"
                 >
                   {eid}
                 </span>
@@ -740,16 +740,16 @@ export function NextBestActionCopilotView({
           )}
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-            <div className="text-sm text-slate-400">
-              Action Ledger: <code className="bg-slate-950 px-2 py-0.5 rounded text-xs text-slate-300">task_create proposal</code>
+          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between">
+            <div className="text-sm text-slate-500">
+              Action Ledger: <code className="bg-[#F8FAFC] px-2 py-0.5 rounded text-xs text-slate-600 border border-[#E2E8F0]">task_create proposal</code>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => handleSaveDraft('task')}
                 disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm border border-slate-700 cursor-pointer transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-[#E2E8F0] cursor-pointer transition-all disabled:opacity-50"
               >
                 <Save className="w-4 h-4 text-slate-400" />
                 <span>Save Proposed Task</span>
@@ -758,7 +758,7 @@ export function NextBestActionCopilotView({
               <button
                 onClick={() => handleSubmitForApproval('task')}
                 disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md cursor-pointer transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-sm shadow-xs cursor-pointer transition-all disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Create Proposed Task</span>
@@ -770,14 +770,14 @@ export function NextBestActionCopilotView({
 
       {/* TAB 3: CRM Update */}
       {activeTab === 'crm' && (
-        <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 lg:p-8 space-y-6 shadow-md">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-[#E2E8F0]">
             <div>
-              <h2 className="font-headline text-xl font-bold text-white flex items-center gap-2.5">
-                <Database className="w-5 h-5 text-blue-400" />
+              <h2 className="font-headline text-xl font-normal text-[#020062] flex items-center gap-2.5">
+                <Database className="w-5 h-5 text-[#2563EB]" />
                 Structured CRM Update Proposal
               </h2>
-              <p className="text-sm text-slate-400 font-body mt-0.5">
+              <p className="text-sm text-slate-500 font-body mt-0.5">
                 The AI prepares structured field modifications based on verified risk scores. Direct CRM writing is restricted.
               </p>
             </div>
@@ -786,7 +786,7 @@ export function NextBestActionCopilotView({
           <div className="space-y-5">
             {/* Field Name */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-slate-400" />
                 Target CRM Field
               </label>
@@ -794,22 +794,22 @@ export function NextBestActionCopilotView({
                 type="text"
                 value={crmFieldName}
                 onChange={(e) => setCrmFieldName(e.target.value)}
-                className="w-full text-sm bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 font-mono text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2.5 font-mono text-[#020062] focus:border-[#2563EB] focus:outline-none"
               />
             </div>
 
             {/* Current vs Proposed Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Current Value */}
-              <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2.5">
-                <span className="text-xs uppercase font-mono font-bold tracking-wider text-slate-400 block">
+              <div className="p-5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-2.5">
+                <span className="text-xs uppercase font-mono font-bold tracking-wider text-slate-500 block">
                   Current Field Value
                 </span>
                 <input
                   type="text"
                   value={crmCurrentValue}
                   onChange={(e) => setCrmCurrentValue(e.target.value)}
-                  className="w-full text-sm bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-slate-200 font-medium focus:border-blue-500 focus:outline-none"
+                  className="w-full text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-2 text-slate-800 font-medium focus:border-[#2563EB] focus:outline-none"
                 />
                 <span className="text-xs text-slate-500 block">
                   Synchronized from Salesforce / HubSpot CRM snapshot
@@ -817,17 +817,17 @@ export function NextBestActionCopilotView({
               </div>
 
               {/* Proposed Value */}
-              <div className="p-5 bg-blue-950/20 border border-blue-800/40 rounded-xl space-y-2.5">
-                <span className="text-xs uppercase font-mono font-bold tracking-wider text-blue-400 block">
+              <div className="p-5 bg-[#F0F5FF] border border-blue-200 rounded-xl space-y-2.5">
+                <span className="text-xs uppercase font-mono font-bold tracking-wider text-[#0025AE] block">
                   Proposed Field Value
                 </span>
                 <input
                   type="text"
                   value={crmProposedValue}
                   onChange={(e) => setCrmProposedValue(e.target.value)}
-                  className="w-full text-sm bg-slate-900 border border-blue-500/50 rounded-xl px-4 py-2 font-bold text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full text-sm bg-white border border-blue-300 rounded-xl px-4 py-2 font-bold text-[#020062] focus:border-[#2563EB] focus:outline-none"
                 />
-                <span className="text-xs text-blue-300 block">
+                <span className="text-xs text-[#0025AE] block">
                   Calculated by deterministic risk rules and telemetry
                 </span>
               </div>
@@ -835,7 +835,7 @@ export function NextBestActionCopilotView({
 
             {/* Reason for the Change */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-slate-400" />
                 Reason for the Change
               </label>
@@ -844,29 +844,29 @@ export function NextBestActionCopilotView({
                 value={crmReason}
                 onChange={(e) => setCrmReason(e.target.value)}
                 placeholder="Strategic justification for updating CRM record"
-                className="w-full text-sm font-body leading-relaxed bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full text-sm font-body leading-relaxed bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-slate-800 focus:border-[#2563EB] focus:outline-none"
               />
             </div>
 
             {/* Evidence Supporting Proposal */}
-            <div className="p-5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
-              <span className="text-sm font-semibold text-slate-300 block">
+            <div className="p-5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
+              <span className="text-sm font-semibold text-slate-700 block">
                 Evidence Supporting the Proposal
               </span>
               <div className="space-y-2">
                 {account.signals.slice(0, 3).map((sig) => (
                   <div
                     key={sig.id}
-                    className="flex items-center justify-between text-xs bg-slate-900 p-3 rounded-xl border border-slate-800"
+                    className="flex items-center justify-between text-xs bg-white p-3 rounded-xl border border-[#E2E8F0]"
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-blue-300 border border-slate-700">
+                      <span className="px-2 py-0.5 rounded text-xs font-mono bg-[#F0F5FF] text-[#0025AE] border border-blue-200">
                         {sig.id}
                       </span>
-                      <span className="font-medium text-white">{sig.title}</span>
-                      <span className="text-slate-400">— {sig.summary}</span>
+                      <span className="font-medium text-[#020062]">{sig.title}</span>
+                      <span className="text-slate-500">— {sig.summary}</span>
                     </div>
-                    <span className="text-xs text-slate-400 font-mono uppercase">
+                    <span className="text-xs text-slate-500 font-mono uppercase">
                       {sig.source_category}
                     </span>
                   </div>
@@ -876,16 +876,16 @@ export function NextBestActionCopilotView({
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-            <div className="text-sm text-slate-400">
-              Protection: <strong className="text-emerald-400">Direct write restricted • Requires gate signoff</strong>
+          <div className="pt-4 border-t border-[#E2E8F0] flex items-center justify-between">
+            <div className="text-sm text-slate-500">
+              Protection: <strong className="text-emerald-700">Direct write restricted • Requires gate signoff</strong>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => handleSaveDraft('crm')}
                 disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm border border-slate-700 cursor-pointer transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm border border-[#E2E8F0] cursor-pointer transition-all disabled:opacity-50"
               >
                 <Save className="w-4 h-4 text-slate-400" />
                 <span>Save Draft Proposal</span>
@@ -894,7 +894,7 @@ export function NextBestActionCopilotView({
               <button
                 onClick={() => handleSubmitForApproval('crm')}
                 disabled={savingState !== 'idle'}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md cursor-pointer transition-all disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-semibold text-sm shadow-xs cursor-pointer transition-all disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Submit for Approval</span>
@@ -905,16 +905,16 @@ export function NextBestActionCopilotView({
       )}
 
       {/* Safety Gate Architecture Summary */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-5 shadow-md">
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-5 shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#F0F5FF] text-[#2563EB] border border-blue-200 flex items-center justify-center shrink-0">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-white">
+            <h4 className="text-sm font-bold text-[#020062]">
               Human-in-the-Loop Safe Proposal Architecture
             </h4>
-            <p className="text-xs text-slate-400 leading-relaxed mt-0.5">
+            <p className="text-xs text-slate-500 leading-relaxed mt-0.5">
               Every proposal is keyed by SHA-256 hash. If any user edits the draft after proposal, the hash changes 
               and prior approvals are invalidated. Direct execution can only take place through the Approval Center.
             </p>
@@ -923,7 +923,7 @@ export function NextBestActionCopilotView({
 
         <button
           onClick={onNavigateToApprovals}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-blue-600 border border-slate-700 text-sm font-semibold text-white shadow-xs shrink-0 cursor-pointer transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-sm font-semibold text-white shadow-xs shrink-0 cursor-pointer transition-colors"
         >
           <span>Open Approval Center</span>
           <ArrowRight className="w-4 h-4" />

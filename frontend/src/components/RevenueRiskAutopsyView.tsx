@@ -262,38 +262,38 @@ export function RevenueRiskAutopsyView({
   return (
     <div className="space-y-8 pb-20 max-w-6xl mx-auto w-full">
       {/* Top Breadcrumb & Controls Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-5">
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={onBackToRadar}
-            className="text-sm font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="text-sm font-semibold text-slate-500 hover:text-[#020062] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Revenue Radar</span>
           </button>
-          <ChevronRight className="w-4 h-4 text-slate-600" />
+          <ChevronRight className="w-4 h-4 text-slate-300" />
           <button
             onClick={onBackToCustomer}
-            className="text-sm font-semibold text-slate-300 hover:text-blue-400 transition-colors cursor-pointer"
+            className="text-sm font-semibold text-slate-700 hover:text-[#2563EB] transition-colors cursor-pointer"
           >
             {account.name}
           </button>
-          <ChevronRight className="w-4 h-4 text-slate-600" />
-          <span className="text-sm font-bold bg-blue-600/20 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-lg flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-amber-300" />
+          <ChevronRight className="w-4 h-4 text-slate-300" />
+          <span className="text-sm font-bold bg-[#F0F5FF] text-[#0025AE] border border-blue-200 px-3 py-1 rounded-lg flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-500" />
             Step 3 & 4: Revenue Risk Autopsy
           </span>
         </div>
 
         {/* Account Switcher & Refresh AI */}
         <div className="flex items-center gap-3">
-          <label htmlFor="account-switcher" className="text-sm text-slate-300 font-medium">Account:</label>
+          <label htmlFor="account-switcher" className="text-sm text-slate-600 font-medium">Account:</label>
           <select
             id="account-switcher"
             aria-label="Select Customer Account"
             value={account.id}
             onChange={(e) => onSelectAccount(e.target.value)}
-            className="text-sm font-semibold bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500 cursor-pointer shadow-xs"
+            className="text-sm font-semibold bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2 text-[#020062] focus:outline-none focus:border-[#2563EB] cursor-pointer shadow-xs"
           >
             {allAccounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
@@ -306,7 +306,7 @@ export function RevenueRiskAutopsyView({
             onClick={() => loadInvestigation(true)}
             disabled={refreshing || loading}
             title="Re-run AI Autopsy"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-300 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 px-3.5 py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#0025AE] bg-[#F0F5FF] hover:bg-blue-100 border border-blue-200 px-3.5 py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">{refreshing ? 'Synthesizing...' : 'Re-run Autopsy'}</span>
@@ -315,54 +315,54 @@ export function RevenueRiskAutopsyView({
       </div>
 
       {/* ========================================================================= */}
-      {/* SIGNATURE EXECUTIVE AUTOPSY CARD: Matching Image 2 with Rich Proportions  */}
+      {/* SIGNATURE EXECUTIVE AUTOPSY CARD: Clean Light Editorial Styling           */}
       {/* ========================================================================= */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-800 space-y-10">
+      <div className="bg-white text-slate-800 rounded-3xl p-8 sm:p-10 shadow-xs border border-[#E2E8F0] space-y-10">
         
         {/* Header matching Image 2 */}
-        <div className="space-y-2 border-b border-slate-800 pb-6">
+        <div className="space-y-2 border-b border-[#E2E8F0] pb-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-bold font-headline tracking-tight text-white">
+              <h1 className="text-2xl sm:text-3xl font-headline font-normal tracking-tight text-[#020062]">
                 Revenue Risk Autopsy
               </h1>
             </div>
-            <span className="text-xs font-mono font-bold text-rose-400 bg-rose-950/80 border border-rose-800/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="text-xs font-mono font-bold text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full uppercase tracking-wider">
               High priority
             </span>
           </div>
 
-          <p className="text-sm text-slate-400 font-body">
+          <p className="text-sm text-slate-500 font-body">
             Illustrative account · All metrics below are verified demo data
           </p>
 
           <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pt-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white font-headline">
+            <h2 className="text-2xl sm:text-3xl font-headline font-normal text-[#020062]">
               {account.name}
             </h2>
-            <span className="text-sm font-mono text-slate-400">
-              ARR Exposure: <strong className="text-white">{formatCurrency(account.arr)}</strong>
+            <span className="text-sm font-mono text-slate-500">
+              ARR Exposure: <strong className="text-[#020062]">{formatCurrency(account.arr)}</strong>
             </span>
           </div>
         </div>
 
         {/* Top 3 Metric Indicators matching Image 2 */}
-        <div className="grid grid-cols-3 gap-6 sm:gap-10 border-b border-slate-800 pb-8">
-          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-850">
-            <span className="text-xs sm:text-sm text-slate-400 block font-medium">Renewal</span>
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 block">
+        <div className="grid grid-cols-3 gap-6 sm:gap-10 border-b border-[#E2E8F0] pb-8">
+          <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+            <span className="text-xs sm:text-sm text-slate-500 block font-medium">Renewal</span>
+            <span className="text-2xl sm:text-3xl font-headline font-normal text-[#020062] mt-1 block">
               {renewalDays} days
             </span>
           </div>
-          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-850">
-            <span className="text-xs sm:text-sm text-slate-400 block font-medium">Usage trend</span>
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-rose-400 mt-1 block">
+          <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+            <span className="text-xs sm:text-sm text-slate-500 block font-medium">Usage trend</span>
+            <span className="text-2xl sm:text-3xl font-headline font-normal text-rose-700 mt-1 block">
               {usageTrend}
             </span>
           </div>
-          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-850">
-            <span className="text-xs sm:text-sm text-slate-400 block font-medium">Last reply</span>
-            <span className="text-2xl sm:text-3xl font-bold font-mono text-amber-300 mt-1 block">
+          <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+            <span className="text-xs sm:text-sm text-slate-500 block font-medium">Last reply</span>
+            <span className="text-2xl sm:text-3xl font-headline font-normal text-amber-700 mt-1 block">
               {lastReplyDays} days
             </span>
           </div>
@@ -371,30 +371,30 @@ export function RevenueRiskAutopsyView({
         {/* 1. Reconstruct the situation matching Image 2 */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg sm:text-xl font-bold text-white font-headline flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-headline font-normal text-[#020062] flex items-center gap-2">
               <span>1. Reconstruct the situation</span>
             </h3>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-xs font-mono text-slate-500">
               3 Verified Ground-Truth Signals
             </span>
           </div>
 
           <div className="space-y-6 pl-1">
             {situationFindings.map((finding) => (
-              <div key={finding.step} className="space-y-2 bg-slate-950/40 p-5 rounded-2xl border border-slate-850">
+              <div key={finding.step} className="space-y-2 bg-[#F8FAFC] p-5 rounded-2xl border border-[#E2E8F0]">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-blue-600/20 text-blue-400 font-mono font-bold text-xs flex items-center justify-center border border-blue-500/30">
+                    <span className="w-6 h-6 rounded-full bg-[#F0F5FF] text-[#0025AE] font-mono font-bold text-xs flex items-center justify-center border border-blue-200">
                       {finding.step}
                     </span>
-                    <strong className="text-base font-bold text-white">
+                    <strong className="text-base font-bold text-[#020062]">
                       {finding.title}
                     </strong>
                   </div>
 
                   <button
                     onClick={() => handleEvidenceClick(finding.evidenceId)}
-                    className="text-xs font-mono text-blue-400 hover:text-blue-300 bg-blue-950/60 hover:bg-blue-900/60 border border-blue-800/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    className="text-xs font-mono text-[#0025AE] hover:text-[#2563EB] bg-white border border-blue-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                     title="Inspect source record"
                   >
                     <span>{finding.evidenceId}</span>
@@ -402,7 +402,7 @@ export function RevenueRiskAutopsyView({
                   </button>
                 </div>
 
-                <p className="text-sm text-slate-300 leading-relaxed font-body pl-9">
+                <p className="text-sm text-slate-600 leading-relaxed font-body pl-9">
                   {finding.text}
                 </p>
               </div>
@@ -421,28 +421,28 @@ export function RevenueRiskAutopsyView({
         </section>
 
         {/* 2. Explain the conclusion matching Image 2 */}
-        <section className="space-y-3 border-t border-slate-800 pt-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+        <section className="space-y-3 border-t border-[#E2E8F0] pt-8">
+          <h3 className="text-lg sm:text-xl font-headline font-normal text-[#020062]">
             2. Explain the conclusion
           </h3>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-body bg-slate-950/40 p-5 rounded-2xl border border-slate-850">
+          <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-body bg-[#F8FAFC] p-5 rounded-2xl border border-[#E2E8F0]">
             {conclusionText}
           </p>
         </section>
 
         {/* 3. Identify uncertainty matching Image 2 */}
-        <section className="space-y-4 border-t border-slate-800 pt-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+        <section className="space-y-4 border-t border-[#E2E8F0] pt-8">
+          <h3 className="text-lg sm:text-xl font-headline font-normal text-[#020062]">
             3. Identify uncertainty
           </h3>
 
-          <div className="bg-amber-950/20 border border-amber-900/40 rounded-2xl p-6 space-y-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-amber-300">
-              <Info className="w-4 h-4 text-amber-400" />
+          <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-6 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-amber-900">
+              <Info className="w-4 h-4 text-amber-600" />
               <span>What we still do not know</span>
             </div>
 
-            <ul className="space-y-2 pl-6 text-sm text-amber-100/90 list-disc font-body">
+            <ul className="space-y-2 pl-6 text-sm text-amber-900/90 list-disc font-body">
               {uncertainties.map((unc, idx) => (
                 <li key={idx} className="leading-relaxed">
                   {unc}
@@ -453,27 +453,27 @@ export function RevenueRiskAutopsyView({
         </section>
 
         {/* 4. Recommend the next action matching Image 2 */}
-        <section className="space-y-4 border-t border-slate-800 pt-8">
-          <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+        <section className="space-y-4 border-t border-[#E2E8F0] pt-8">
+          <h3 className="text-lg sm:text-xl font-headline font-normal text-[#020062]">
             4. Recommend the next action
           </h3>
 
           {/* Action Box Card with Quick Buttons */}
-          <div className="bg-linear-to-br from-slate-950 to-blue-950/40 border-2 border-blue-500/40 rounded-2xl p-6 sm:p-7 space-y-5 shadow-lg">
+          <div className="bg-[#F8FAFC] border-2 border-[#2563EB]/30 rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
             <div className="space-y-2 text-sm sm:text-base">
-              <p className="text-slate-100 leading-relaxed">
-                <strong className="text-white font-bold">Recommended:</strong> {recommendedTitle}
+              <p className="text-slate-800 leading-relaxed">
+                <strong className="text-[#020062] font-bold">Recommended:</strong> {recommendedTitle}
               </p>
-              <p className="text-slate-400 leading-relaxed text-sm">
-                <span className="font-semibold text-slate-300">Reason:</span> {recommendedReason}
+              <p className="text-slate-600 leading-relaxed text-sm">
+                <span className="font-semibold text-slate-700">Reason:</span> {recommendedReason}
               </p>
             </div>
 
             {/* The 3 Action Buttons from Image 2 */}
-            <div className="flex flex-wrap items-center gap-3.5 pt-3 border-t border-slate-800">
+            <div className="flex flex-wrap items-center gap-3.5 pt-3 border-t border-[#E2E8F0]">
               <button
                 onClick={() => onNavigateToCopilot?.('email')}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md shadow-blue-900/30"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#2563EB] hover:bg-[#1d4ed8] px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs"
               >
                 <Mail className="w-4 h-4" />
                 <span>Prepare email</span>
@@ -481,26 +481,26 @@ export function RevenueRiskAutopsyView({
 
               <button
                 onClick={() => onNavigateToCopilot?.('task')}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[#020062] bg-white hover:bg-slate-50 border border-[#E2E8F0] px-5 py-2.5 rounded-xl transition-all cursor-pointer"
               >
-                <CheckSquare className="w-4 h-4 text-amber-400" />
+                <CheckSquare className="w-4 h-4 text-amber-600" />
                 <span>Create follow-up task</span>
               </button>
 
               <button
                 onClick={() => onNavigateToCopilot?.('crm')}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[#020062] bg-white hover:bg-slate-50 border border-[#E2E8F0] px-5 py-2.5 rounded-xl transition-all cursor-pointer"
               >
-                <FileText className="w-4 h-4 text-emerald-400" />
+                <FileText className="w-4 h-4 text-emerald-600" />
                 <span>Prepare CRM update</span>
               </button>
 
               {onNavigateToApprovals && (
                 <button
                   onClick={onNavigateToApprovals}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[#020062] bg-white hover:bg-slate-50 border border-[#E2E8F0] px-5 py-2.5 rounded-xl transition-all cursor-pointer"
                 >
-                  <ShieldCheck className="w-4 h-4 text-blue-400" />
+                  <ShieldCheck className="w-4 h-4 text-[#2563EB]" />
                   <span>Review approvals</span>
                 </button>
               )}
@@ -509,14 +509,14 @@ export function RevenueRiskAutopsyView({
         </section>
 
         {/* 5. How each part solves the root problem matching Image 3 */}
-        <section className="space-y-5 border-t border-slate-800 pt-8">
+        <section className="space-y-5 border-t border-[#E2E8F0] pt-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+            <h3 className="text-lg sm:text-xl font-headline font-normal text-[#020062]">
               5. How each part solves the root problem
             </h3>
             <button
               onClick={() => setShowRootProblemMatrix(!showRootProblemMatrix)}
-              className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
+              className="text-xs sm:text-sm text-[#2563EB] hover:text-[#0025AE] font-semibold cursor-pointer"
             >
               {showRootProblemMatrix ? 'Collapse Matrix' : 'Expand Matrix'}
             </button>
@@ -527,16 +527,16 @@ export function RevenueRiskAutopsyView({
               {rootProblems.map((rp, idx) => (
                 <div
                   key={idx}
-                  className="bg-slate-950/70 border border-slate-850 rounded-2xl p-5 space-y-2 text-sm"
+                  className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-5 space-y-2 text-sm"
                 >
-                  <p className="font-bold text-white text-base">
+                  <p className="font-bold text-[#020062] text-base">
                     Problem: {rp.problem}
                   </p>
-                  <p className="text-slate-300 leading-relaxed font-body">
-                    <span className="text-slate-400 font-semibold">Solution:</span> {rp.solution}
+                  <p className="text-slate-600 leading-relaxed font-body">
+                    <span className="text-slate-700 font-semibold">Solution:</span> {rp.solution}
                   </p>
-                  <p className="text-slate-400 font-body text-xs sm:text-sm">
-                    <span className="text-slate-500 font-medium">Result to measure:</span> {rp.result}
+                  <p className="text-slate-500 font-body text-xs sm:text-sm">
+                    <span className="text-slate-600 font-medium">Result to measure:</span> {rp.result}
                   </p>
                 </div>
               ))}
@@ -545,11 +545,11 @@ export function RevenueRiskAutopsyView({
         </section>
 
         {/* Footer View Link */}
-        <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-slate-400 border-t border-slate-800">
+        <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-slate-500 border-t border-[#E2E8F0]">
           <span>Evidence Grounded in Multi-Source Telemetry & Deterministic Scoring</span>
           <button
             onClick={onBackToRadar}
-            className="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+            className="text-[#2563EB] hover:text-[#0025AE] font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
           >
             <span>Back to Revenue Radar</span>
             <ArrowRight className="w-4 h-4" />
@@ -560,28 +560,28 @@ export function RevenueRiskAutopsyView({
       {/* ========================================================================= */}
       {/* INTERACTIVE COMPANION: Grounded Q&A Assistant ("Ask About This Account")  */}
       {/* ========================================================================= */}
-      <div className="bg-slate-900 rounded-3xl border border-slate-800 p-7 sm:p-8 space-y-5 shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="bg-white rounded-3xl border border-[#E2E8F0] p-7 sm:p-8 space-y-5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+            <div className="w-10 h-10 rounded-xl bg-[#F0F5FF] text-[#2563EB] flex items-center justify-center border border-blue-200">
               <Bot className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-headline text-lg font-bold text-white">
+              <h3 className="font-headline text-lg font-normal text-[#020062]">
                 Ask About {account.name}
               </h3>
-              <p className="text-xs sm:text-sm text-slate-400 font-body">
+              <p className="text-xs sm:text-sm text-slate-500 font-body">
                 Evidence-grounded conversational Q&A locked to stored telemetry and signals
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> Zero Hallucinations
+          <span className="text-xs font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Zero Hallucinations
           </span>
         </div>
 
         {/* Chat History Container */}
-        <div className="space-y-4 max-h-80 overflow-y-auto p-4 bg-slate-950 rounded-2xl border border-slate-800">
+        <div className="space-y-4 max-h-80 overflow-y-auto p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
           {chatHistory.map((msg) => (
             <div
               key={msg.id}
@@ -592,20 +592,20 @@ export function RevenueRiskAutopsyView({
               <div
                 className={`max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-none shadow-md'
-                    : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-sm'
+                    ? 'bg-[#2563EB] text-white rounded-br-none shadow-xs'
+                    : 'bg-white border border-[#E2E8F0] text-slate-800 rounded-bl-none shadow-xs'
                 }`}
               >
                 <p className="whitespace-pre-wrap">{msg.text}</p>
 
                 {msg.cited_evidence_ids && msg.cited_evidence_ids.length > 0 && (
-                  <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-medium text-slate-400">Citations:</span>
+                  <div className="mt-2.5 pt-2 border-t border-[#E2E8F0] flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium text-slate-500">Citations:</span>
                     {msg.cited_evidence_ids.map((cid) => (
                       <button
                         key={cid}
                         onClick={() => handleEvidenceClick(cid)}
-                        className="text-xs font-mono font-semibold bg-blue-950 text-blue-300 border border-blue-800 px-2 py-0.5 rounded-md hover:underline cursor-pointer"
+                        className="text-xs font-mono font-semibold bg-[#F0F5FF] text-[#0025AE] border border-blue-200 px-2 py-0.5 rounded-md hover:underline cursor-pointer"
                       >
                         {cid}
                       </button>
@@ -613,13 +613,13 @@ export function RevenueRiskAutopsyView({
                   </div>
                 )}
               </div>
-              <span className="text-[11px] text-slate-500 mt-1 px-1 font-mono">{msg.timestamp}</span>
+              <span className="text-[11px] text-slate-400 mt-1 px-1 font-mono">{msg.timestamp}</span>
             </div>
           ))}
 
           {chatLoading && (
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 p-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 p-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-[#2563EB]" />
               <span>Checking verified customer records...</span>
             </div>
           )}
@@ -635,7 +635,7 @@ export function RevenueRiskAutopsyView({
             <button
               key={pIdx}
               onClick={() => handleAskQuestion(prompt)}
-              className="text-xs bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-xl transition-colors cursor-pointer text-left"
+              className="text-xs bg-[#F8FAFC] hover:bg-[#F0F5FF] text-slate-600 hover:text-[#0025AE] border border-[#E2E8F0] px-3 py-1.5 rounded-xl transition-colors cursor-pointer text-left"
             >
               {prompt}
             </button>
@@ -650,12 +650,12 @@ export function RevenueRiskAutopsyView({
             onChange={(e) => setQuestionInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAskQuestion()}
             placeholder={`Ask a question about ${account.name}'s verified records...`}
-            className="flex-1 text-sm bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 shadow-inner"
+            className="flex-1 text-sm bg-white border border-[#E2E8F0] rounded-xl px-4 py-3 text-[#020062] placeholder-slate-400 focus:outline-none focus:border-[#2563EB]"
           />
           <button
             onClick={() => handleAskQuestion()}
             disabled={!questionInput.trim() || chatLoading}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white p-3 rounded-xl transition-all cursor-pointer shrink-0 shadow-md"
+            className="bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-40 text-white p-3 rounded-xl transition-all cursor-pointer shrink-0 shadow-xs"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -664,21 +664,21 @@ export function RevenueRiskAutopsyView({
 
       {/* Source Record Inspection Modal */}
       {selectedSignalForModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white text-slate-800 rounded-3xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+            <div className="px-6 py-5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
               <div className="flex items-center gap-2.5">
-                <span className="text-xs font-mono font-bold text-blue-300 bg-blue-950 px-2.5 py-1 rounded-md border border-blue-800">
+                <span className="text-xs font-mono font-bold text-[#0025AE] bg-[#F0F5FF] px-2.5 py-1 rounded-md border border-blue-200">
                   {selectedSignalForModal.id}
                 </span>
-                <span className="text-xs text-slate-400 capitalize font-mono">
+                <span className="text-xs text-slate-500 capitalize font-mono">
                   {selectedSignalForModal.source_category} Signal
                 </span>
               </div>
               <button
                 onClick={() => setSelectedSignalForModal(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -687,36 +687,36 @@ export function RevenueRiskAutopsyView({
             {/* Modal Content */}
             <div className="p-6 space-y-5 text-sm font-body">
               <div>
-                <h4 className="font-headline text-lg font-bold text-white">
+                <h4 className="font-headline text-lg font-normal text-[#020062]">
                   {selectedSignalForModal.title}
                 </h4>
                 <p className="text-xs text-slate-400 font-mono mt-1">
                   Timestamp: {new Date(selectedSignalForModal.timestamp).toLocaleString()}
                 </p>
-                <p className="text-slate-300 leading-relaxed pt-2">
+                <p className="text-slate-600 leading-relaxed pt-2">
                   {selectedSignalForModal.summary}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
-                  <span className="text-[11px] text-slate-400 uppercase font-mono block">Observed Value</span>
-                  <span className="font-mono font-bold text-rose-400 text-xs sm:text-sm mt-0.5 block">
+                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-[11px] text-slate-500 uppercase font-mono block">Observed Value</span>
+                  <span className="font-mono font-bold text-rose-700 text-xs sm:text-sm mt-0.5 block">
                     {selectedSignalForModal.observed_value || 'Telemetry alert triggered'}
                   </span>
                 </div>
 
-                <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
-                  <span className="text-[11px] text-slate-400 uppercase font-mono block">Severity</span>
-                  <span className="font-semibold text-xs sm:text-sm capitalize text-white mt-0.5 block">
+                <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
+                  <span className="text-[11px] text-slate-500 uppercase font-mono block">Severity</span>
+                  <span className="font-semibold text-xs sm:text-sm capitalize text-[#020062] mt-0.5 block">
                     {selectedSignalForModal.severity} Priority
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1.5 pt-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase font-mono">Verified Provenance Record</span>
-                <pre className="p-4 bg-slate-950 text-emerald-400 rounded-xl font-mono text-xs overflow-x-auto leading-relaxed border border-slate-800">
+                <span className="text-xs font-semibold text-slate-500 uppercase font-mono">Verified Provenance Record</span>
+                <pre className="p-4 bg-[#F8FAFC] text-[#0025AE] rounded-xl font-mono text-xs overflow-x-auto leading-relaxed border border-[#E2E8F0]">
                   {JSON.stringify(
                     {
                       signal_id: selectedSignalForModal.id,
@@ -735,13 +735,13 @@ export function RevenueRiskAutopsyView({
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Ground-Truth Evidence
+            <div className="px-6 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
+              <span className="text-xs text-slate-500 font-mono flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Ground-Truth Evidence
               </span>
               <button
                 onClick={() => setSelectedSignalForModal(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 bg-white border border-[#E2E8F0] hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Close Record
               </button>

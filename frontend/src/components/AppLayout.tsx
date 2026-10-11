@@ -30,8 +30,8 @@ export function AppLayout({
   backendHealthy = true
 }: AppLayoutProps) {
   return (
-    <div className="min-h-screen flex bg-slate-950 text-slate-100 font-body selection:bg-blue-600 selection:text-white antialiased">
-      {/* Reusable Left Sidebar */}
+    <div className="min-h-screen flex bg-white text-[#020062] font-body selection:bg-[#2563EB] selection:text-white antialiased">
+      {/* Editorial Left Sidebar */}
       <Sidebar
         currentTab={currentTab}
         onSelectTab={onSelectTab}
@@ -41,8 +41,8 @@ export function AppLayout({
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Reusable Topbar */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#FAFAFC]">
+        {/* Editorial Topbar */}
         <Topbar
           title={title}
           subtitle={subtitle}
