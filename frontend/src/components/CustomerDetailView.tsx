@@ -34,6 +34,7 @@ interface CustomerDetailViewProps {
   onNavigateToApprovals?: () => void;
   onInvestigateWithAI?: () => void;
   onNavigateToCopilot?: () => void;
+  onNavigateToFeedback?: () => void;
 }
 
 export function CustomerDetailView({
@@ -44,7 +45,8 @@ export function CustomerDetailView({
   currency = 'USD',
   onNavigateToApprovals,
   onInvestigateWithAI,
-  onNavigateToCopilot
+  onNavigateToCopilot,
+  onNavigateToFeedback
 }: CustomerDetailViewProps) {
   const [timelineFilter, setTimelineFilter] = useState<string>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
@@ -451,6 +453,17 @@ export function CustomerDetailView({
 
                 {/* CTAs */}
                 <div className="flex items-center gap-3">
+                  {onNavigateToFeedback && (
+                    <button
+                      onClick={onNavigateToFeedback}
+                      className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 text-sm font-semibold cursor-pointer transition-all shadow-xs"
+                      title="Trigger Survey & View Feedback Insights"
+                    >
+                      <MessageSquare className="w-4 h-4 text-purple-600" />
+                      <span>Feedback Loop</span>
+                    </button>
+                  )}
+
                   {onNavigateToCopilot && (
                     <button
                       onClick={onNavigateToCopilot}

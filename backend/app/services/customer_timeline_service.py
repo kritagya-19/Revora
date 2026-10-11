@@ -198,6 +198,57 @@ class CustomerTimelineService:
                         )
                     )
 
+        # 5. Customer Feedback Surveys & Analyzed Responses
+        try:
+            from app.services.feedback_repository import feedback_repo
+            feedback_records = feedback_repo.list_feedback_records(account_id=account_id)
+            for fb in feedback_records:
+                score_str = f"{fb.submission.satisfaction_score}/10" if fb.submission.satisfaction_score else "N/A"
+                ana = fb.analysis
+                rec_action = ana.recommended_retention_action if ana else "Follow up with customer"
+                
+                events.append(
+                    TimelineEvent(
+                        id=f"evt-fb-sub-{fb.id}",
+                        account_id=account_id,
+                        event_type=TimelineEventType.CUSTOMER_RESPONSE,
+                        category="feedback",
+                        title=f"Customer Survey Response: {ana.classified_churn_reason.replace('_', ' ').title() if ana else 'Feedback'}",
+                        description=f"Satisfaction Score: {score_str}. Blocker: {fb.submission.primary_blocker or 'None specified'}. {fb.submission.unresolved_issues or ''}",
+                        timestamp=fb.submitted_at,
+                        author_or_actor=f"{fb.recipient_name} ({fb.recipient_email})",
+                        severity="critical" if (fb.submission.satisfaction_score and fb.submission.satisfaction_score <= 4) else "medium",
+                        status="analyzed",
+                        customer_response=fb.submission.additional_comments or fb.submission.unresolved_issues,
+                        commitments=f"Recommended Retention Action: {rec_action}",
+                        next_steps=rec_action,
+                        metadata={
+                            "survey_code": fb.survey_code,
+                            "satisfaction_score": fb.submission.satisfaction_score,
+                            "urgency": ana.urgency_level if ana else "high",
+                            "sentiment_label": ana.sentiment_label if ana else "at_risk",
+                            "classified_reason": ana.classified_churn_reason if ana else "general"
+                        },
+                        evidence_ids=ana.evidence_connection if ana else []
+                    )
+                )
+
+                if ana and ana.recommended_retention_action:
+                    commitments.append(
+                        OutstandingCommitment(
+                            commitment_id=f"com-fb-{fb.id}",
+                            account_id=account_id,
+                            title=ana.recommended_retention_action,
+                            owner=account.csm_owner or "CSM Team",
+                            due_date=(now + timedelta(days=3)).strftime("%Y-%m-%d"),
+                            status="open",
+                            source_event_id=f"evt-fb-sub-{fb.id}",
+                            created_at=fb.submitted_at
+                        )
+                    )
+        except Exception as e:
+            logger.warning(f"Error compiling feedback records into timeline: {e}")
+
         # Add seed meeting note & email history for rich completeness if events are sparse
         if len(events) < 5:
             events.append(

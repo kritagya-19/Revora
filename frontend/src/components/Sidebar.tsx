@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send, ClipboardCheck, History } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send, ClipboardCheck, History, MessageSquare, Settings2 } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'tracker' | 'timeline' | 'analyzer';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'tracker' | 'timeline' | 'analyzer' | 'feedback' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -79,6 +79,22 @@ export function Sidebar({
       icon: Sparkles,
       badge: 'Feature 3',
       badgeColor: 'bg-blue-50 text-[#0025AE] border border-blue-200 font-bold'
+    },
+    {
+      id: 'feedback' as NavItem,
+      label: 'Feedback Form Loop',
+      sublabel: 'Surveys & Churn Analysis',
+      icon: MessageSquare,
+      badge: 'New',
+      badgeColor: 'bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold'
+    },
+    {
+      id: 'settings' as NavItem,
+      label: 'Settings & Pipelines',
+      sublabel: 'Free Webhooks & Outbox',
+      icon: Settings2,
+      badge: 'Free',
+      badgeColor: 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold'
     }
   ];
 

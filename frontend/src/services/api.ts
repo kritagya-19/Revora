@@ -16,7 +16,9 @@ import type {
   EnrichedPendingApproval,
   IntegrationConnector,
   SyncRunRecord,
-  TriggerSyncResponse
+  TriggerSyncResponse,
+  FreePipelineStatus,
+  OutboxRecord
 } from '../types/api';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000';
@@ -304,6 +306,44 @@ export async function fetchRecentSyncRuns(limit = 20): Promise<SyncRunRecord[]> 
   return res.json();
 }
 
+export async function fetchFreePipelineStatus(): Promise<FreePipelineStatus> {
+  const res = await fetch(`${API_BASE}/api/integrations/pipelines/status`);
+  if (!res.ok) throw new Error('Failed to fetch pipeline status');
+  return res.json();
+}
+
+export async function configureFreeWebhook(webhookUrl: string): Promise<{ status: string; webhook_url: string; provider: string }> {
+  const res = await fetch(`${API_BASE}/api/integrations/webhook/configure`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ webhook_url: webhookUrl })
+  });
+  if (!res.ok) throw new Error('Failed to configure webhook');
+  return res.json();
+}
+
+export async function testFreeWebhook(accountName?: string, accountId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/integrations/webhook/test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ account_name: accountName, account_id: accountId })
+  });
+  if (!res.ok) throw new Error('Failed to test webhook');
+  return res.json();
+}
+
+export async function fetchOutboxEvents(limit = 30): Promise<OutboxRecord[]> {
+  const res = await fetch(`${API_BASE}/api/integrations/outbox?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch outbox events');
+  return res.json();
+}
+
+export async function clearOutboxEvents(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/integrations/outbox/clear`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to clear outbox');
+  return res.json();
+}
+
 // Feature 1: Action & Outcome Tracker Client APIs
 import type {
   ActionTrackerItem,
@@ -450,6 +490,115 @@ export async function fetchOutcomeAnalysisById(
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to fetch analysis ${analysisId}: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// ==========================================
+// Feature: Feedback Form & Survey Client APIs
+// ==========================================
+import type {
+  SurveyFormTemplate,
+  FeedbackTriggerCheck,
+  FeedbackSurveyDispatch,
+  CreateFeedbackSurveyRequest,
+  PublicSurveyFormData,
+  FeedbackResponseSubmission,
+  CustomerFeedbackRecord,
+  BatchTriggerScanResult
+} from '../types/api';
+
+export async function fetchSurveyTemplates(): Promise<SurveyFormTemplate[]> {
+  const res = await fetch(`${API_BASE}/api/feedback/templates`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch survey templates: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function checkFeedbackTriggerEligibility(
+  accountId: string,
+  forceIgnoreCooldown?: boolean
+): Promise<FeedbackTriggerCheck> {
+  const url = new URL(`${API_BASE}/api/feedback/check-trigger/${accountId}`);
+  if (forceIgnoreCooldown) url.searchParams.set('force_ignore_cooldown', 'true');
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to check trigger eligibility: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function scanPortfolioTriggers(
+  forceIgnoreCooldown?: boolean
+): Promise<BatchTriggerScanResult> {
+  const url = new URL(`${API_BASE}/api/feedback/scan-triggers`);
+  if (forceIgnoreCooldown) url.searchParams.set('force_ignore_cooldown', 'true');
+  const res = await fetch(url.toString(), {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to run portfolio trigger scan: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function dispatchFeedbackSurvey(req: CreateFeedbackSurveyRequest): Promise<FeedbackSurveyDispatch> {
+  const res = await fetch(`${API_BASE}/api/feedback/surveys`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to dispatch survey: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchDispatchedSurveys(accountId?: string): Promise<FeedbackSurveyDispatch[]> {
+  const url = new URL(`${API_BASE}/api/feedback/surveys`);
+  if (accountId) url.searchParams.set('account_id', accountId);
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch surveys: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchPublicSurveyForm(surveyCode: string): Promise<PublicSurveyFormData> {
+  const res = await fetch(`${API_BASE}/api/feedback/form/${surveyCode}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to load feedback form: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function submitCustomerFeedback(submission: FeedbackResponseSubmission): Promise<CustomerFeedbackRecord> {
+  const res = await fetch(`${API_BASE}/api/feedback/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(submission)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to submit feedback: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchFeedbackResponses(accountId?: string): Promise<CustomerFeedbackRecord[]> {
+  const url = new URL(`${API_BASE}/api/feedback/responses`);
+  if (accountId) url.searchParams.set('account_id', accountId);
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch feedback responses: ${res.statusText}`);
   }
   return res.json();
 }

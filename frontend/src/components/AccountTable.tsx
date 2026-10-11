@@ -14,7 +14,8 @@ import {
   Activity,
   RotateCcw,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  MessageSquareQuote
 } from 'lucide-react';
 
 interface AccountTableProps {
@@ -24,6 +25,7 @@ interface AccountTableProps {
   currency?: 'USD' | 'INR';
   onCurrencyChange?: (currency: 'USD' | 'INR') => void;
   onInvestigateAccount?: (accountId: string) => void;
+  onOpenFeedback?: (accountId: string) => void;
 }
 
 type SortField = 'name' | 'arr' | 'risk_score' | 'urgency_days_to_renewal';
@@ -34,7 +36,8 @@ export function AccountTable({
   onSelectAccount,
   currency = 'USD',
   onCurrencyChange,
-  onInvestigateAccount
+  onInvestigateAccount,
+  onOpenFeedback
 }: AccountTableProps) {
   const [sortField, setSortField] = useState<SortField>('risk_score');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
@@ -428,21 +431,35 @@ export function AccountTable({
 
                     {/* 8. Action CTA */}
                     <td className="py-4 px-6 text-right whitespace-nowrap">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onInvestigateAccount) {
-                            onInvestigateAccount(account.id);
-                          } else {
-                            onSelectAccount(account.id);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer group-hover:scale-105"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-                        <span>Diagnose</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {onOpenFeedback && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenFeedback(account.id);
+                            }}
+                            title="Inspect Survey Trigger & Feedback Insights"
+                            className="p-2 rounded-xl text-slate-500 hover:text-purple-700 hover:bg-purple-50 transition-colors border border-transparent hover:border-purple-200 cursor-pointer"
+                          >
+                            <MessageSquareQuote className="w-4 h-4 text-purple-600" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onInvestigateAccount) {
+                              onInvestigateAccount(account.id);
+                            } else {
+                              onSelectAccount(account.id);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer group-hover:scale-105"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                          <span>Diagnose</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

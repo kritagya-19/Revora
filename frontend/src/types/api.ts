@@ -320,6 +320,43 @@ export interface TriggerSyncResponse {
   freshness_minutes: number;
 }
 
+export interface FreePipelineStatus {
+  webhook: {
+    configured: boolean;
+    url: string;
+    provider: string;
+    supports: string[];
+  };
+  smtp: {
+    configured: boolean;
+    host: string;
+    port: number;
+    sender: string;
+    supports: string[];
+  };
+  outbox_count: number;
+  free_tier_notice: string;
+}
+
+export interface OutboxRecord {
+  id: string;
+  timestamp: string;
+  type?: string;
+  event_type?: string;
+  provider?: string;
+  to_email?: string;
+  to_name?: string;
+  subject?: string;
+  body_text?: string;
+  html_body?: string;
+  title?: string;
+  description?: string;
+  account_name?: string;
+  status: string;
+  status_code?: number;
+  error?: string;
+}
+
 // Feature 1: Action & Outcome Tracker Types
 export type ActionExecutionStatus = 'pending' | 'approved' | 'executing' | 'executed' | 'failed';
 export type WorkStatus = 'not started' | 'in progress' | 'completed';
@@ -524,4 +561,177 @@ export interface OutcomeAnalysisResult {
   structured_investigation_brief: string;
   generated_signal_id?: string | null;
   rule_notice: string;
+}
+
+// ==========================================
+// Feature: Feedback Form & Survey Loop Types
+// ==========================================
+
+export type SurveyDeliveryChannel = 'email' | 'in_app' | 'portal' | 'slack';
+export type SurveyStatus = 'pending' | 'sent' | 'opened' | 'completed' | 'expired' | 'cancelled';
+
+export interface SurveyQuestion {
+  id: string;
+  question_type: 'rating_1_10' | 'rating_1_5' | 'multichoice' | 'text' | string;
+  prompt: string;
+  category: 'satisfaction' | 'product_usage' | 'blockers' | 'feature_requests' | string;
+  options?: string[];
+  required: boolean;
+}
+
+export interface SurveyFormTemplate {
+  id: string;
+  name: string;
+  description: string;
+  target_risk_level?: string | null;
+  questions: SurveyQuestion[];
+}
+
+export interface TriggerAuditRecord {
+  rule_id: string;
+  rule_name: string;
+  triggered: boolean;
+  description: string;
+  observed_value?: any;
+  threshold?: any;
+}
+
+export interface FeedbackTriggerCheck {
+  account_id: string;
+  account_name?: string | null;
+  eligible: boolean;
+  risk_level: string;
+  risk_score: number;
+  matched_rules?: TriggerAuditRecord[];
+  reasons: string[];
+  cooldown_active: boolean;
+  cooldown_days_remaining?: number;
+  duplicate_pending_survey?: boolean;
+  pending_survey_code?: string | null;
+  last_survey_sent_at?: string | null;
+  contact_preferences: {
+    preferred_channel?: string;
+    opt_in_surveys?: boolean;
+    max_frequency_days?: number;
+    primary_contact_available?: boolean;
+    [key: string]: any;
+  };
+  recommended_template_id?: string | null;
+  recommended_intro?: string | null;
+}
+
+export interface BatchTriggerScanResult {
+  scanned_accounts_count: number;
+  eligible_count: number;
+  cooldown_prevented_count: number;
+  duplicate_prevented_count: number;
+  auto_triggered_surveys: FeedbackSurveyDispatch[];
+  scan_timestamp: string;
+}
+
+export interface FeedbackSurveyDispatch {
+  id: string;
+  survey_code: string;
+  account_id: string;
+  account_name: string;
+  contact_id?: string | null;
+  recipient_email: string;
+  recipient_name: string;
+  delivery_channel: SurveyDeliveryChannel;
+  template_id: string;
+  status: SurveyStatus;
+  created_at: string;
+  sent_at?: string | null;
+  completed_at?: string | null;
+  trigger_risk_score?: number | null;
+  trigger_risk_level?: string | null;
+  trigger_factors?: string[];
+  form_url: string;
+  custom_intro?: string | null;
+}
+
+export interface FeedbackAnswer {
+  question_id: string;
+  category: string;
+  prompt: string;
+  answer_value: any;
+}
+
+export interface FeedbackResponseSubmission {
+  survey_code: string;
+  account_id?: string;
+  respondent_email?: string;
+  respondent_name?: string;
+  satisfaction_score?: number;
+  usage_trend_self_report?: string;
+  primary_blocker?: string;
+  unresolved_issues?: string;
+  feature_improvement_request?: string;
+  additional_comments?: string;
+  answers?: FeedbackAnswer[];
+  submitted_at?: string;
+}
+
+export interface FeedbackAnalysisSummary {
+  id: string;
+  response_id: string;
+  account_id: string;
+  account_name: string;
+  classified_churn_reason: 'adoption_blocker' | 'pricing' | 'poor_onboarding' | 'champion_left' | 'technical_bugs' | 'feature_gap' | string;
+  urgency_level: 'critical' | 'high' | 'medium' | 'low' | string;
+  sentiment_label: 'frustrated' | 'at_risk' | 'neutral' | 'satisfied' | string;
+  sentiment_interpretation: string;
+  executive_summary?: string;
+  key_blockers: string[];
+  customer_concerns?: string[];
+  improvement_requests: string[];
+  uncertainties?: string[];
+  recommended_retention_action: string;
+  action_type: 'csm_intervention' | 'training_session' | 'executive_sponsor_call' | 'bug_escalation' | string;
+  recommended_action_draft?: {
+    recipient?: string;
+    subject?: string;
+    body_outline?: string;
+    [key: string]: any;
+  };
+  evidence_connection: string[];
+  confidence_score?: number;
+  generated_signal_id?: string | null;
+  analyzed_at: string;
+  rule_notice: string;
+}
+
+export interface CustomerFeedbackRecord {
+  id: string;
+  survey_code: string;
+  account_id: string;
+  account_name: string;
+  recipient_email: string;
+  recipient_name: string;
+  submission: FeedbackResponseSubmission;
+  analysis?: FeedbackAnalysisSummary | null;
+  created_at: string;
+  submitted_at: string;
+  timeline_event_id?: string | null;
+}
+
+export interface CreateFeedbackSurveyRequest {
+  account_id: string;
+  contact_id?: string;
+  delivery_channel?: SurveyDeliveryChannel;
+  template_id?: string;
+  custom_intro?: string;
+  recipient_email?: string;
+  recipient_name?: string;
+}
+
+export interface PublicSurveyFormData {
+  survey_code: string;
+  account_id: string;
+  account_name: string;
+  recipient_name: string;
+  recipient_email: string;
+  status: SurveyStatus;
+  custom_intro?: string;
+  template: SurveyFormTemplate;
 }

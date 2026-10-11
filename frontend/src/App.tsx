@@ -17,6 +17,8 @@ import { ApprovalCenterView } from './components/ApprovalCenterView';
 import { ActionOutcomeTrackerView } from './components/ActionOutcomeTrackerView';
 import { CustomerOutcomeTimelineView } from './components/CustomerOutcomeTimelineView';
 import { AIOutcomeAnalyzerView } from './components/AIOutcomeAnalyzerView';
+import { FeedbackManagementView } from './components/FeedbackManagementView';
+import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
@@ -125,6 +127,10 @@ export function App() {
     } else if (tab === 'timeline') {
       setViewMode('radar');
     } else if (tab === 'analyzer') {
+      setViewMode('radar');
+    } else if (tab === 'feedback') {
+      setViewMode('radar');
+    } else if (tab === 'settings') {
       setViewMode('radar');
     }
   };
@@ -408,6 +414,10 @@ export function App() {
                   currency={currency}
                   onCurrencyChange={setCurrency}
                   onInvestigateAccount={handleInvestigateAccount}
+                  onOpenFeedback={(accId) => {
+                    setSelectedAccountId(accId);
+                    setCurrentTab('feedback');
+                  }}
                 />
               )}
             </div>
@@ -434,6 +444,9 @@ export function App() {
               onNavigateToCopilot={() => {
                 setViewMode('copilot');
                 setCurrentTab('copilot');
+              }}
+              onNavigateToFeedback={() => {
+                setCurrentTab('feedback');
               }}
             />
           )}
@@ -566,6 +579,42 @@ export function App() {
                 setSelectedAccountId(accId);
                 setCurrentTab('timeline');
               }}
+            />
+          )}
+
+          {/* TAB 9 / Feature: Feedback Form Loop */}
+          {currentTab === 'feedback' && (
+            <FeedbackManagementView
+              accounts={accounts}
+              initialAccountId={selectedAccountId || undefined}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onNavigateToAutopsy={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+              onNavigateToTimeline={(accId) => {
+                setSelectedAccountId(accId);
+                setCurrentTab('timeline');
+              }}
+              onNavigateToApprovals={() => {
+                setCurrentTab('approvals');
+              }}
+              onNavigateToCopilot={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+            />
+          )}
+
+          {/* TAB 10 / Settings & Free Hackathon Pipelines */}
+          {currentTab === 'settings' && (
+            <SettingsAndIntegrationsView
+              executionMode="live"
+              backendHealthy={backendHealthy}
             />
           )}
         </>
