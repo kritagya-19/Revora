@@ -886,4 +886,17 @@ class RunFeedbackFlowRequest(BaseModel):
     custom_blocker: Optional[str] = None
     custom_comments: Optional[str] = None
 
+class PortfolioAutomationResult(BaseModel):
+    scanned_accounts: int
+    at_risk_detected: int
+    day0_surveys_dispatched: int
+    day2_reminders_sent: int
+    sales_escalations_triggered: int
+    healthy_monitored: int
+    webhooks_dispatched: int
+    emails_recorded: int
+    timestamp: str
+    automated_actions: List[Dict[str, Any]] = Field(default_factory=list)
+
+
 

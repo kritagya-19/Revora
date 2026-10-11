@@ -675,3 +675,17 @@ export async function fetchFeedbackFlowExecution(executionId: string): Promise<F
   return res.json();
 }
 
+import type { PortfolioAutomationResult } from '../types/api';
+
+export async function automatePortfolioFeedback(): Promise<PortfolioAutomationResult> {
+  const res = await fetch(`${API_BASE}/api/feedback/flow/automate-portfolio`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to automate portfolio: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+

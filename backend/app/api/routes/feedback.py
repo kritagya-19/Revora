@@ -204,3 +204,18 @@ def get_feedback_flow_execution(execution_id: str):
         raise HTTPException(status_code=404, detail=f"Flow execution {execution_id} not found")
     return exec_res
 
+from app.models.schemas import PortfolioAutomationResult
+
+@router.post("/flow/automate-portfolio", response_model=PortfolioAutomationResult)
+def automate_portfolio_feedback():
+    """
+    POST /api/feedback/flow/automate-portfolio
+    Executes automated zero-cost feedback loop across all monitored accounts.
+    Evaluates risk, dispatches Day 0 surveys, fires free webhooks, and queues emails in outbox.
+    """
+    try:
+        return feedback_flow_orchestrator.automate_portfolio_feedback_loop()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to automate portfolio feedback loop: {e}")
+
+

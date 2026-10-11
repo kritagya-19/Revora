@@ -908,3 +908,23 @@ export interface RunFeedbackFlowRequest {
   custom_comments?: string;
 }
 
+export interface PortfolioAutomationResult {
+  scanned_accounts: number;
+  at_risk_detected: number;
+  day0_surveys_dispatched: number;
+  day2_reminders_sent: number;
+  sales_escalations_triggered: number;
+  healthy_monitored: number;
+  webhooks_dispatched: number;
+  emails_recorded: number;
+  timestamp: string;
+  automated_actions: Array<{
+    account_id: string;
+    account_name: string;
+    action_taken: string;
+    execution_id?: string;
+    risk_score: number;
+  }>;
+}
+
+

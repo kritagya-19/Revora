@@ -5,17 +5,28 @@ import {
   RotateCcw,
   CheckCircle2,
   ChevronRight,
-  AlertTriangle
+  AlertTriangle,
+  Zap,
+  Send,
+  Mail,
+  Bell,
+  Sliders,
+  ShieldCheck,
+  Radio,
+  X,
+  ExternalLink
 } from 'lucide-react';
 import {
   fetchFeedbackFlowGraph,
-  runFeedbackFlow
+  runFeedbackFlow,
+  automatePortfolioFeedback
 } from '../services/api';
 import type {
   FeedbackFlowGraph,
   FeedbackFlowExecution,
   FeedbackFlowNode,
-  AccountRiskSummary
+  AccountRiskSummary,
+  PortfolioAutomationResult
 } from '../types/api';
 
 interface FeedbackFlowInteractiveViewProps {
@@ -43,10 +54,25 @@ export function FeedbackFlowInteractiveView({
   const [running, setRunning] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Selected scenario
+  // Control Mode: 'scenarios' | 'custom_form'
+  const [activeTab, setActiveTab] = useState<'scenarios' | 'custom_form'>('scenarios');
+
+  // Selected preset scenario
   const [scenario, setScenario] = useState<
     'negative_day0' | 'reminder_negative' | 'unresponsive' | 'positive' | 'healthy' | 'auto'
   >('negative_day0');
+
+  // Custom Live Dynamic Form states
+  const [customScore, setCustomScore] = useState<number>(2);
+  const [customBlocker, setCustomBlocker] = useState<string>('UX / Navigation & Complex Workflows');
+  const [customComments, setCustomComments] = useState<string>(
+    'The product dashboard feels confusing, and our onboarding team is encountering friction during account setup.'
+  );
+
+  // Portfolio-wide Zero-Cost Automation states
+  const [portfolioResult, setPortfolioResult] = useState<PortfolioAutomationResult | null>(null);
+  const [automatingPortfolio, setAutomatingPortfolio] = useState<boolean>(false);
+  const [showPortfolioModal, setShowPortfolioModal] = useState<boolean>(false);
 
   // Inspected node
   const [selectedNodeId, setSelectedNodeId] = useState<string>('N');
@@ -97,6 +123,47 @@ export function FeedbackFlowInteractiveView({
       setError(err.message || 'Failed to execute flow');
     } finally {
       setRunning(false);
+    }
+  };
+
+  const handleRunCustomFlow = async () => {
+    try {
+      setRunning(true);
+      setError(null);
+      const res = await runFeedbackFlow({
+        account_id: currentAccountId,
+        scenario: 'auto',
+        custom_satisfaction_score: customScore,
+        custom_blocker: customBlocker,
+        custom_comments: customComments
+      });
+      setExecution(res);
+      setScenario('auto');
+      if (res.path_taken.includes('N')) {
+        setSelectedNodeId('N');
+      } else if (res.path_taken.includes('L')) {
+        setSelectedNodeId('L');
+      } else if (res.path_taken.length > 0) {
+        setSelectedNodeId(res.path_taken[res.path_taken.length - 1]);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to execute custom flow');
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const handleAutomatePortfolio = async () => {
+    try {
+      setAutomatingPortfolio(true);
+      setError(null);
+      const res = await automatePortfolioFeedback();
+      setPortfolioResult(res);
+      setShowPortfolioModal(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to run zero-cost portfolio automation');
+    } finally {
+      setAutomatingPortfolio(false);
     }
   };
 
@@ -185,11 +252,11 @@ export function FeedbackFlowInteractiveView({
               <Sparkles className="w-5 h-5 text-indigo-600" />
             </h1>
             <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-              Deterministic & multi-agent loop: Collects signals, evaluates risk thresholds, generates personalized surveys, manages 48h reminder escalation, and routes sentiment into UX/Product/Competitor issue breakdowns.
+              Deterministic multi-agent pipeline: Collects signals, evaluates risk thresholds, generates personalized surveys, manages 48h reminder escalation, routes sentiment into UX/Product/Competitor breakdowns, and drives zero-cost free automation.
             </p>
           </div>
 
-          {/* Account Picker & Execution Trigger */}
+          {/* Account Picker & Actions */}
           <div className="flex flex-wrap items-center gap-3">
             <div>
               <label className="block text-[11px] font-mono uppercase text-slate-500 font-semibold mb-1">Target Account</label>
@@ -226,6 +293,26 @@ export function FeedbackFlowInteractiveView({
                 </>
               )}
             </button>
+
+            {/* Zero-Cost Portfolio Automation Trigger */}
+            <button
+              onClick={handleAutomatePortfolio}
+              disabled={automatingPortfolio}
+              className="flex items-center gap-2 px-4 py-2 mt-5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium text-sm shadow-xs transition-all disabled:opacity-50"
+              title="Runs autonomous feedback collection, survey token dispatch, reminder checks, and webhooks across all monitored accounts at $0 cost."
+            >
+              {automatingPortfolio ? (
+                <>
+                  <RotateCcw className="w-4 h-4 animate-spin" />
+                  <span>Automating Portfolio...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4 fill-white" />
+                  <span>⚡ Run Free Portfolio Automation</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -242,79 +329,272 @@ export function FeedbackFlowInteractiveView({
           </div>
         )}
 
-        {/* Scenario Selectors */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-mono font-bold text-slate-500 uppercase mr-1">Scenarios:</span>
-          
-          <button
-            onClick={() => {
-              setScenario('negative_day0');
-              handleRunFlow('negative_day0');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-              scenario === 'negative_day0'
-                ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-xs font-semibold'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            🚨 Day 0 Negative Feedback (UX / Product Friction)
-          </button>
+        {/* Tab Switcher: Presets vs Live Dynamic Form Input */}
+        <div className="mt-5 pt-4 border-t border-slate-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('scenarios')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'scenarios'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span>Pre-built Scenarios</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('custom_form')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'custom_form'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>✍️ Live Dynamic Form Input</span>
+              </button>
+            </div>
 
-          <button
-            onClick={() => {
-              setScenario('reminder_negative');
-              handleRunFlow('reminder_negative');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-              scenario === 'reminder_negative'
-                ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-xs font-semibold'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            ⏰ Day 2 Reminder Responded (Competitor Scrutiny)
-          </button>
+            <div className="flex items-center gap-2 text-xs font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 w-fit">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Zero-Cost Pipelines: Active (Discord / Slack Webhooks + Local Outbox)</span>
+            </div>
+          </div>
 
-          <button
-            onClick={() => {
-              setScenario('unresponsive');
-              handleRunFlow('unresponsive');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-              scenario === 'unresponsive'
-                ? 'bg-purple-50 border-purple-300 text-purple-800 shadow-xs font-semibold'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            🛑 Unresponsive Timeout (Escalate to Phone Call)
-          </button>
+          {/* TAB 1: Preset Scenarios */}
+          {activeTab === 'scenarios' && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs font-mono font-bold text-slate-500 uppercase mr-1">Presets:</span>
+              
+              <button
+                onClick={() => {
+                  setScenario('negative_day0');
+                  handleRunFlow('negative_day0');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  scenario === 'negative_day0'
+                    ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-xs font-semibold'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                🚨 Day 0 Negative Feedback (UX / Product Friction)
+              </button>
 
-          <button
-            onClick={() => {
-              setScenario('positive');
-              handleRunFlow('positive');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-              scenario === 'positive'
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800 shadow-xs font-semibold'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            ✨ Positive Feedback (Mark Healthy & Update CRM)
-          </button>
+              <button
+                onClick={() => {
+                  setScenario('reminder_negative');
+                  handleRunFlow('reminder_negative');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  scenario === 'reminder_negative'
+                    ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-xs font-semibold'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                ⏰ Day 2 Reminder Responded (Competitor Threat)
+              </button>
 
-          <button
-            onClick={() => {
-              setScenario('healthy');
-              handleRunFlow('healthy');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-              scenario === 'healthy'
-                ? 'bg-blue-50 border-blue-300 text-blue-800 shadow-xs font-semibold'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            🛡️ Low Risk Account (Normal Monitoring Maintained)
-          </button>
+              <button
+                onClick={() => {
+                  setScenario('unresponsive');
+                  handleRunFlow('unresponsive');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  scenario === 'unresponsive'
+                    ? 'bg-purple-50 border-purple-300 text-purple-800 shadow-xs font-semibold'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                🛑 Unresponsive Timeout (Escalate to Phone Call)
+              </button>
+
+              <button
+                onClick={() => {
+                  setScenario('positive');
+                  handleRunFlow('positive');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  scenario === 'positive'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800 shadow-xs font-semibold'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                ✨ Positive Feedback (Mark Healthy & Update CRM)
+              </button>
+
+              <button
+                onClick={() => {
+                  setScenario('healthy');
+                  handleRunFlow('healthy');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                  scenario === 'healthy'
+                    ? 'bg-blue-50 border-blue-300 text-blue-800 shadow-xs font-semibold'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                🛡️ Low Risk Account (Normal Monitoring Maintained)
+              </button>
+            </div>
+          )}
+
+          {/* TAB 2: Live Dynamic Form Controls */}
+          {activeTab === 'custom_form' && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-4 pt-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold font-headline text-slate-900">
+                    Dynamic Customer Feedback Simulator
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Input customized satisfaction ratings, specific blockers, and comments. The agent flow will dynamically evaluate sentiment, route through the 20-node state machine, and trigger zero-cost notifications.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[11px] font-mono text-slate-400">Quick Fill:</span>
+                  <button
+                    onClick={() => {
+                      setCustomScore(1);
+                      setCustomBlocker('UX / Constant SSO login timeouts');
+                      setCustomComments('Our entire analytics team was locked out twice this week due to session expiration. This is hurting our daily reporting.');
+                    }}
+                    className="px-2 py-1 rounded bg-white border border-slate-200 text-[11px] font-mono text-rose-700 hover:bg-rose-50"
+                  >
+                    UX Friction
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCustomScore(2);
+                      setCustomBlocker('Competitor Offering 35% Lower Price');
+                      setCustomComments('Our VP of Engineering is evaluating competitor Acme Platform because renewal quotes came in too high.');
+                    }}
+                    className="px-2 py-1 rounded bg-white border border-slate-200 text-[11px] font-mono text-amber-700 hover:bg-amber-50"
+                  >
+                    Competitor Threat
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCustomScore(5);
+                      setCustomBlocker('None / Seamless Rollout');
+                      setCustomComments('We love the new automated pipeline! Everything is working cleanly and adoption has expanded to 3 new squads.');
+                    }}
+                    className="px-2 py-1 rounded bg-white border border-slate-200 text-[11px] font-mono text-emerald-700 hover:bg-emerald-50"
+                  >
+                    Delighted (Positive)
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                {/* 1. Score Selector (1-5) */}
+                <div className="md:col-span-4 space-y-1.5">
+                  <label className="block text-xs font-mono font-bold uppercase text-slate-600">
+                    Satisfaction Rating ({customScore}/5):
+                  </label>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[1, 2, 3, 4, 5].map((scoreVal) => {
+                      const isSel = customScore === scoreVal;
+                      let bg = isSel ? 'bg-indigo-600 text-white font-bold' : 'bg-white border text-slate-700 hover:bg-slate-100';
+                      if (isSel && scoreVal <= 2) bg = 'bg-rose-600 text-white font-bold shadow-xs';
+                      if (isSel && scoreVal === 3) bg = 'bg-amber-600 text-white font-bold shadow-xs';
+                      if (isSel && scoreVal >= 4) bg = 'bg-emerald-600 text-white font-bold shadow-xs';
+
+                      return (
+                        <button
+                          key={scoreVal}
+                          onClick={() => setCustomScore(scoreVal)}
+                          className={`p-2 rounded-lg text-center text-xs transition flex flex-col items-center justify-center border border-slate-200 ${bg}`}
+                        >
+                          <span className="text-sm font-bold">{scoreVal}★</span>
+                          <span className="text-[10px] opacity-80">
+                            {scoreVal === 1 ? 'Critical' : scoreVal === 2 ? 'Poor' : scoreVal === 3 ? 'Neutral' : scoreVal === 4 ? 'Good' : 'Super'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="text-[11px] text-slate-500 font-mono">
+                    {customScore <= 2 ? '🔴 Sentiment: Escalates to Negative Branch (M → N → O, P)' :
+                     customScore === 3 ? '🟡 Sentiment: Evaluates comments & custom blockers' :
+                     '🟢 Sentiment: Routes to Healthy Branch (K → L)'}
+                  </div>
+                </div>
+
+                {/* 2. Primary Blocker */}
+                <div className="md:col-span-8 space-y-1.5">
+                  <label className="block text-xs font-mono font-bold uppercase text-slate-600">
+                    Primary Roadblock / Blocker Category:
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {[
+                      'UX / Navigation & Complex Workflows',
+                      'Product / Missing Integrations & Slow API',
+                      'Competitor / Reviewing Alternative Vendor',
+                      'Pricing / Budget CFO Scrutiny',
+                      'None / Seamless Rollout'
+                    ].map((chip) => (
+                      <button
+                        key={chip}
+                        onClick={() => setCustomBlocker(chip)}
+                        className={`text-[11px] px-2.5 py-1 rounded-full border transition ${
+                          customBlocker === chip
+                            ? 'bg-indigo-50 border-indigo-400 text-indigo-800 font-bold'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={customBlocker}
+                    onChange={(e) => setCustomBlocker(e.target.value)}
+                    placeholder="Type custom blocker..."
+                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* 3. Written Comments */}
+                <div className="md:col-span-12 space-y-1.5">
+                  <label className="block text-xs font-mono font-bold uppercase text-slate-600">
+                    Customer Verbatim Comments:
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={customComments}
+                    onChange={(e) => setCustomComments(e.target.value)}
+                    placeholder="Enter customer feedback text..."
+                    className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end pt-1">
+                <button
+                  onClick={handleRunCustomFlow}
+                  disabled={running}
+                  className="flex items-center gap-2 px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs shadow-xs transition-colors disabled:opacity-50"
+                >
+                  {running ? (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Processing Flow Traversal...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>⚡ Submit Dynamic Feedback & Execute 20-Node Flow</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Legend */}
@@ -449,45 +729,32 @@ export function FeedbackFlowInteractiveView({
               </div>
             </div>
 
-            {/* ROW 4: F (Send Feedback Form Day 0) */}
+            {/* Down from E: F (Send Feedback Form Day 0) */}
             <div className="flex justify-center pt-2">
               <div className="flex flex-col items-center space-y-3">
                 <ChevronRight className={`w-5 h-5 rotate-90 ${isEdgeTraversed('E', 'F') ? 'text-indigo-600 stroke-[3]' : 'text-slate-400'}`} />
                 {renderNodeCard('F')}
-              </div>
-            </div>
-
-            {/* ROW 5: G (Wait 48 Hours) */}
-            <div className="flex justify-center">
-              <div className="flex flex-col items-center space-y-3">
                 <ChevronRight className={`w-5 h-5 rotate-90 ${isEdgeTraversed('F', 'G') ? 'text-indigo-600 stroke-[3]' : 'text-slate-400'}`} />
                 {renderNodeCard('G')}
-              </div>
-            </div>
-
-            {/* ROW 6: H (Feedback Form Submitted?) */}
-            <div className="flex justify-center">
-              <div className="flex flex-col items-center space-y-3">
                 <ChevronRight className={`w-5 h-5 rotate-90 ${isEdgeTraversed('G', 'H') ? 'text-indigo-600 stroke-[3]' : 'text-slate-400'}`} />
                 {renderNodeCard('H')}
               </div>
             </div>
 
-            {/* Split from H: Left (Yes) -> I directly; Right (No) -> Q, R, S */}
-            <div className="grid grid-cols-2 gap-8 items-start pt-2 border-t border-slate-200">
-              
-              {/* Branch H = Yes (Immediate submission) */}
+            {/* Split from H: Yes -> I (Submitted), No -> Q (Wait 48h Escalation) */}
+            <div className="grid grid-cols-2 gap-8 items-start pt-2">
+              {/* Branch Left: Yes -> Goes directly down to I */}
               <div className="flex flex-col items-center space-y-3">
                 <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${isEdgeTraversed('H', 'I') ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                  Yes (Day 0)
+                  H: Yes (Submitted Day 0)
                 </span>
-                <span className="text-xs text-slate-500 font-mono text-center">Submitted within 48h → Direct to Analysis</span>
+                <ChevronRight className={`w-5 h-5 rotate-90 ${isEdgeTraversed('H', 'I') ? 'text-emerald-600 stroke-[3]' : 'text-slate-400'}`} />
               </div>
 
-              {/* Branch H = No -> Q (Send Reminder) */}
-              <div className="flex flex-col items-center space-y-3">
+              {/* Branch Right: No -> Q -> R -> S */}
+              <div className="flex flex-col items-center space-y-3 border-l-2 border-dashed border-amber-300 pl-4">
                 <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${isEdgeTraversed('H', 'Q') ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                  No (Timeout)
+                  H: No (Not Submitted)
                 </span>
                 <ChevronRight className={`w-5 h-5 rotate-90 ${isEdgeTraversed('H', 'Q') ? 'text-amber-600 stroke-[3]' : 'text-slate-400'}`} />
                 {renderNodeCard('Q')}
@@ -496,7 +763,7 @@ export function FeedbackFlowInteractiveView({
                 <ChevronRight className={`w-5 h-5 rotate-90 ${isEdgeTraversed('R', 'S') ? 'text-amber-600 stroke-[3]' : 'text-slate-400'}`} />
                 {renderNodeCard('S')}
 
-                {/* Sub-split from S: No -> T */}
+                {/* S: Decision: Yes -> Convergence at I, No -> T (Escalate Call) */}
                 <div className="w-full flex flex-col items-center space-y-2 pt-2">
                   <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded ${isEdgeTraversed('S', 'T') ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
                     S: No (Unresponsive)
@@ -654,6 +921,46 @@ export function FeedbackFlowInteractiveView({
                     </div>
                   )}
 
+                  {/* Node F (Send Feedback Form Day 0) */}
+                  {selectedNodeId === 'F' && (
+                    <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs space-y-2">
+                      <div className="font-bold text-blue-950">Day 0 Outreach Delivery:</div>
+                      <div className="space-y-1 text-blue-900 font-mono text-[11px]">
+                        <div>Recipient: {inspectedNodeState.data.recipient}</div>
+                        <div>Token Code: <span className="font-bold bg-blue-100 px-1 py-0.5 rounded">{inspectedNodeState.data.survey_code}</span></div>
+                        <div>Delivery URL: {inspectedNodeState.data.form_url}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Node Q (Send Reminder Email Day 2) */}
+                  {selectedNodeId === 'Q' && (
+                    <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs space-y-2">
+                      <div className="font-bold text-amber-950">Day 2 Reminder Email:</div>
+                      <p className="text-amber-900 italic">"{inspectedNodeState.data.reminder_body}"</p>
+                      <div className="text-[11px] font-mono text-amber-800">Subject: {inspectedNodeState.data.subject}</div>
+                    </div>
+                  )}
+
+                  {/* Node I (Analyze Feedback) */}
+                  {selectedNodeId === 'I' && (
+                    <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-200 text-xs space-y-2">
+                      <div className="font-bold text-indigo-950">Sentiment Analysis Evaluation:</div>
+                      <div className="flex justify-between text-indigo-900 font-mono">
+                        <span>Customer Rating: {inspectedNodeState.data.satisfaction_score}/10</span>
+                        <span className="font-bold uppercase">Tone: {inspectedNodeState.data.detected_sentiment}</span>
+                      </div>
+                      <div className="pt-1">
+                        <span className="font-bold text-indigo-900">Reported Blocker:</span>
+                        <p className="text-indigo-800 italic mt-0.5">"{inspectedNodeState.data.stated_blocker}"</p>
+                      </div>
+                      <div>
+                        <span className="font-bold text-indigo-900">Customer Verbatim:</span>
+                        <p className="text-indigo-800 text-[11px] mt-0.5">"{inspectedNodeState.data.customer_comments}"</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Node N (Analyze Customer Issues: UX, Product, Competitor) */}
                   {selectedNodeId === 'N' && (
                     <div className="space-y-2 text-xs">
@@ -764,8 +1071,44 @@ export function FeedbackFlowInteractiveView({
                     </div>
                   )}
 
+                  {/* Zero-Cost Automation Outbox / Webhook Dispatches for this Node */}
+                  {(inspectedNodeState.data.free_email_dispatched || inspectedNodeState.data.free_webhook_dispatched) && (
+                    <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs space-y-2">
+                      <div className="flex items-center gap-1.5 font-bold text-emerald-950">
+                        <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Zero-Cost Automated Pipeline Dispatches:</span>
+                      </div>
+
+                      {inspectedNodeState.data.free_email_dispatched && (
+                        <div className="bg-white/80 p-2 rounded border border-emerald-100 text-[11px] space-y-0.5">
+                          <div className="flex items-center gap-1 font-bold text-slate-800">
+                            <Mail className="w-3 h-3 text-indigo-600" />
+                            <span>Outbox Email Staged (Free Mode):</span>
+                          </div>
+                          <div className="text-slate-600 font-mono text-[10px]">
+                            <div><span className="font-semibold text-slate-700">To:</span> {inspectedNodeState.data.free_email_dispatched.to}</div>
+                            <div className="truncate"><span className="font-semibold text-slate-700">Subject:</span> {inspectedNodeState.data.free_email_dispatched.subject}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {inspectedNodeState.data.free_webhook_dispatched && (
+                        <div className="bg-white/80 p-2 rounded border border-emerald-100 text-[11px] space-y-0.5">
+                          <div className="flex items-center gap-1 font-bold text-slate-800">
+                            <Bell className="w-3 h-3 text-emerald-600" />
+                            <span>Webhook Dispatched (Discord / Slack format):</span>
+                          </div>
+                          <div className="text-slate-600 font-mono text-[10px]">
+                            <div><span className="font-semibold text-slate-700">Destination:</span> {inspectedNodeState.data.free_webhook_dispatched.destination}</div>
+                            <div><span className="font-semibold text-slate-700">Status:</span> {inspectedNodeState.data.free_webhook_dispatched.status}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Generic raw telemetry JSON preview */}
-                  {!['B', 'E', 'N', 'O', 'P', 'T', 'L'].includes(selectedNodeId) && (
+                  {!['B', 'E', 'F', 'Q', 'I', 'N', 'O', 'P', 'T', 'L'].includes(selectedNodeId) && (
                     <pre className="text-[11px] font-mono p-3 bg-slate-900 text-slate-200 rounded-lg overflow-x-auto max-h-48">
                       {JSON.stringify(inspectedNodeState.data, null, 2)}
                     </pre>
@@ -780,6 +1123,109 @@ export function FeedbackFlowInteractiveView({
           )}
         </div>
       </div>
+
+      {/* 4. Zero-Cost Portfolio Automation Modal */}
+      {showPortfolioModal && portfolioResult && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+            <div className="p-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold font-headline">Zero-Cost Portfolio Automation Results</h3>
+                  <p className="text-xs text-emerald-100">
+                    Fully automated feedback loops triggered across all customer accounts ($0 cost).
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowPortfolioModal(false)}
+                className="p-1 rounded-lg hover:bg-white/20 text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+              {/* Stat Tiles */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                  <span className="text-[11px] font-mono text-slate-500 uppercase block">Scanned</span>
+                  <span className="text-2xl font-bold font-headline text-slate-900">{portfolioResult.scanned_accounts}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-center">
+                  <span className="text-[11px] font-mono text-indigo-600 uppercase block">Day 0 Surveys</span>
+                  <span className="text-2xl font-bold font-headline text-indigo-700">{portfolioResult.day0_surveys_dispatched}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                  <span className="text-[11px] font-mono text-emerald-600 uppercase block">Healthy Accounts</span>
+                  <span className="text-2xl font-bold font-headline text-emerald-700">{portfolioResult.healthy_monitored}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-center">
+                  <span className="text-[11px] font-mono text-teal-600 uppercase block">Webhooks Fired</span>
+                  <span className="text-2xl font-bold font-headline text-teal-700">{portfolioResult.webhooks_dispatched}</span>
+                </div>
+              </div>
+
+              {/* Account Decisions List */}
+              <div className="space-y-2">
+                <div className="text-xs font-mono font-bold uppercase text-slate-500 tracking-wider">
+                  Automated Pipeline Decisions
+                </div>
+                <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+                  {portfolioResult.automated_actions.map((act) => (
+                    <div key={act.account_id} className="p-3 flex items-center justify-between gap-3 bg-white hover:bg-slate-50 transition">
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <span>{act.account_name}</span>
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                            act.risk_score >= 60 ? 'bg-rose-100 text-rose-800' :
+                            act.risk_score >= 40 ? 'bg-amber-100 text-amber-800' :
+                            'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            Risk: {act.risk_score} pts
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-600 mt-0.5">
+                          {act.action_taken}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setCurrentAccountId(act.account_id);
+                          setShowPortfolioModal(false);
+                          handleRunFlow('auto');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 font-medium text-xs hover:bg-indigo-100 transition flex items-center gap-1 shrink-0"
+                      >
+                        <span>Inspect in Canvas</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>All automated emails staged in local outbox and webhooks dispatched formatted for Discord & Slack without any third-party subscription costs.</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                onClick={() => setShowPortfolioModal(false)}
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-medium text-xs transition"
+              >
+                Close Results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
