@@ -1,0 +1,22 @@
+{
+  "name": "revora",
+  "version": "1.0.0",
+  "description": "Revora / SignalBridge AI Revenue Intelligence Platform",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "cd backend && .\\venv\\Scripts\\python.exe -m uvicorn app.main:app --reload",
+    "test:backend": "cd backend && .\\venv\\Scripts\\python.exe -m pytest",
+    "test": "npm --prefix frontend run build && cd backend && .\\venv\\Scripts\\python.exe -m pytest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.7",
+    "mongoose": "^9.11.1"
+  }
+}
