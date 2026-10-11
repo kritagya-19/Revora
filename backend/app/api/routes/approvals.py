@@ -93,6 +93,31 @@ async def approve_and_execute_proposal(
             execution_result = {"error": str(e), "status": "failed"}
 
     refetched = proposal_repo.get_proposal_by_id(proposal_id)
+
+    # Automatically register / sync with Action & Outcome Tracker (Feature 1)
+    try:
+        from app.services.action_tracker_repository import action_tracker_repo
+        from app.models.schemas import ActionExecutionStatus
+        acc = account_repo.get_account_by_id(approved_prop.account_id)
+        acc_name = acc.name if acc else "Customer Account"
+        action_status = ActionExecutionStatus.EXECUTED if (execution_result and execution_result.get("status") == "succeeded") else ActionExecutionStatus.APPROVED
+        action_tracker_repo.sync_from_approved_proposal(
+            proposal_id=approved_prop.id,
+            account_id=approved_prop.account_id,
+            account_name=acc_name,
+            title=approved_prop.title,
+            action_type=approved_prop.action_type,
+            payload=approved_prop.payload,
+            evidence_ids=approved_prop.evidence_ids,
+            investigation_id=approved_prop.investigation_id,
+            status=action_status,
+            execution_result=execution_result,
+            assigned_to=approver
+        )
+    except Exception as sync_err:
+        import logging
+        logging.getLogger("revora.approvals").warning(f"Tracker auto-sync notice: {sync_err}")
+
     return {
         "proposal": refetched,
         "approval_status": "approved",
