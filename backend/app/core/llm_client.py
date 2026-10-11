@@ -1,12 +1,15 @@
 """
 Unified LLM Client for Revora AI Agents.
 Integrates with OpenRouter (OpenAI-compatible chat completion API)
-with automatic fallback, robust JSON extraction, and rate-limit safety.
+with automatic fallback, robust JSON extraction, rate-limit safety,
+transient retry handling, and in-memory response caching.
 """
 
+import hashlib
 import json
 import logging
 import re
+import time
 from typing import Any, Dict, List, Optional
 import httpx
 from app.core.config import settings
@@ -25,9 +28,10 @@ class LLMClient:
             "X-Title": "Revora Revenue Defense Copilot",
             "Content-Type": "application/json"
         }
+        self._cache: Dict[str, str] = {}
 
     def is_available(self) -> bool:
-        """Returns True if an OpenRouter or Gemini API key is configured."""
+        """Returns True if an OpenRouter API key is configured."""
         return bool(self.api_key and self.api_key.strip())
 
     def chat_completion(
@@ -35,13 +39,21 @@ class LLMClient:
         messages: List[Dict[str, str]],
         json_mode: bool = False,
         temperature: float = 0.2,
-        timeout: float = 30.0
+        timeout: float = 30.0,
+        max_retries: int = 2
     ) -> Optional[str]:
         """
-        Sends a chat completion request to OpenRouter.
+        Sends a chat completion request to OpenRouter with caching and transient retries.
         """
         if not self.is_available():
             return None
+
+        # Cache lookup to avoid redundant calls and save tokens
+        cache_key = hashlib.sha256(
+            json.dumps({"messages": messages, "json_mode": json_mode, "model": self.model}, sort_keys=True).encode()
+        ).hexdigest()
+        if cache_key in self._cache:
+            return self._cache[cache_key]
 
         url = f"{self.base_url.rstrip('/')}/chat/completions"
         payload: Dict[str, Any] = {
@@ -53,21 +65,26 @@ class LLMClient:
         if json_mode:
             payload["response_format"] = {"type": "json_object"}
 
-        try:
-            with httpx.Client(timeout=timeout) as client:
-                response = client.post(url, headers=self.headers, json=payload)
-                if response.status_code == 200:
-                    data = response.json()
-                    choices = data.get("choices", [])
-                    if choices and "message" in choices[0]:
-                        return choices[0]["message"].get("content", "").strip()
-                    logger.warning(f"OpenRouter response missing choices: {data}")
-                else:
-                    logger.warning(
-                        f"OpenRouter returned status {response.status_code}: {response.text[:300]}"
-                    )
-        except Exception as e:
-            logger.error(f"Error calling OpenRouter API: {e}")
+        for attempt in range(max_retries):
+            try:
+                with httpx.Client(timeout=timeout) as client:
+                    response = client.post(url, headers=self.headers, json=payload)
+                    if response.status_code == 200:
+                        data = response.json()
+                        choices = data.get("choices", [])
+                        if choices and "message" in choices[0]:
+                            content = choices[0]["message"].get("content", "").strip()
+                            self._cache[cache_key] = content
+                            return content
+                        logger.warning(f"OpenRouter response missing choices: {data}")
+                    else:
+                        logger.warning(
+                            f"OpenRouter returned status {response.status_code}: {response.text[:300]}"
+                        )
+            except Exception as e:
+                logger.debug(f"OpenRouter API call attempt {attempt + 1} error: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(0.5)
 
         return None
 
