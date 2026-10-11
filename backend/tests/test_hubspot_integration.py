@@ -125,35 +125,46 @@ def test_hubspot_sync_normalization_and_idempotency():
 
     service = HubSpotSyncService(client=mock_client)
     
-    # First sync run
-    result1 = service.sync_all()
-    assert result1["status"] == "success"
-    assert result1["summary"]["companies_synced"] == 1
-    assert result1["summary"]["contacts_synced"] == 1
-    assert result1["summary"]["signals_created"] >= 2  # deal + ticket + possible touchpoint
+    try:
+        # First sync run
+        result1 = service.sync_all()
+        assert result1["status"] == "success"
+        assert result1["summary"]["companies_synced"] == 1
+        assert result1["summary"]["contacts_synced"] == 1
+        assert result1["summary"]["signals_created"] >= 2  # deal + ticket + touchpoint
 
-    # Verify account exists in account repository
-    acc = account_repo.get_account_by_id("acc-hs-hs-comp-99")
-    assert acc is not None
-    assert acc.name == "Starlight Industries"
-    assert acc.csm_owner == "Alice Smith"
-    assert acc.arr == 120000.0
-    assert len(acc.contacts) >= 1
-    assert acc.contacts[0].email == "bob@starlight.io"
-    assert len(acc.signals) >= 2
-    
-    # Verify source attributes for claims linkage
-    ticket_sig = next(s for s in acc.signals if s.signal_type == "support_ticket")
-    assert ticket_sig.source_category == "crm"
-    assert ticket_sig.source_type == "hubspot"
-    assert ticket_sig.source_record_id == "hs-tkt-991"
-    assert ticket_sig.evidence_id == "ev-hs-ticket-hs-tkt-991"
+        # Verify account exists in account repository
+        acc = account_repo.get_account_by_id("acc-hs-hs-comp-99")
+        assert acc is not None
+        assert acc.name == "Starlight Industries"
+        assert acc.csm_owner == "Alice Smith"
+        assert acc.arr == 120000.0
+        assert len(acc.contacts) >= 1
+        assert acc.contacts[0].email == "bob@starlight.io"
+        assert len(acc.signals) >= 2
+        
+        # Verify source attributes for claims linkage
+        ticket_sig = next(s for s in acc.signals if s.signal_type == "support_ticket")
+        assert ticket_sig.source_category == "crm"
+        assert ticket_sig.source_type == "hubspot"
+        assert ticket_sig.source_record_id == "hs-tkt-991"
+        assert ticket_sig.evidence_id == "ev-hs-ticket-hs-tkt-991"
 
-    # Second sync run: verify duplicate prevention / idempotency
-    result2 = service.sync_all()
-    assert result2["status"] == "success"
-    assert result2["summary"]["companies_synced"] == 1
-    assert result2["summary"]["contacts_synced"] == 1
+        # Second sync run: verify duplicate prevention / idempotency
+        result2 = service.sync_all()
+        assert result2["status"] == "success"
+        assert result2["summary"]["companies_synced"] == 1
+        assert result2["summary"]["contacts_synced"] == 1
+    finally:
+        # Prevent test mock data from lingering in the live MongoDB
+        if service.db is not None:
+            service.db.accounts.delete_many({"id": "acc-hs-hs-comp-99"})
+            service.db.contacts.delete_many({"id": "cnt-hs-hs-cnt-991"})
+            service.db.signals.delete_many({"account_id": "acc-hs-hs-comp-99"})
+            service.db.hubspot_raw_records.delete_many({"hubspot_id": {"$in": ["hs-comp-99", "hs-cnt-991", "hs-deal-991", "hs-tkt-991"]}})
+        account_repo._accounts_data = [a for a in account_repo._accounts_data if a.get("id") != "acc-hs-hs-comp-99"]
+        account_repo._contacts_data = [c for c in account_repo._contacts_data if c.get("id") != "cnt-hs-hs-cnt-991"]
+        account_repo._signals_data = [s for s in account_repo._signals_data if s.get("account_id") != "acc-hs-hs-comp-99"]
 
 def test_hubspot_api_endpoints(client):
     """Test GET status, POST sync, and GET sync/status endpoints."""

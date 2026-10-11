@@ -121,7 +121,8 @@ class AccountRepository:
         # 1. Attempt MongoDB fetch if client available
         if self.db is not None:
             try:
-                query: Dict[str, Any] = {}
+                # System strictly includes only accounts ingested from HubSpot CRM
+                query: Dict[str, Any] = {"source_system": "hubspot"}
                 if risk_level and risk_level.lower() != "all":
                     query["risk_level"] = risk_level.lower()
                 if csm_owner:
@@ -131,10 +132,11 @@ class AccountRepository:
                 if docs and len(docs) > 0:
                     accounts_to_process = docs
             except Exception as e:
-                logger.warning(f"MongoDB accounts query failed: {e}. Using seed accounts.")
+                logger.warning(f"MongoDB accounts query failed: {e}.")
 
         if not accounts_to_process:
-            accounts_to_process = self._accounts_data
+            # Fallback strictly to HubSpot CRM accounts in memory
+            accounts_to_process = [a for a in self._accounts_data if a.get("source_system") == "hubspot"]
 
         results = []
         for acc in accounts_to_process:
