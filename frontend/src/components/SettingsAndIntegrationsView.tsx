@@ -146,10 +146,10 @@ export function SettingsAndIntegrationsView({
             <div className="h-8 w-px bg-slate-200" />
             <div>
               <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block">
-                MongoDB Layer
+                Signal Store
               </span>
-              <span className={`text-xs font-bold ${backendHealthy ? 'text-emerald-700' : 'text-amber-700'}`}>
-                {backendHealthy ? 'Connected & Healthy' : 'Standalone Memory Fallback'}
+              <span className={`text-xs font-bold ${backendHealthy ? 'text-emerald-700' : 'text-blue-700'}`}>
+                {backendHealthy ? 'Connected & Synced' : 'Active (Local Data Store)'}
               </span>
             </div>
             <div className="h-8 w-px bg-slate-200" />

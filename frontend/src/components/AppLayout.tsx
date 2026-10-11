@@ -30,7 +30,7 @@ export function AppLayout({
   backendHealthy = true
 }: AppLayoutProps) {
   return (
-    <div className="min-h-screen flex bg-white text-[#020062] font-body selection:bg-[#2563EB]/15 selection:text-[#0025AE]">
+    <div className="min-h-screen flex bg-slate-950 text-slate-100 font-body selection:bg-blue-600 selection:text-white antialiased">
       {/* Reusable Left Sidebar */}
       <Sidebar
         currentTab={currentTab}
@@ -53,7 +53,7 @@ export function AppLayout({
         />
 
         {/* Dynamic Page Container */}
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 lg:p-8 xl:p-10 max-w-[1540px] w-full mx-auto space-y-8">
           {children}
         </main>
       </div>

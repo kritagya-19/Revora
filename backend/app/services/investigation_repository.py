@@ -56,33 +56,22 @@ class InvestigationRepository:
         if not account:
             raise ValueError(f"Account {account_id} not found")
 
-        # Generate evidence-grounded investigation via LLM / Rule engine
-        investigation = llm_service.generate_investigation(account)
-
-        # Cache in memory
-        self._investigations[investigation.id] = investigation
-
-        # Persist in MongoDB
-        if self.db is not None:
-            try:
-                doc = investigation.model_dump()
-                self.db.investigations.update_one({"id": investigation.id}, {"$set": doc}, upsert=True)
-                
-                # Also log in risk_assessments collection
-                assessment_doc = {
-                    "account_id": account.id,
-                    "risk_score": account.risk_score,
-                    "risk_level": account.risk_level.value,
-                    "rule_version": "v1.0.0",
-                    "primary_reason_code": account.primary_reason_code,
-                    "contributing_factors": account.contributing_factors,
-                    "evidence_ids": [s.id for s in account.signals],
-                    "evaluated_at": datetime.utcnow().isoformat()
-                }
-                self.db.risk_assessments.insert_one(assessment_doc)
-            except Exception as e:
-                logger.warning(f"MongoDB persist investigation error: {e}")
-
-        return investigation
+        # Execute through the complete 5-stage AI Layer pipeline
+        try:
+            from app.ai.persistence import persist_manager
+            inv, prop, val = persist_manager.run_full_pipeline_and_persist(account_id)
+            self._investigations[inv.id] = inv
+            return inv
+        except Exception as e:
+            logger.warning(f"AI Layer pipeline failed: {e}. Falling back to baseline generation.")
+            investigation = llm_service.generate_investigation(account)
+            self._investigations[investigation.id] = investigation
+            if self.db is not None:
+                try:
+                    doc = investigation.model_dump()
+                    self.db.investigations.update_one({"id": investigation.id}, {"$set": doc}, upsert=True)
+                except Exception as ex:
+                    logger.warning(f"MongoDB fallback persist error: {ex}")
+            return investigation
 
 investigation_repo = InvestigationRepository()

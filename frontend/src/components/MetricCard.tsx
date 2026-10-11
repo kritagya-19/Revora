@@ -10,6 +10,7 @@ interface MetricCardProps {
     isPositive?: boolean;
   };
   highlight?: boolean;
+  badge?: string;
 }
 
 export function MetricCard({
@@ -18,40 +19,50 @@ export function MetricCard({
   subtext,
   icon,
   trend,
-  highlight = false
+  highlight = false,
+  badge
 }: MetricCardProps) {
   return (
     <div
-      className={`rounded-lg p-5 transition-all duration-200 border bg-white ${
+      className={`rounded-2xl p-6 transition-all duration-200 border relative overflow-hidden ${
         highlight
-          ? 'border-[#0025AE] ring-1 ring-[#0025AE]/20 shadow-sm'
-          : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
+          ? 'bg-slate-900 border-rose-500/50 ring-1 ring-rose-500/30 shadow-lg shadow-rose-950/20'
+          : 'bg-slate-900 border-slate-800 hover:border-slate-700 shadow-md'
       }`}
     >
-      <div className="flex items-center justify-between text-slate-500 mb-2">
-        <span className="text-xs font-medium uppercase tracking-wider font-body text-slate-500">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">
           {label}
         </span>
-        {icon && <div className="text-[#2563EB]">{icon}</div>}
+        {icon && (
+          <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/80 flex items-center justify-center text-blue-400 shrink-0">
+            {icon}
+          </div>
+        )}
       </div>
 
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl lg:text-3xl font-normal text-[#020062] font-headline tracking-tight">
+      <div className="flex items-baseline gap-2.5">
+        <span className="text-3xl sm:text-4xl font-bold text-white font-mono tracking-tight">
           {value}
         </span>
         {trend && (
           <span
-            className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-              trend.isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-red-700 bg-red-50'
+            className={`text-xs font-bold px-2 py-0.5 rounded-md font-mono ${
+              trend.isPositive ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-800' : 'text-rose-400 bg-rose-950/60 border border-rose-800'
             }`}
           >
             {trend.value}
           </span>
         )}
+        {badge && (
+          <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+            {badge}
+          </span>
+        )}
       </div>
 
       {subtext && (
-        <p className="mt-1.5 text-xs text-slate-500 font-body leading-relaxed">
+        <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed font-body">
           {subtext}
         </p>
       )}
