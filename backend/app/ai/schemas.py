@@ -238,6 +238,14 @@ class SignalAnalysisOutput(BaseModel):
     cited_evidence_ids: List[str] = Field(default_factory=list)
     analyzed_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
+    @property
+    def baseline_comparison(self) -> Dict[str, Any]:
+        return self.usage_baseline_comparison
+
+    @property
+    def missing_data_flags(self) -> List[str]:
+        return self.missing_data_gaps
+
 
 class RiskExplanationOutput(BaseModel):
     """
@@ -295,6 +303,10 @@ class InvestigationAutopsy(BaseModel):
     cited_evidence_ids: List[str] = Field(default_factory=list)
     rule_version: str = "v2.0.0"
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
+    @property
+    def causal_narrative(self) -> str:
+        return self.causal_explanation
 
 
 class ProposedEmailDraft(BaseModel):

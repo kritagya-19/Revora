@@ -8,7 +8,57 @@ from app.models.schemas import (
 from app.services.integration_repository import integration_repo
 from app.services.free_pipeline_service import free_pipelines
 
+from app.services.hubspot_sync_service import hubspot_sync_service
+from app.services.hubspot_client import hubspot_client, HubSpotAPIError
+
 router = APIRouter()
+
+@router.get("/hubspot/status")
+def get_hubspot_status():
+    """
+    GET /api/integrations/hubspot/status
+    Returns HubSpot CRM service key configuration, authentication status, and record counts.
+    """
+    try:
+        return hubspot_sync_service.get_status()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check HubSpot status: {e}")
+
+@router.post("/hubspot/sync")
+def sync_hubspot_data():
+    """
+    POST /api/integrations/hubspot/sync
+    Triggers direct HubSpot CRM API ingestion for companies, contacts, deals, owners, and tickets.
+    Persists and normalizes into MongoDB with duplicate prevention.
+    """
+    try:
+        return hubspot_sync_service.sync_all()
+    except HubSpotAPIError as e:
+        status_code = e.status_code if e.status_code in (401, 403, 429) else 502
+        raise HTTPException(status_code=status_code, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"HubSpot synchronization error: {e}")
+
+@router.get("/hubspot/sync/status")
+def get_hubspot_sync_status():
+    """
+    GET /api/integrations/hubspot/sync/status
+    Returns latest HubSpot synchronization job status, metrics, and freshness.
+    """
+    conn = integration_repo.get_integration_by_id("conn-hubspot-01")
+    runs = [r for r in integration_repo.get_recent_sync_runs(limit=10) if r.provider == "HubSpot"]
+    latest_run = runs[0] if runs else None
+
+    return {
+        "status": latest_run.status if latest_run else ("connected" if conn else "not_synced"),
+        "sync_run_id": latest_run.id if latest_run else None,
+        "last_sync_time": conn.last_sync_time if conn else (latest_run.completed_at if latest_run else None),
+        "data_freshness_status": conn.data_freshness_status if conn else "unknown",
+        "records_ingested": latest_run.records_ingested if latest_run else (conn.records_synced if conn else 0),
+        "records_updated": latest_run.records_updated if latest_run else 0,
+        "duration_ms": latest_run.duration_ms if latest_run else 0,
+        "log_message": latest_run.log_message if latest_run else "No synchronization runs recorded yet."
+    }
 
 @router.get("", response_model=List[IntegrationConnector])
 def list_integrations():

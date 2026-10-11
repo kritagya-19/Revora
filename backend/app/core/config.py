@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # Execution mode: simulated or live
     EXECUTION_MODE: str = "simulated"
 
+    # HubSpot CRM Integration
+    HUBSPOT_ACCESS_TOKEN: str = ""
+    HUBSPOT_BASE_URL: str = "https://api.hubapi.com"
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

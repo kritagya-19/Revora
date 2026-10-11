@@ -115,6 +115,13 @@ class ActionExecutor:
             "provider_message": "OK (Delivered via Free Webhook / Outbox Pipeline)"
         }
 
+        pipeline_details = {
+            "webhook_dispatch": webhook_result,
+            "email_dispatch": email_result,
+            "provider_code": 200,
+            "provider_message": "OK (Delivered via Free Webhook / Outbox Pipeline)"
+        }
+
         result = {
             "execution_id": exec_id,
             "mode": "live" if is_live else "simulated",
