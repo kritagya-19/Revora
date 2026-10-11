@@ -15,6 +15,8 @@ import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
 import { ApprovalCenterView } from './components/ApprovalCenterView';
 import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
+import { SystemFlowView } from './components/SystemFlowView';
+import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
 import { ErrorState } from './components/ErrorState';
@@ -22,12 +24,20 @@ import {
   Users,
   AlertTriangle,
   Calendar,
-  DollarSign
+  DollarSign,
+  ArrowRight,
+  Database,
+  LayoutDashboard,
+  Sparkles,
+  Send,
+  CheckCircle2
 } from 'lucide-react';
 
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavItem>('dashboard');
   const [viewMode, setViewMode] = useState<'radar' | 'customer_detail' | 'autopsy' | 'copilot'>('radar');
+  const [copilotTab, setCopilotTab] = useState<'email' | 'task' | 'crm'>('email');
+  const [selectedRiskFilter, setSelectedRiskFilter] = useState<string>('all');
   const [accounts, setAccounts] = useState<AccountRiskSummary[]>([]);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -115,21 +125,32 @@ export function App() {
   const handleSelectAccount = (accountId: string) => {
     setSelectedAccountId(accountId);
     setViewMode('customer_detail');
+    setCurrentTab('customers');
   };
 
-  // Global search filter across accounts
+  const handleInvestigateAccount = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setViewMode('autopsy');
+    setCurrentTab('autopsy');
+  };
+
+  // Global search & risk filter across accounts
   const filteredAccounts = useMemo(() => {
-    if (!searchQuery.trim()) return accounts;
-    const q = searchQuery.toLowerCase();
-    return accounts.filter(
-      (a) =>
+    return accounts.filter((a) => {
+      if (selectedRiskFilter !== 'all' && a.risk_level !== selectedRiskFilter) {
+        return false;
+      }
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
         a.name.toLowerCase().includes(q) ||
         (a.domain && a.domain.toLowerCase().includes(q)) ||
         (a.industry && a.industry.toLowerCase().includes(q)) ||
         a.csm_owner.toLowerCase().includes(q) ||
         a.primary_reason_code.toLowerCase().includes(q)
-    );
-  }, [accounts, searchQuery]);
+      );
+    });
+  }, [accounts, searchQuery, selectedRiskFilter]);
 
   // Dynamic Metrics derived directly from backend/data
   const metrics = useMemo(() => {
@@ -138,10 +159,14 @@ export function App() {
       (a) => a.risk_level === 'critical' || a.risk_level === 'high'
     );
     const highRiskCount = dashboardSummary?.high_risk_accounts_count ?? highRiskAccounts.length;
-    const highRiskArr = dashboardSummary?.high_risk_arr ?? highRiskAccounts.reduce((sum, a) => sum + a.arr, 0);
-    const renewalSoonCount =
-      dashboardSummary?.renewals_due_soon_count ??
-      accounts.filter((a) => a.urgency_days_to_renewal <= 60).length;
+
+    const highRiskArr =
+      dashboardSummary?.high_risk_arr ??
+      highRiskAccounts.reduce((sum, a) => sum + (a.arr || 0), 0);
+
+    const renewalSoonCount = accounts.filter(
+      (a) => (a.urgency_days_to_renewal || 999) <= 60
+    ).length;
 
     return {
       totalMonitored,
@@ -171,42 +196,48 @@ export function App() {
   };
 
   const getPageTitle = () => {
+    if (currentTab === 'workflow') {
+      return {
+        title: 'How Revora Works — 6-Step Pipeline & Problem Matrix',
+        subtitle: 'End-to-End Flow: From scattered signals to verified, human-approved retention actions'
+      };
+    }
     if (currentTab === 'copilot' || viewMode === 'copilot') {
       return {
         title: selectedAccountDetail ? `${selectedAccountDetail.name} — Action Copilot` : 'Next-Best-Action Copilot',
-        subtitle: 'Page 5: Editable Action Proposals (Email Draft, Follow-up Task, Structured CRM Update)'
+        subtitle: 'Step 4: AI Prepares Action Proposals — Outreach email, follow-up task, and structured CRM update'
       };
     }
     if (currentTab === 'autopsy' || viewMode === 'autopsy') {
       return {
         title: selectedAccountDetail ? `${selectedAccountDetail.name} — Risk Autopsy` : 'Revenue Risk Autopsy',
-        subtitle: 'Evidence-Grounded AI Causal Analysis & Multi-Signal Synthesis'
+        subtitle: 'Step 3 & 4: Deep-Dive AI Risk Diagnosis — Reconstructs situation, explains conclusions, identifies unknowns & recommends action'
       };
     }
     if (currentTab === 'customers' || viewMode === 'customer_detail') {
       return {
         title: selectedAccountDetail ? selectedAccountDetail.name : 'Customer Details',
-        subtitle: 'Customer Intelligence & Unified Multi-Source Evidence Timeline'
+        subtitle: 'Step 1 & 2: Unified Customer Profile — Multi-source chronological evidence feed (CRM, email, calendar, usage)'
       };
     }
     switch (currentTab) {
       case 'dashboard':
         return {
           title: 'Revenue Radar',
-          subtitle: 'Deterministic Multi-Signal Churn Detection & Revenue Exposure'
+          subtitle: 'Step 3: Multi-Signal Churn Detection & Prioritization — Cross-source risk and urgency ranking'
         };
       case 'approvals':
         return {
           title: 'Approval Center',
-          subtitle: 'Human-Gated Next-Best-Action Workflow'
+          subtitle: 'Step 5 & 6: Human Review & Execution Gate — Verifies evidence, approves proposals, and records audit history'
         };
       case 'settings':
         return {
-          title: 'Integrations & Rules',
-          subtitle: 'MongoDB Data Connections and Weights'
+          title: 'Connectors & Rules',
+          subtitle: 'Step 1: Signal Ingestion Connectors & Detection Rules — CRM, Email, Calendar, and Telemetry streams'
         };
       default:
-        return { title: 'SignalBridge AI', subtitle: 'Revenue Intelligence' };
+        return { title: 'Revora | SignalBridge AI', subtitle: 'Evidence-First Revenue Intelligence' };
     }
   };
 
@@ -228,8 +259,8 @@ export function App() {
       {/* Loading State */}
       {loading && (
         <LoadingState
-          message="Connecting to Database & Ingesting Signals..."
-          subtext="Validating MongoDB database connection and evaluating deterministic risk scores"
+          message="Collecting Customer Signals & Ingesting Telemetry..."
+          subtext="Harmonizing cross-source records into unified accounts and detecting revenue risks"
         />
       )}
 
@@ -245,38 +276,109 @@ export function App() {
       {/* Main Revenue Radar / App Content */}
       {!loading && !error && (
         <>
+          {/* ========================================================================= */}
+          {/* INTERACTIVE 6-STEP PIPELINE STEPPER: Instant Guidance Across All Views    */}
+          {/* ========================================================================= */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-400">
+                  Revenue Intelligence Journey
+                </span>
+                <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+                  Click any stage to understand the workflow and explore each capability
+                </span>
+              </div>
+              <button
+                onClick={() => handleSelectTab('workflow')}
+                className="text-xs text-blue-400 hover:text-blue-300 font-semibold cursor-pointer flex items-center gap-1.5"
+              >
+                <span>6-Step Methodology</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+              {[
+                { step: 1, label: 'Ingest Signals', tab: 'settings' as NavItem, icon: Database, isCurrent: currentTab === 'settings' },
+                { step: 2, label: 'Unified Profile', tab: 'customers' as NavItem, icon: Users, isCurrent: currentTab === 'customers' || viewMode === 'customer_detail' },
+                { step: 3, label: 'Risk Radar', tab: 'dashboard' as NavItem, icon: LayoutDashboard, isCurrent: currentTab === 'dashboard' && viewMode === 'radar' },
+                { step: 4, label: 'Risk Autopsy', tab: 'autopsy' as NavItem, icon: Sparkles, isCurrent: currentTab === 'autopsy' || viewMode === 'autopsy' },
+                { step: 5, label: 'Action Copilot', tab: 'copilot' as NavItem, icon: Send, isCurrent: currentTab === 'copilot' || viewMode === 'copilot' },
+                { step: 6, label: 'Approval Gate', tab: 'approvals' as NavItem, icon: CheckCircle2, isCurrent: currentTab === 'approvals' }
+              ].map((s) => {
+                const Icon = s.icon;
+                return (
+                  <button
+                    key={s.step}
+                    onClick={() => handleSelectTab(s.tab)}
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      s.isCurrent
+                        ? 'bg-blue-600/20 border-blue-500 text-white ring-1 ring-blue-500/50 shadow-md shadow-blue-950/30'
+                        : 'bg-slate-950/80 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                      s.isCurrent ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono font-bold block text-slate-500 leading-tight">
+                        STEP {s.step}
+                      </span>
+                      <span className="text-xs font-semibold block truncate leading-tight mt-0.5">
+                        {s.label}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* TAB 1: Revenue Radar View */}
           {currentTab === 'dashboard' && viewMode === 'radar' && (
-            <div className="space-y-6">
-              {/* Top 4 Summary Cards (Exact Page 2 Specifications) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-8">
+              {/* Guidance Hero Banner & Rich Portfolio Visual Charts */}
+              <PortfolioCharts
+                accounts={accounts}
+                selectedRiskFilter={selectedRiskFilter}
+                onSelectRiskFilter={setSelectedRiskFilter}
+                currency={currency}
+                onNavigateToAutopsy={handleInvestigateAccount}
+              />
+
+              {/* Top 4 Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <MetricCard
                   label="Accounts monitored"
                   value={metrics.totalMonitored}
                   subtext="Active B2B SaaS Customer Portfolio"
-                  icon={<Users className="w-5 h-5" />}
+                  icon={<Users className="w-5 h-5 text-blue-400" />}
                 />
 
                 <MetricCard
                   label="High-risk accounts"
                   value={metrics.highRiskCount}
-                  subtext="Based on deterministic risk engine rules"
-                  icon={<AlertTriangle className="w-5 h-5 text-red-600" />}
+                  subtext="Compounding churn alerts triggered"
+                  icon={<AlertTriangle className="w-5 h-5 text-rose-400" />}
                   highlight={metrics.highRiskCount > 0}
+                  badge="Critical"
                 />
 
                 <MetricCard
                   label="Renewals due soon"
                   value={metrics.renewalSoonCount}
                   subtext="Active renewal window (≤ 60 days)"
-                  icon={<Calendar className="w-5 h-5" />}
+                  icon={<Calendar className="w-5 h-5 text-amber-400" />}
                 />
 
                 <MetricCard
                   label="ARR in high-risk accounts"
                   value={formatCurrency(metrics.highRiskArr)}
                   subtext="Contract ARR exposed to churn likelihood"
-                  icon={<DollarSign className="w-5 h-5" />}
+                  icon={<DollarSign className="w-5 h-5 text-emerald-400" />}
                 />
               </div>
 
@@ -286,7 +388,10 @@ export function App() {
                   title="No matching accounts"
                   description={`No customer accounts matched your search "${searchQuery}".`}
                   actionText="Clear Search Filter"
-                  onAction={() => setSearchQuery('')}
+                  onAction={() => {
+                    setSearchQuery('');
+                    setSelectedRiskFilter('all');
+                  }}
                 />
               ) : (
                 <AccountTable
@@ -295,12 +400,13 @@ export function App() {
                   onSelectAccount={handleSelectAccount}
                   currency={currency}
                   onCurrencyChange={setCurrency}
+                  onInvestigateAccount={handleInvestigateAccount}
                 />
               )}
             </div>
           )}
 
-          {/* TAB 2 or Detail View: Page 3 Customer Details and Unified Evidence Timeline */}
+          {/* TAB 2 or Detail View: Customer Details and Unified Evidence Timeline */}
           {(currentTab === 'customers' || viewMode === 'customer_detail') && selectedAccountDetail && (
             <CustomerDetailView
               account={selectedAccountDetail}
@@ -339,9 +445,13 @@ export function App() {
               }}
               currency={currency}
               onNavigateToApprovals={() => setCurrentTab('approvals')}
-              onNavigateToCopilot={() => {
+              onNavigateToCopilot={(subtab) => {
+                if (subtab) setCopilotTab(subtab);
                 setViewMode('copilot');
                 setCurrentTab('copilot');
+              }}
+              onNavigateToSystemFlow={() => {
+                handleSelectTab('workflow');
               }}
             />
           )}
@@ -366,6 +476,7 @@ export function App() {
                 setCurrentTab('approvals');
               }}
               currency={currency}
+              initialTab={copilotTab}
             />
           )}
 
@@ -384,7 +495,18 @@ export function App() {
             />
           )}
 
-          {/* TAB 6 / Page 7: Settings & Integrations */}
+          {/* TAB 6: How Revora Works (6-Step Pipeline & Problem Matrix) */}
+          {currentTab === 'workflow' && (
+            <SystemFlowView
+              onNavigateToTab={handleSelectTab}
+              onOpenAutopsyForDemo={() => {
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+            />
+          )}
+
+          {/* TAB 7: Settings & Integrations */}
           {currentTab === 'settings' && (
             <SettingsAndIntegrationsView
               executionMode={executionMode}

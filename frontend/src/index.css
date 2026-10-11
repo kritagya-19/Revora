@@ -1,36 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-revora-bg: #FFFFFF;
-  --color-revora-surface: #FFFFFF;
-  --color-revora-text: #020062;
-  --color-revora-primary: #2563EB;
-  --color-revora-accent: #0025AE;
-  --color-revora-border: #E2E8F0;
-
-  --font-headline: "Gloock", serif;
-  --font-body: "Inter", sans-serif;
+  --font-headline: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 :root {
-  --color-background: #FFFFFF;
-  --color-surface: #FFFFFF;
-  --color-text: #020062;
-  --color-primary: #2563EB;
-  --color-accent: #0025AE;
-  --color-border: #E2E8F0;
-
-  --font-headline: "Gloock", serif;
-  --font-body: "Inter", sans-serif;
+  --font-headline: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
-  background-color: var(--color-background);
-  color: var(--color-text);
   font-family: var(--font-body);
   margin: 0;
   padding: 0;
@@ -38,22 +28,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, .font-headline {
+h1, h2, h3, h4, .font-headline {
   font-family: var(--font-headline);
+  letter-spacing: -0.02em;
 }
 
-/* Custom scrollbars for clean editorial look */
+/* Custom modern scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #FAFAFA;
+  background: #0f172a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 3px;
+  background: #334155;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #475569;
 }

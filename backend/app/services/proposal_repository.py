@@ -34,12 +34,12 @@ class ProposalRepository:
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
 
     def _init_seed_proposals(self):
-        # Proposal for Acme Dynamics (acc-101)
+        # Proposal for Acme Technologies (acc-101)
         p1_payload = {
             "recipient": "vp-eng@acme.com",
-            "subject": "Acme Dynamics Renewal & Service Continuity Check-in",
-            "body": "Hi team, noticed data sync concerns and approaching renewal on Nov 5. Let's schedule 20 mins to review tier options and optimize active seats.",
-            "evidence_ids": ["EVID-001", "EVID-002", "EVID-003"]
+            "subject": "Acme Technologies Renewal & Service Continuity Check-in",
+            "body": "Hi team, noticed usage changes and approaching renewal in 43 days. Let's schedule 20 mins to review tier options and optimize adoption readiness.",
+            "evidence_ids": ["sig-101", "sig-102", "sig-103"]
         }
         p1_hash = self.calculate_hash("csm_outreach_email", "Urgent Renewal Outreach Email", p1_payload)
         p1 = ActionProposal(

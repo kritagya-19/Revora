@@ -3,7 +3,6 @@ import type { AccountRiskSummary } from '../types/api';
 import { RiskBadge } from './RiskBadge';
 import {
   ArrowUpDown,
-  ChevronRight,
   Building,
   Calendar,
   DollarSign,
@@ -13,7 +12,9 @@ import {
   Clock,
   User,
   Activity,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 interface AccountTableProps {
@@ -22,6 +23,7 @@ interface AccountTableProps {
   onSelectAccount: (accountId: string) => void;
   currency?: 'USD' | 'INR';
   onCurrencyChange?: (currency: 'USD' | 'INR') => void;
+  onInvestigateAccount?: (accountId: string) => void;
 }
 
 type SortField = 'name' | 'arr' | 'risk_score' | 'urgency_days_to_renewal';
@@ -31,7 +33,8 @@ export function AccountTable({
   selectedAccountId,
   onSelectAccount,
   currency = 'USD',
-  onCurrencyChange
+  onCurrencyChange,
+  onInvestigateAccount
 }: AccountTableProps) {
   const [sortField, setSortField] = useState<SortField>('risk_score');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
@@ -54,20 +57,16 @@ export function AccountTable({
       setSortAsc(!sortAsc);
     } else {
       setSortField(field);
-      setSortAsc(field === 'name'); // default names A-Z, numbers desc
+      setSortAsc(field === 'name');
     }
   };
 
   // Currency formatter
   const formatCurrency = (amount: number) => {
     if (currency === 'INR') {
-      // Convert illustrative 1 USD ~ 83 INR
       const inrAmount = amount * 83;
-      if (inrAmount >= 10000000) {
-        return `₹${(inrAmount / 10000000).toFixed(2)} Cr`;
-      } else if (inrAmount >= 100000) {
-        return `₹${(inrAmount / 100000).toFixed(1)} L`;
-      }
+      if (inrAmount >= 10000000) return `₹${(inrAmount / 10000000).toFixed(2)} Cr`;
+      if (inrAmount >= 100000) return `₹${(inrAmount / 100000).toFixed(1)} L`;
       return `₹${inrAmount.toLocaleString('en-IN')}`;
     }
     return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
@@ -76,35 +75,18 @@ export function AccountTable({
   // Filter accounts
   const filteredAccounts = useMemo(() => {
     return accounts.filter((acc) => {
-      // Risk tier filter
-      if (filterRisk !== 'all' && acc.risk_level !== filterRisk) {
-        return false;
-      }
-      // Owner filter
-      if (filterOwner !== 'all' && acc.csm_owner !== filterOwner) {
-        return false;
-      }
-      // Renewal horizon filter
-      if (filterRenewal === '30' && acc.urgency_days_to_renewal > 30) {
-        return false;
-      }
-      if (filterRenewal === '60' && acc.urgency_days_to_renewal > 60) {
-        return false;
-      }
-      if (filterRenewal === '90' && acc.urgency_days_to_renewal > 90) {
-        return false;
-      }
-      // Table search
+      if (filterRisk !== 'all' && acc.risk_level !== filterRisk) return false;
+      if (filterOwner !== 'all' && acc.csm_owner !== filterOwner) return false;
+      if (filterRenewal === '30' && (acc.urgency_days_to_renewal || 999) > 30) return false;
+      if (filterRenewal === '60' && (acc.urgency_days_to_renewal || 999) > 60) return false;
+      if (filterRenewal === '90' && (acc.urgency_days_to_renewal || 999) > 90) return false;
       if (tableSearch.trim()) {
         const q = tableSearch.toLowerCase();
         const matchesName = acc.name.toLowerCase().includes(q);
-        const matchesDomain = acc.domain?.toLowerCase().includes(q) || false;
-        const matchesOwner = acc.csm_owner.toLowerCase().includes(q);
-        const matchesWarning = acc.main_warning?.toLowerCase().includes(q) || false;
-        const matchesReason = acc.primary_reason_code.toLowerCase().includes(q);
-        if (!matchesName && !matchesDomain && !matchesOwner && !matchesWarning && !matchesReason) {
-          return false;
-        }
+        const matchesDomain = acc.domain && acc.domain.toLowerCase().includes(q);
+        const matchesOwner = acc.csm_owner && acc.csm_owner.toLowerCase().includes(q);
+        const matchesTrigger = acc.primary_reason_code && acc.primary_reason_code.toLowerCase().includes(q);
+        if (!matchesName && !matchesDomain && !matchesOwner && !matchesTrigger) return false;
       }
       return true;
     });
@@ -114,14 +96,11 @@ export function AccountTable({
   const sortedAccounts = useMemo(() => {
     return [...filteredAccounts].sort((a, b) => {
       const factor = sortAsc ? 1 : -1;
-      if (sortField === 'name') {
-        return a.name.localeCompare(b.name) * factor;
-      } else if (sortField === 'arr') {
-        return (a.arr - b.arr) * factor;
-      } else if (sortField === 'risk_score') {
-        return (a.risk_score - b.risk_score) * factor;
-      } else if (sortField === 'urgency_days_to_renewal') {
-        return (a.urgency_days_to_renewal - b.urgency_days_to_renewal) * factor;
+      if (sortField === 'name') return a.name.localeCompare(b.name) * factor;
+      if (sortField === 'arr') return (a.arr - b.arr) * factor;
+      if (sortField === 'risk_score') return (a.risk_score - b.risk_score) * factor;
+      if (sortField === 'urgency_days_to_renewal') {
+        return ((a.urgency_days_to_renewal || 999) - (b.urgency_days_to_renewal || 999)) * factor;
       }
       return 0;
     });
@@ -143,45 +122,45 @@ export function AccountTable({
     tableSearch.trim().length > 0;
 
   return (
-    <div className="border border-[#E2E8F0] rounded-xl bg-white overflow-hidden shadow-xs">
-      {/* Table Header & Interactive Control Bar */}
-      <div className="p-4 border-b border-[#E2E8F0] bg-slate-50/50 space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Left: Section Title and Quick Stats */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB]">
-              <Activity className="w-4 h-4" />
+    <div className="border border-slate-800 rounded-2xl bg-slate-900 overflow-hidden shadow-xl">
+      {/* Table Header & Controls Bar */}
+      <div className="p-6 border-b border-slate-800 bg-slate-950/60 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Section Title */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-headline text-lg font-bold text-[#020062] leading-tight">
+              <h3 className="font-headline text-lg sm:text-xl font-bold text-white tracking-tight">
                 Ranked Customer Accounts
               </h3>
-              <p className="text-[11px] text-slate-500 font-body">
+              <p className="text-xs sm:text-sm text-slate-400 font-body">
                 Deterministic risk priority · Verified against multi-source evidence
               </p>
             </div>
           </div>
 
-          {/* Right: Currency Toggle & Filter Summary */}
-          <div className="flex items-center gap-2">
+          {/* Right Controls: Currency Toggle & Reset */}
+          <div className="flex items-center gap-3">
             {onCurrencyChange && (
-              <div className="flex items-center bg-white border border-[#E2E8F0] rounded-lg p-0.5 text-xs font-medium">
+              <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs font-semibold">
                 <button
                   onClick={() => onCurrencyChange('USD')}
-                  className={`px-2 py-1 rounded cursor-pointer transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
                     currency === 'USD'
-                      ? 'bg-[#0025AE] text-white'
-                      : 'text-slate-600 hover:text-[#020062]'
+                      ? 'bg-blue-600 text-white font-bold'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   $ USD
                 </button>
                 <button
                   onClick={() => onCurrencyChange('INR')}
-                  className={`px-2 py-1 rounded cursor-pointer transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${
                     currency === 'INR'
-                      ? 'bg-[#0025AE] text-white'
-                      : 'text-slate-600 hover:text-[#020062]'
+                      ? 'bg-blue-600 text-white font-bold'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   ₹ INR
@@ -192,37 +171,37 @@ export function AccountTable({
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-600 hover:text-[#020062] hover:bg-slate-50 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 cursor-pointer transition-colors"
               >
-                <RotateCcw className="w-3 h-3 text-slate-400" />
-                Reset Filters
+                <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                Reset
               </button>
             )}
           </div>
         </div>
 
-        {/* Filters Grid */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#E2E8F0]/70">
+        {/* Filter Controls Row */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-800/80">
           {/* Risk Level Pills */}
-          <div className="flex items-center gap-1.5 text-xs font-body">
-            <span className="text-slate-500 font-medium text-[11px] uppercase tracking-wider">
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <span className="text-slate-400 font-medium font-mono uppercase tracking-wider">
               Risk:
             </span>
-            <div className="inline-flex rounded-lg border border-[#E2E8F0] bg-white p-0.5 text-xs">
+            <div className="inline-flex rounded-xl border border-slate-800 bg-slate-950 p-1 gap-1">
               {[
                 { key: 'all', label: 'All' },
                 { key: 'critical', label: 'Critical' },
                 { key: 'high', label: 'High' },
                 { key: 'medium', label: 'Medium' },
-                { key: 'low', label: 'Low' }
+                { key: 'low', label: 'Healthy' }
               ].map((tier) => (
                 <button
                   key={tier.key}
                   onClick={() => setFilterRisk(tier.key)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium cursor-pointer transition-all ${
+                  className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                     filterRisk === tier.key
-                      ? 'bg-[#0025AE] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-[#020062] hover:bg-slate-50'
+                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-900'
                   }`}
                 >
                   {tier.label}
@@ -231,49 +210,43 @@ export function AccountTable({
             </div>
           </div>
 
-          {/* Secondary Dropdowns: CSM Owner & Renewal Window */}
-          <div className="flex flex-wrap items-center gap-2 text-xs font-body">
-            {/* CSM Filter */}
-            <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={filterOwner}
-                onChange={(e) => setFilterOwner(e.target.value)}
-                className="bg-white border border-[#E2E8F0] text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#2563EB] cursor-pointer"
-              >
-                <option value="all">All CSM Owners</option>
-                {csmOwners.map((owner) => (
-                  <option key={owner} value={owner}>
-                    {owner}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Search & Dropdown Filters */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Owner Dropdown */}
+            <select
+              value={filterOwner}
+              onChange={(e) => setFilterOwner(e.target.value)}
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+            >
+              <option value="all">All CSM Owners</option>
+              {csmOwners.map((owner) => (
+                <option key={owner} value={owner}>
+                  {owner}
+                </option>
+              ))}
+            </select>
 
-            {/* Renewal Window Filter */}
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={filterRenewal}
-                onChange={(e) => setFilterRenewal(e.target.value)}
-                className="bg-white border border-[#E2E8F0] text-slate-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#2563EB] cursor-pointer"
-              >
-                <option value="all">All Renewal Windows</option>
-                <option value="30">Due in ≤ 30 Days</option>
-                <option value="60">Due in ≤ 60 Days</option>
-                <option value="90">Due in ≤ 90 Days</option>
-              </select>
-            </div>
+            {/* Renewal Dropdown */}
+            <select
+              value={filterRenewal}
+              onChange={(e) => setFilterRenewal(e.target.value)}
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+            >
+              <option value="all">All Renewal Windows</option>
+              <option value="30">Within 30 Days</option>
+              <option value="60">Within 60 Days</option>
+              <option value="90">Within 90 Days</option>
+            </select>
 
-            {/* Search Input */}
+            {/* In-table Search */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="Filter table rows..."
+                placeholder="Search rows..."
                 value={tableSearch}
                 onChange={(e) => setTableSearch(e.target.value)}
-                className="pl-8 pr-3 py-1.5 bg-white border border-[#E2E8F0] rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#2563EB] w-36 sm:w-48"
+                className="pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 w-44 sm:w-56"
               />
             </div>
           </div>
@@ -282,189 +255,193 @@ export function AccountTable({
 
       {/* Table Element */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs font-body">
+        <table className="w-full text-left border-collapse text-sm font-body">
           <thead>
-            <tr className="border-b border-[#E2E8F0] bg-slate-50/70 text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
+            <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-400 uppercase tracking-wider text-xs font-mono font-bold">
               <th
                 onClick={() => handleSort('name')}
-                className="py-3 px-4 cursor-pointer hover:text-[#020062] transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
               >
-                <div className="flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-slate-500" />
                   <span>Account</span>
-                  <ArrowUpDown className={`w-3 h-3 ${sortField === 'name' ? 'text-[#0025AE]' : 'text-slate-300'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'name' ? 'text-blue-400' : 'text-slate-600'}`} />
                 </div>
               </th>
 
               <th
                 onClick={() => handleSort('arr')}
-                className="py-3 px-4 cursor-pointer hover:text-[#020062] transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
               >
-                <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-slate-500" />
                   <span>ARR</span>
-                  <ArrowUpDown className={`w-3 h-3 ${sortField === 'arr' ? 'text-[#0025AE]' : 'text-slate-300'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'arr' ? 'text-blue-400' : 'text-slate-600'}`} />
                 </div>
               </th>
 
               <th
                 onClick={() => handleSort('risk_score')}
-                className="py-3 px-4 cursor-pointer hover:text-[#020062] transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
               >
-                <div className="flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-slate-500" />
                   <span>Risk Score</span>
-                  <ArrowUpDown className={`w-3 h-3 ${sortField === 'risk_score' ? 'text-[#0025AE]' : 'text-slate-300'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'risk_score' ? 'text-blue-400' : 'text-slate-600'}`} />
                 </div>
               </th>
 
               <th
                 onClick={() => handleSort('urgency_days_to_renewal')}
-                className="py-3 px-4 cursor-pointer hover:text-[#020062] transition-colors select-none"
+                className="py-4 px-6 cursor-pointer hover:text-white transition-colors select-none"
               >
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-500" />
                   <span>Urgency</span>
-                  <ArrowUpDown className={`w-3 h-3 ${sortField === 'urgency_days_to_renewal' ? 'text-[#0025AE]' : 'text-slate-300'}`} />
+                  <ArrowUpDown className={`w-3.5 h-3.5 ${sortField === 'urgency_days_to_renewal' ? 'text-blue-400' : 'text-slate-600'}`} />
                 </div>
               </th>
 
-              <th className="py-3 px-4 min-w-[220px]">
-                <div className="flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Main Warning / Trigger</span>
+              <th className="py-4 px-6 min-w-[240px]">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-slate-500" />
+                  <span>Primary Trigger</span>
                 </div>
               </th>
 
-              <th className="py-3 px-4">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <th className="py-4 px-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-slate-500" />
                   <span>Renewal</span>
                 </div>
               </th>
 
-              <th className="py-3 px-4">
-                <div className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-slate-400" />
+              <th className="py-4 px-6">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-slate-500" />
                   <span>Owner</span>
                 </div>
               </th>
 
-              <th className="py-3 px-4 text-right">
+              <th className="py-4 px-6 text-right">
                 <span>Action</span>
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-[#E2E8F0]">
+          <tbody className="divide-y divide-slate-800/80">
             {sortedAccounts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-10 text-center text-slate-400 text-xs">
+                <td colSpan={8} className="py-12 text-center text-slate-400 text-sm">
                   No customer accounts match the selected filter criteria.
                 </td>
               </tr>
             ) : (
               sortedAccounts.map((account) => {
                 const isSelected = account.id === selectedAccountId;
-                const isUrgent = account.urgency_days_to_renewal <= 30;
+                const isUrgent = (account.urgency_days_to_renewal || 999) <= 30;
 
                 return (
                   <tr
                     key={account.id}
                     onClick={() => onSelectAccount(account.id)}
-                    className={`cursor-pointer transition-colors group ${
+                    className={`cursor-pointer transition-all group ${
                       isSelected
-                        ? 'bg-[#EFF6FF] border-l-4 border-l-[#0025AE]'
-                        : 'hover:bg-slate-50/90 bg-white'
+                        ? 'bg-blue-950/40 border-l-4 border-l-blue-500 text-white'
+                        : 'hover:bg-slate-850/80 bg-slate-900 text-slate-200'
                     }`}
                   >
                     {/* 1. Account Name & Industry */}
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-sm text-[#020062] group-hover:text-[#2563EB] transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="font-bold text-base text-white group-hover:text-blue-400 transition-colors">
                         {account.name}
                       </div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                        <span className="font-mono text-slate-600">{account.domain || 'saas.app'}</span>
-                        <span className="text-slate-300">•</span>
+                      <div className="text-xs text-slate-400 flex items-center gap-2 mt-1">
+                        <span className="font-mono text-slate-400">{account.domain || 'saas.app'}</span>
+                        <span className="text-slate-600">•</span>
                         <span>{account.industry || 'B2B SaaS'}</span>
                       </div>
                     </td>
 
                     {/* 2. ARR */}
-                    <td className="py-3.5 px-4 font-mono font-semibold text-slate-900 whitespace-nowrap">
+                    <td className="py-4 px-6 font-mono font-bold text-base text-white whitespace-nowrap">
                       {formatCurrency(account.arr)}
                     </td>
 
                     {/* 3. Risk Score + Badge */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <RiskBadge level={account.risk_level} score={account.risk_score} />
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <RiskBadge level={account.risk_level} score={account.risk_score} size="md" />
                     </td>
 
                     {/* 4. Urgency */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {isUrgent ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800 border border-red-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                          Immediate (&lt;30d)
-                        </span>
-                      ) : account.urgency_days_to_renewal <= 60 ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                          Within 60d
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Stable (&gt;60d)
-                        </span>
-                      )}
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold border ${
+                          isUrgent
+                            ? 'bg-rose-950/80 text-rose-300 border-rose-800/80'
+                            : (account.urgency_days_to_renewal || 999) <= 60
+                            ? 'bg-amber-950/80 text-amber-300 border-amber-800/80'
+                            : 'bg-slate-800 text-slate-300 border-slate-700'
+                        }`}
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        {isUrgent ? 'Immediate (<30d)' : `In ${account.urgency_days_to_renewal}d`}
+                      </span>
                     </td>
 
-                    {/* 5. Main Warning / Detected Signal */}
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-0.5">
-                        <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] uppercase tracking-wide border border-slate-200">
-                          {account.primary_reason_code.replace(/_/g, ' ')}
-                        </span>
-                        <p className="text-[11px] text-slate-600 font-normal line-clamp-1 max-w-sm">
-                          {account.main_warning || (account.contributing_factors.length > 0 ? account.contributing_factors[0] : 'Active monitoring')}
-                        </p>
+                    {/* 5. Primary Warning Trigger */}
+                    <td className="py-4 px-6">
+                      <div className="text-xs font-medium text-slate-200 line-clamp-1">
+                        {account.main_warning || account.primary_reason_code.replace(/_/g, ' ')}
                       </div>
+                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mt-1">
+                        {account.primary_reason_code.replace(/_/g, ' ')}
+                      </span>
                     </td>
 
                     {/* 6. Renewal Date */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="font-medium text-slate-800">
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-white font-mono">
                         {account.renewal_date}
                       </div>
-                      <div className="text-[11px] text-slate-500">
-                        in <strong>{account.urgency_days_to_renewal}</strong> days
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        in {account.urgency_days_to_renewal} days
                       </div>
                     </td>
 
-                    {/* 7. Owner */}
-                    <td className="py-3.5 px-4 text-slate-700 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#0025AE]/10 text-[#0025AE] font-bold text-[10px] flex items-center justify-center">
-                          {account.csm_owner.split(' ').map((n) => n[0]).join('')}
+                    {/* 7. CSM Owner */}
+                    <td className="py-4 px-6 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-blue-600/30 text-blue-300 flex items-center justify-center font-bold text-xs border border-blue-500/40">
+                          {account.csm_owner
+                            ? account.csm_owner
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                            : 'CS'}
                         </div>
-                        <span>{account.csm_owner}</span>
+                        <span className="text-xs font-medium text-slate-300">
+                          {account.csm_owner || 'Unassigned'}
+                        </span>
                       </div>
                     </td>
 
-                    {/* 8. Action */}
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    {/* 8. Action CTA */}
+                    <td className="py-4 px-6 text-right whitespace-nowrap">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onSelectAccount(account.id);
+                          if (onInvestigateAccount) {
+                            onInvestigateAccount(account.id);
+                          } else {
+                            onSelectAccount(account.id);
+                          }
                         }}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-[#0025AE] text-white shadow-xs'
-                            : 'bg-slate-100 text-[#0025AE] hover:bg-[#2563EB] hover:text-white'
-                        }`}
+                        className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer group-hover:scale-105"
                       >
-                        <span>Investigate</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Diagnose</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -473,28 +450,6 @@ export function AccountTable({
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Table Footer */}
-      <div className="p-3.5 border-t border-[#E2E8F0] bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
-        <div>
-          Showing <strong className="text-[#020062]">{sortedAccounts.length}</strong> of {accounts.length} accounts
-          {hasActiveFilters && <span className="ml-1 text-slate-400">(filtered)</span>}
-        </div>
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-red-500" />
-            High / Critical Priority: {sortedAccounts.filter((a) => a.risk_level === 'critical' || a.risk_level === 'high').length}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            Medium: {sortedAccounts.filter((a) => a.risk_level === 'medium').length}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Healthy / Low: {sortedAccounts.filter((a) => a.risk_level === 'low').length}
-          </span>
-        </div>
       </div>
     </div>
   );

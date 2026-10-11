@@ -39,14 +39,14 @@ def test_dashboard_summary():
 def test_account_risk_detail():
     risk = account_repo.get_account_risk_detail("acc-101")
     assert risk is not None
-    assert risk.account_name == "Acme Dynamics"
+    assert risk.account_name == "Acme Technologies"
     assert risk.risk_score > 0
     assert len(risk.contributing_factors) > 0
 
 def test_customer_metrics_and_signals():
     detail = account_repo.get_account_by_id("acc-101")
     assert detail is not None
-    assert detail.name == "Acme Dynamics"
+    assert detail.name == "Acme Technologies"
     assert detail.customer_metrics is not None
     assert detail.customer_metrics.active_users > 0
     assert detail.customer_metrics.days_to_renewal > 0

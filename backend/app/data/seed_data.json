@@ -2,20 +2,20 @@
   "accounts": [
     {
       "id": "acc-101",
-      "name": "Acme Dynamics",
-      "domain": "acmedynamics.com",
+      "name": "Acme Technologies",
+      "domain": "acmetechnologies.com",
       "arr": 120000.0,
-      "renewal_date": "2026-11-05",
+      "renewal_date": "2026-11-23",
       "csm_owner": "Sarah Jenkins",
-      "industry": "Enterprise Logistics",
+      "industry": "Enterprise SaaS Platform",
       "health_score": 38,
       "tier": "Enterprise",
       "status": "at_risk",
       "signals_summary": {
-        "days_to_renewal": 26,
-        "usage_drop_pct": 45.0,
-        "days_since_last_touchpoint": 35,
-        "open_critical_tickets": 2
+        "days_to_renewal": 43,
+        "usage_drop_pct": 38.0,
+        "days_since_last_touchpoint": 16,
+        "open_critical_tickets": 1
       }
     },
     {
@@ -243,33 +243,33 @@
       "account_id": "acc-101",
       "source_category": "usage",
       "signal_type": "usage_drop",
-      "title": "Severe Drop in Active Seats",
-      "summary": "Weekly active seats dropped from 240 to 132 (-45%) over the past 3 weeks.",
+      "title": "Product usage declined",
+      "summary": "Usage is 38% below the defined comparison baseline. This is evidence of declining activity, not proof of dissatisfaction.",
       "severity": "high",
       "timestamp": "2026-10-06T14:30:00Z",
-      "metadata": { "drop_pct": 45.0, "current_seats": 132, "baseline": 240 }
+      "metadata": { "drop_pct": 38.0, "current_seats": 148, "baseline": 240 }
     },
     {
       "id": "sig-102",
       "account_id": "acc-101",
-      "source_category": "support",
-      "signal_type": "support_ticket",
-      "title": "Open Critical SLA Escalation",
-      "summary": "Ticket #4920: Data sync latency exceeding SLA; tagged Urgent by Director of Ops.",
+      "source_category": "crm",
+      "signal_type": "engagement_weakened",
+      "title": "Customer engagement weakened",
+      "summary": "The latest recorded outreach has no recorded reply within 16 days.",
       "severity": "high",
       "timestamp": "2026-10-08T09:15:00Z",
-      "metadata": { "ticket_id": "4920", "priority": "critical", "days_open": 4 }
+      "metadata": { "days_since_touchpoint": 16, "status": "no_reply" }
     },
     {
       "id": "sig-103",
       "account_id": "acc-101",
-      "source_category": "email",
-      "signal_type": "budget_escalation",
-      "title": "Inbound Budget Downsizing Inquiries",
-      "summary": "VP of Engineering requested breakdown of tier options for contract renewal.",
+      "source_category": "crm",
+      "signal_type": "renewal_approaching",
+      "title": "Renewal is approaching",
+      "summary": "The CRM records renewal in 43 days, increasing the urgency of investigating the other signals.",
       "severity": "medium",
       "timestamp": "2026-10-02T16:45:00Z",
-      "metadata": { "sender": "d.vance@acmedynamics.com", "intent": "tier_downgrade" }
+      "metadata": { "days_to_renewal": 43, "renewal_date": "2026-11-23" }
     },
     {
       "id": "sig-104",

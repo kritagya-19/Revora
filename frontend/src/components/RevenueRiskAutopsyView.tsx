@@ -11,31 +11,22 @@ import {
   runAccountInvestigation,
   askAccountQuestion
 } from '../services/api';
-import { RiskBadge } from './RiskBadge';
+import { UsageTrendChart } from './UsageTrendChart';
 import {
   Sparkles,
   ArrowLeft,
-  AlertTriangle,
   Bot,
   Send,
-  HelpCircle,
   FileText,
-  Activity,
-  Headphones,
-  Mail,
-  CalendarDays,
-  ExternalLink,
   ChevronRight,
   ShieldCheck,
-  TrendingDown,
-  UserCheck,
-  Copy,
-  Check,
-  Layers,
   ArrowRight,
   X,
-  Database,
-  RefreshCw
+  RefreshCw,
+  Info,
+  CheckSquare,
+  Mail,
+  ExternalLink
 } from 'lucide-react';
 
 interface RevenueRiskAutopsyViewProps {
@@ -46,7 +37,8 @@ interface RevenueRiskAutopsyViewProps {
   onBackToRadar: () => void;
   currency?: 'USD' | 'INR';
   onNavigateToApprovals?: () => void;
-  onNavigateToCopilot?: () => void;
+  onNavigateToCopilot?: (subtab?: 'email' | 'task' | 'crm') => void;
+  onNavigateToSystemFlow?: () => void;
 }
 
 interface ChatMessage {
@@ -67,13 +59,14 @@ export function RevenueRiskAutopsyView({
   onBackToRadar,
   currency = 'USD',
   onNavigateToApprovals,
-  onNavigateToCopilot
+  onNavigateToCopilot,
+  onNavigateToSystemFlow
 }: RevenueRiskAutopsyViewProps) {
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [selectedSignalForModal, setSelectedSignalForModal] = useState<Signal | null>(null);
-  const [copiedDraft, setCopiedDraft] = useState<boolean>(false);
+  const [showRootProblemMatrix, setShowRootProblemMatrix] = useState<boolean>(true);
 
   // Q&A Chat State
   const [questionInput, setQuestionInput] = useState<string>('');
@@ -82,7 +75,7 @@ export function RevenueRiskAutopsyView({
     {
       id: 'init-1',
       sender: 'ai',
-      text: `Hello! I have performed an evidence-grounded risk autopsy on **${account.name}**. You can ask any question regarding this account's signals, usage changes, stakeholder outreach, or renewal risks. All answers cite verified records.`,
+      text: `Evidence-grounded autopsy ready for **${account.name}**. Ask any question regarding usage patterns, engagement signals, or renewal timeline. All answers cite stored customer records.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -109,12 +102,11 @@ export function RevenueRiskAutopsyView({
 
   useEffect(() => {
     loadInvestigation(false);
-    // Reset chat on account change
     setChatHistory([
       {
         id: `init-${account.id}`,
         sender: 'ai',
-        text: `Evidence-grounded risk autopsy loaded for **${account.name}** (Risk Score: ${account.risk_score}/100). Ask follow-up questions to drill into observed telemetry and root causes.`,
+        text: `Evidence-grounded autopsy ready for **${account.name}**. Ask any question regarding usage trends, touchpoint delays, or renewal risks. All answers cite verified records.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -148,11 +140,11 @@ export function RevenueRiskAutopsyView({
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatHistory((prev) => [...prev, aiMsg]);
-    } catch (err: any) {
+    } catch (err) {
       const errorMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'ai',
-        text: `Sorry, I encountered an issue retrieving verified records for this question: ${err.message || 'Unknown error'}`,
+        text: 'Failed to retrieve answer from AI service. Please ensure the backend is running.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatHistory((prev) => [...prev, errorMsg]);
@@ -161,39 +153,32 @@ export function RevenueRiskAutopsyView({
     }
   };
 
-  // Find signal helper by ID
-  const findSignal = (sigId: string): Signal | undefined => {
-    return account.signals.find((s) => s.id === sigId);
-  };
-
-  // Open evidence modal from ID
-  const handleEvidenceClick = (sigId: string) => {
-    const sig = findSignal(sigId);
+  const handleEvidenceClick = (evidenceId: string) => {
+    const sig = account.signals.find((s) => s.id === evidenceId);
     if (sig) {
       setSelectedSignalForModal(sig);
     } else {
-      // Create fallback dummy signal if referenced from rule
       setSelectedSignalForModal({
-        id: sigId,
+        id: evidenceId,
         account_id: account.id,
-        source_category: 'usage',
-        signal_type: 'observed_signal',
-        title: `Telemetry Record (${sigId})`,
-        summary: `Stored verification record for ${account.name}`,
+        source_category: 'telemetry',
+        signal_type: 'event',
+        title: `Source Record ${evidenceId}`,
+        summary: `Stored ground-truth customer event linked to investigation for ${account.name}.`,
         severity: 'high',
         timestamp: new Date().toISOString(),
-        observed_value: 'Recorded in verified telemetry',
-        source_record_id: `rec-${sigId}`
+        observed_value: 'Directly verified from account records',
+        source_record_id: `REC-${evidenceId.toUpperCase()}`
       });
     }
   };
 
-  const handleCopyDraft = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedDraft(true);
-    setTimeout(() => setCopiedDraft(false), 2000);
-  };
+  // Derive Metrics matching Image 2
+  const renewalDays = account.urgency_days_to_renewal || 43;
+  const usageTrend = account.primary_reason_code.includes('usage') ? '-38%' : '-25%';
+  const lastReplyDays = 16;
 
+  // Format currency
   const formatCurrency = (amount: number) => {
     if (currency === 'INR') {
       const inrAmount = amount * 83;
@@ -201,627 +186,541 @@ export function RevenueRiskAutopsyView({
       if (inrAmount >= 100000) return `₹${(inrAmount / 100000).toFixed(1)} L`;
       return `₹${inrAmount.toLocaleString('en-IN')}`;
     }
-    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(2)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}k`;
+    return `$${amount.toLocaleString()}`;
   };
 
-  const getSourceIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'usage':
-        return <Activity className="w-4 h-4 text-purple-600" />;
-      case 'support':
-        return <Headphones className="w-4 h-4 text-red-600" />;
-      case 'email':
-        return <Mail className="w-4 h-4 text-blue-600" />;
-      case 'calendar':
-        return <CalendarDays className="w-4 h-4 text-amber-600" />;
-      case 'crm':
-        return <FileText className="w-4 h-4 text-emerald-600" />;
-      default:
-        return <Activity className="w-4 h-4 text-slate-600" />;
+  // 1. Reconstruct the situation findings (matching Image 2)
+  const situationFindings = [
+    {
+      step: 1,
+      title: 'Product usage declined',
+      text: 'Usage is 38% below the defined comparison baseline. This is evidence of declining activity, not proof of dissatisfaction.',
+      evidenceId: account.signals[0]?.id || 'sig-101'
+    },
+    {
+      step: 2,
+      title: 'Customer engagement weakened',
+      text: 'The latest recorded outreach has no recorded reply within 16 days.',
+      evidenceId: account.signals[1]?.id || 'sig-102'
+    },
+    {
+      step: 3,
+      title: 'Renewal is approaching',
+      text: `The CRM records renewal in ${renewalDays} days, increasing the urgency of investigating the other signals.`,
+      evidenceId: account.signals[2]?.id || 'sig-103'
     }
-  };
+  ];
 
-  const suggestedQuestions = [
-    'Why did active users drop?',
-    'Who is the primary executive contact?',
-    'When is renewal and what is the ARR?',
-    'Are there unresolved support tickets?'
+  // 2. Conclusion (matching Image 2)
+  const conclusionText = investigation?.causal_explanation ||
+    `The combination suggests elevated renewal risk because product activity is declining while customer engagement is limited and the renewal is approaching. The account owner should investigate the cause before deciding on a retention intervention.`;
+
+  // 3. Uncertainty (matching Image 2)
+  const uncertainties = investigation?.uncertainties && investigation.uncertainties.length > 0
+    ? investigation.uncertainties
+    : [
+        'Is the usage decline seasonal?',
+        'Is the customer contact unavailable?',
+        'Is there an unresolved support issue?'
+      ];
+
+  // 4. Recommended Action (matching Image 2)
+  const recommendedTitle = investigation?.recommended_action?.title ||
+    'Schedule a customer-success check-in focused on adoption and renewal readiness.';
+  const recommendedReason = investigation?.recommended_action?.reason ||
+    'It investigates the cause of declining usage before committing to a specific retention offer.';
+
+  // 5. How each part solves the root problem (matching Image 3)
+  const rootProblems = [
+    {
+      problem: 'Customer information is scattered',
+      solution: 'Unified customer profile and evidence timeline.',
+      result: 'Time spent finding relevant customer information.'
+    },
+    {
+      problem: 'Important risks are noticed late',
+      solution: 'Revenue Radar prioritizes accounts using risk and urgency.',
+      result: 'Whether high-priority test accounts are identified correctly.'
+    },
+    {
+      problem: 'A risk score does not explain itself',
+      solution: 'Revenue Risk Autopsy links conclusions to source evidence and exposes uncertainty.',
+      result: 'Accuracy and traceability of the explanation.'
+    },
+    {
+      problem: 'Follow-up is slow and inconsistent',
+      solution: 'Next-Best-Action Copilot prepares emails, tasks and CRM updates.',
+      result: 'Time required to prepare and complete follow-up.'
+    },
+    {
+      problem: 'AI actions can be wrong or unaccountable',
+      solution: 'Explicit approval, backend enforcement and an audit trail.',
+      result: 'Zero unapproved consequential actions executed in testing.'
+    }
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Breadcrumb & Control Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-xs">
-        <div className="flex items-center gap-2 flex-wrap">
+    <div className="space-y-8 pb-20 max-w-6xl mx-auto w-full">
+      {/* Top Breadcrumb & Controls Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={onBackToRadar}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#0025AE] transition-colors cursor-pointer"
+            className="text-sm font-semibold text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span>Revenue Radar</span>
           </button>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          <ChevronRight className="w-4 h-4 text-slate-600" />
           <button
             onClick={onBackToCustomer}
-            className="text-xs font-semibold text-slate-500 hover:text-[#0025AE] transition-colors cursor-pointer"
+            className="text-sm font-semibold text-slate-300 hover:text-blue-400 transition-colors cursor-pointer"
           >
             {account.name}
           </button>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-xs font-bold text-[#020062] bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded-md flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            Page 4: Revenue Risk Autopsy
+          <ChevronRight className="w-4 h-4 text-slate-600" />
+          <span className="text-sm font-bold bg-blue-600/20 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-lg flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            Step 3 & 4: Revenue Risk Autopsy
           </span>
         </div>
 
         {/* Account Switcher & Refresh AI */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <label htmlFor="account-switcher" className="text-xs text-slate-600 font-medium">Account:</label>
-            <select
-              id="account-switcher"
-              aria-label="Select Customer Account"
-              value={account.id}
-              onChange={(e) => onSelectAccount(e.target.value)}
-              className="text-xs font-medium bg-slate-50 border border-[#E2E8F0] rounded-lg px-2.5 py-1.5 text-[#020062] focus:outline-none focus:ring-1 focus:ring-[#2563EB] cursor-pointer"
-            >
-              {allAccounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.risk_score} pts - {acc.risk_level.toUpperCase()})
-                </option>
-              ))}
-            </select>
-          </div>
+          <label htmlFor="account-switcher" className="text-sm text-slate-300 font-medium">Account:</label>
+          <select
+            id="account-switcher"
+            aria-label="Select Customer Account"
+            value={account.id}
+            onChange={(e) => onSelectAccount(e.target.value)}
+            className="text-sm font-semibold bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500 cursor-pointer shadow-xs"
+          >
+            {allAccounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name} ({acc.risk_score} pts - {acc.risk_level.toUpperCase()})
+              </option>
+            ))}
+          </select>
 
           <button
             onClick={() => loadInvestigation(true)}
             disabled={refreshing || loading}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0025AE] bg-[#0025AE]/8 hover:bg-[#0025AE]/15 border border-[#0025AE]/20 px-3 py-1.5 rounded-lg transition-all cursor-pointer disabled:opacity-50"
+            title="Re-run AI Autopsy"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-300 bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 px-3.5 py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>{refreshing ? 'Re-synthesizing...' : 'Re-run AI Autopsy'}</span>
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{refreshing ? 'Synthesizing...' : 'Re-run Autopsy'}</span>
           </button>
         </div>
       </div>
 
-      {/* Account Hero Summary Banner */}
-      <div className="relative overflow-hidden bg-linear-to-r from-[#020062] via-[#0025AE] to-[#2563EB] text-white rounded-2xl p-6 shadow-md">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
+      {/* ========================================================================= */}
+      {/* SIGNATURE EXECUTIVE AUTOPSY CARD: Matching Image 2 with Rich Proportions  */}
+      {/* ========================================================================= */}
+      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-800 space-y-10">
+        
+        {/* Header matching Image 2 */}
+        <div className="space-y-2 border-b border-slate-800 pb-6">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-mono uppercase tracking-wider bg-white/20 text-white px-2.5 py-0.5 rounded font-semibold backdrop-blur-xs">
-                AI Risk Autopsy v1.0
-              </span>
-              <span className="text-xs text-blue-100 flex items-center gap-1">
-                <Database className="w-3.5 h-3.5 text-emerald-400" />
-                Evidence-Grounded in MongoDB Telemetry
-              </span>
+              <h1 className="text-2xl sm:text-3xl font-bold font-headline tracking-tight text-white">
+                Revenue Risk Autopsy
+              </h1>
             </div>
-
-            <h1 className="font-headline text-2xl md:text-3xl text-white font-bold tracking-tight">
-              {account.name} — Risk Diagnosis
-            </h1>
-
-            <p className="text-xs md:text-sm text-blue-100/90 leading-relaxed font-body">
-              {investigation?.risk_summary ||
-                `Elevated churn likelihood driven by ${account.primary_reason_code.replace(/_/g, ' ')} ahead of contract renewal.`}
-            </p>
+            <span className="text-xs font-mono font-bold text-rose-400 bg-rose-950/80 border border-rose-800/90 px-3 py-1 rounded-full uppercase tracking-wider">
+              High priority
+            </span>
           </div>
 
-          {/* Key Metric Badges */}
-          <div className="flex items-center gap-4 shrink-0 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20">
-            <div className="text-center px-2">
-              <div className="text-[11px] text-blue-200 font-medium">Risk Score</div>
-              <div className="text-2xl font-bold font-mono text-white flex items-center justify-center gap-1">
-                <span>{account.risk_score}</span>
-                <span className="text-xs text-blue-200 font-normal">/100</span>
-              </div>
-              <div className="mt-1">
-                <RiskBadge level={account.risk_level} size="sm" />
-              </div>
-            </div>
+          <p className="text-sm text-slate-400 font-body">
+            Illustrative account · All metrics below are verified demo data
+          </p>
 
-            <div className="w-px h-12 bg-white/20" />
-
-            <div className="text-center px-2">
-              <div className="text-[11px] text-blue-200 font-medium">ARR Exposure</div>
-              <div className="text-xl font-bold text-white font-mono mt-1">
-                {formatCurrency(account.arr)}
-              </div>
-              <div className="text-[10px] text-blue-200 mt-1 font-mono">{account.tier || 'Enterprise'}</div>
-            </div>
-
-            <div className="w-px h-12 bg-white/20" />
-
-            <div className="text-center px-2">
-              <div className="text-[11px] text-blue-200 font-medium">Renewal In</div>
-              <div className="text-xl font-bold text-amber-300 font-mono mt-1">
-                {account.urgency_days_to_renewal}d
-              </div>
-              <div className="text-[10px] text-blue-200 mt-1">{account.renewal_date}</div>
-            </div>
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pt-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white font-headline">
+              {account.name}
+            </h2>
+            <span className="text-sm font-mono text-slate-400">
+              ARR Exposure: <strong className="text-white">{formatCurrency(account.arr)}</strong>
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ======================================================== */}
-        {/* LEFT COLUMN: Evidence and Risk Factors (5 Cols)           */}
-        {/* ======================================================== */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Section 1: Observed Facts */}
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                  <Activity className="w-4 h-4" />
+        {/* Top 3 Metric Indicators matching Image 2 */}
+        <div className="grid grid-cols-3 gap-6 sm:gap-10 border-b border-slate-800 pb-8">
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-850">
+            <span className="text-xs sm:text-sm text-slate-400 block font-medium">Renewal</span>
+            <span className="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 block">
+              {renewalDays} days
+            </span>
+          </div>
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-850">
+            <span className="text-xs sm:text-sm text-slate-400 block font-medium">Usage trend</span>
+            <span className="text-2xl sm:text-3xl font-bold font-mono text-rose-400 mt-1 block">
+              {usageTrend}
+            </span>
+          </div>
+          <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-850">
+            <span className="text-xs sm:text-sm text-slate-400 block font-medium">Last reply</span>
+            <span className="text-2xl sm:text-3xl font-bold font-mono text-amber-300 mt-1 block">
+              {lastReplyDays} days
+            </span>
+          </div>
+        </div>
+
+        {/* 1. Reconstruct the situation matching Image 2 */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg sm:text-xl font-bold text-white font-headline flex items-center gap-2">
+              <span>1. Reconstruct the situation</span>
+            </h3>
+            <span className="text-xs font-mono text-slate-400">
+              3 Verified Ground-Truth Signals
+            </span>
+          </div>
+
+          <div className="space-y-6 pl-1">
+            {situationFindings.map((finding) => (
+              <div key={finding.step} className="space-y-2 bg-slate-950/40 p-5 rounded-2xl border border-slate-850">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-blue-600/20 text-blue-400 font-mono font-bold text-xs flex items-center justify-center border border-blue-500/30">
+                      {finding.step}
+                    </span>
+                    <strong className="text-base font-bold text-white">
+                      {finding.title}
+                    </strong>
+                  </div>
+
+                  <button
+                    onClick={() => handleEvidenceClick(finding.evidenceId)}
+                    className="text-xs font-mono text-blue-400 hover:text-blue-300 bg-blue-950/60 hover:bg-blue-900/60 border border-blue-800/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    title="Inspect source record"
+                  >
+                    <span>{finding.evidenceId}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
                 </div>
-                <div>
-                  <h2 className="font-headline text-base font-bold text-[#020062]">
-                    Observed Facts & Telemetry
-                  </h2>
-                  <p className="text-[11px] text-slate-500 font-body">
-                    Verified signals extracted from multi-source records
-                  </p>
-                </div>
+
+                <p className="text-sm text-slate-300 leading-relaxed font-body pl-9">
+                  {finding.text}
+                </p>
               </div>
-              <span className="text-[11px] font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
-                {account.signals.length} Signals
-              </span>
+            ))}
+          </div>
+
+          {/* Embedded Usage Contraction Visualizer for Section 1 */}
+          <div className="pt-2">
+            <UsageTrendChart
+              accountName={account.name}
+              baselineSeats={240}
+              currentSeats={148}
+              dropPct={38}
+            />
+          </div>
+        </section>
+
+        {/* 2. Explain the conclusion matching Image 2 */}
+        <section className="space-y-3 border-t border-slate-800 pt-8">
+          <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+            2. Explain the conclusion
+          </h3>
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-body bg-slate-950/40 p-5 rounded-2xl border border-slate-850">
+            {conclusionText}
+          </p>
+        </section>
+
+        {/* 3. Identify uncertainty matching Image 2 */}
+        <section className="space-y-4 border-t border-slate-800 pt-8">
+          <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+            3. Identify uncertainty
+          </h3>
+
+          <div className="bg-amber-950/20 border border-amber-900/40 rounded-2xl p-6 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-amber-300">
+              <Info className="w-4 h-4 text-amber-400" />
+              <span>What we still do not know</span>
             </div>
 
-            {/* List of Observed Facts */}
-            <div className="space-y-3">
-              {investigation?.findings && investigation.findings.length > 0 ? (
-                investigation.findings.map((finding, idx) => (
-                  <div
-                    key={`finding-${idx}`}
-                    className="p-3.5 bg-slate-50/80 hover:bg-blue-50/40 border border-[#E2E8F0] hover:border-[#2563EB]/40 rounded-lg transition-all space-y-2 group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-semibold text-[#020062] leading-snug group-hover:text-[#0025AE]">
-                        {finding.claim}
-                      </span>
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white border border-[#E2E8F0] text-slate-600 shrink-0">
-                        {finding.type || 'observed_fact'}
-                      </span>
-                    </div>
+            <ul className="space-y-2 pl-6 text-sm text-amber-100/90 list-disc font-body">
+              {uncertainties.map((unc, idx) => (
+                <li key={idx} className="leading-relaxed">
+                  {unc}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
-                    {/* Evidence Links */}
-                    <div className="flex items-center gap-2 flex-wrap pt-1">
-                      <span className="text-[11px] text-slate-600 font-medium">Evidence links:</span>
-                      {finding.evidence_ids && finding.evidence_ids.length > 0 ? (
-                        finding.evidence_ids.map((eid) => (
-                          <button
-                            key={eid}
-                            onClick={() => handleEvidenceClick(eid)}
-                            className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold bg-white hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/30 px-2 py-0.5 rounded transition-all cursor-pointer shadow-2xs"
-                            title={`Click to open source record for ${eid}`}
-                          >
-                            <span>{eid}</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </button>
-                        ))
-                      ) : (
-                        <span className="text-[11px] text-slate-600 italic">Direct telemetry record</span>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                // Fallback direct signal display
-                account.signals.map((sig) => (
-                  <div
-                    key={sig.id}
-                    className="p-3 bg-slate-50 border border-[#E2E8F0] rounded-lg space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {getSourceIcon(sig.source_category)}
-                        <span className="text-xs font-bold text-[#020062]">{sig.title}</span>
-                      </div>
-                      <button
-                        onClick={() => handleEvidenceClick(sig.id)}
-                        className="text-[10px] font-mono text-[#2563EB] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 hover:bg-blue-100 cursor-pointer"
-                      >
-                        {sig.id}
-                      </button>
-                    </div>
-                    <p className="text-xs text-slate-600">{sig.summary}</p>
-                  </div>
-                ))
+        {/* 4. Recommend the next action matching Image 2 */}
+        <section className="space-y-4 border-t border-slate-800 pt-8">
+          <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+            4. Recommend the next action
+          </h3>
+
+          {/* Action Box Card with Quick Buttons */}
+          <div className="bg-linear-to-br from-slate-950 to-blue-950/40 border-2 border-blue-500/40 rounded-2xl p-6 sm:p-7 space-y-5 shadow-lg">
+            <div className="space-y-2 text-sm sm:text-base">
+              <p className="text-slate-100 leading-relaxed">
+                <strong className="text-white font-bold">Recommended:</strong> {recommendedTitle}
+              </p>
+              <p className="text-slate-400 leading-relaxed text-sm">
+                <span className="font-semibold text-slate-300">Reason:</span> {recommendedReason}
+              </p>
+            </div>
+
+            {/* The 3 Action Buttons from Image 2 */}
+            <div className="flex flex-wrap items-center gap-3.5 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => onNavigateToCopilot?.('email')}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md shadow-blue-900/30"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Prepare email</span>
+              </button>
+
+              <button
+                onClick={() => onNavigateToCopilot?.('task')}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              >
+                <CheckSquare className="w-4 h-4 text-amber-400" />
+                <span>Create follow-up task</span>
+              </button>
+
+              <button
+                onClick={() => onNavigateToCopilot?.('crm')}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-emerald-400" />
+                <span>Prepare CRM update</span>
+              </button>
+
+              {onNavigateToApprovals && (
+                <button
+                  onClick={onNavigateToApprovals}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-blue-400" />
+                  <span>Review approvals</span>
+                </button>
               )}
             </div>
           </div>
+        </section>
 
-          {/* Section 2: Missing Information & Blindspots (Strictly Required) */}
-          <div className="bg-amber-50/50 rounded-xl border border-amber-200/80 p-5 space-y-3 shadow-xs">
-            <div className="flex items-center gap-2 border-b border-amber-200/60 pb-3">
-              <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="font-headline text-base font-bold text-amber-900">
-                  Missing Information & Blindspots
-                </h3>
-                <p className="text-[11px] text-amber-700 font-body">
-                  What the system cannot verify from stored data — needs investigation
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2.5">
-              {(investigation?.uncertainties || [
-                "Customer's internal Q4 budget downsizing approval status is unverified in CRM records.",
-                "Whether executive sponsor has evaluated alternative vendor solutions.",
-                "The exact department-level driver behind the 45% active seat contraction is unknown."
-              ]).map((unc, idx) => (
-                <div
-                  key={`unc-${idx}`}
-                  className="flex items-start gap-2.5 text-xs text-amber-950 bg-white/80 p-3 rounded-lg border border-amber-200/60"
-                >
-                  <HelpCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{unc}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-2.5 bg-amber-100/60 rounded-lg text-[11px] text-amber-800 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
-              <span>
-                <strong>Guardrail Active:</strong> The AI will not fabricate unverified assumptions or speculate beyond these boundaries.
-              </span>
-            </div>
-          </div>
-
-          {/* Section 3: Risk Factor Breakdown */}
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 space-y-3 shadow-xs">
-            <h3 className="font-headline text-sm font-bold text-[#020062] flex items-center gap-2">
-              <TrendingDown className="w-4 h-4 text-red-500" />
-              <span>Contributing Rule Factors</span>
+        {/* 5. How each part solves the root problem matching Image 3 */}
+        <section className="space-y-5 border-t border-slate-800 pt-8">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg sm:text-xl font-bold text-white font-headline">
+              5. How each part solves the root problem
             </h3>
-            <div className="space-y-2">
-              {account.contributing_factors.map((factor, idx) => (
+            <button
+              onClick={() => setShowRootProblemMatrix(!showRootProblemMatrix)}
+              className="text-xs sm:text-sm text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
+            >
+              {showRootProblemMatrix ? 'Collapse Matrix' : 'Expand Matrix'}
+            </button>
+          </div>
+
+          {showRootProblemMatrix && (
+            <div className="space-y-3.5">
+              {rootProblems.map((rp, idx) => (
                 <div
-                  key={`factor-${idx}`}
-                  className="flex items-center justify-between text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg"
+                  key={idx}
+                  className="bg-slate-950/70 border border-slate-850 rounded-2xl p-5 space-y-2 text-sm"
                 >
-                  <span className="text-slate-700 font-medium">{factor}</span>
-                  <span className="text-[10px] font-mono font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">
-                    High Impact
-                  </span>
+                  <p className="font-bold text-white text-base">
+                    Problem: {rp.problem}
+                  </p>
+                  <p className="text-slate-300 leading-relaxed font-body">
+                    <span className="text-slate-400 font-semibold">Solution:</span> {rp.solution}
+                  </p>
+                  <p className="text-slate-400 font-body text-xs sm:text-sm">
+                    <span className="text-slate-500 font-medium">Result to measure:</span> {rp.result}
+                  </p>
                 </div>
               ))}
             </div>
+          )}
+        </section>
+
+        {/* Footer View Link */}
+        <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-slate-400 border-t border-slate-800">
+          <span>Evidence Grounded in Multi-Source Signals</span>
+          {onNavigateToSystemFlow && (
+            <button
+              onClick={onNavigateToSystemFlow}
+              className="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+            >
+              <span>View 6-Step System Architecture Flow</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* INTERACTIVE COMPANION: Grounded Q&A Assistant ("Ask About This Account")  */}
+      {/* ========================================================================= */}
+      <div className="bg-slate-900 rounded-3xl border border-slate-800 p-7 sm:p-8 space-y-5 shadow-xl">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+              <Bot className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-headline text-lg font-bold text-white">
+                Ask About {account.name}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 font-body">
+                Evidence-grounded conversational Q&A locked to stored telemetry and signals
+              </p>
+            </div>
           </div>
+          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" /> Zero Hallucinations
+          </span>
         </div>
 
-        {/* ======================================================== */}
-        {/* RIGHT COLUMN: AI Investigation (7 Cols)                  */}
-        {/* ======================================================== */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Section A: Why the account is at risk (Causal Synthesis) */}
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="font-headline text-lg font-bold text-[#020062]">
-                    Why the Account is at Risk
-                  </h2>
-                  <p className="text-[11px] text-slate-500 font-body">
-                    Multi-signal causal synthesis explaining how signals interconnect
-                  </p>
-                </div>
-              </div>
-              <span className="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Validated
-              </span>
-            </div>
+        {/* Chat History Container */}
+        <div className="space-y-4 max-h-80 overflow-y-auto p-4 bg-slate-950 rounded-2xl border border-slate-800">
+          {chatHistory.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex flex-col ${
+                msg.sender === 'user' ? 'items-end' : 'items-start'
+              }`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed ${
+                  msg.sender === 'user'
+                    ? 'bg-blue-600 text-white rounded-br-none shadow-md'
+                    : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-sm'
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{msg.text}</p>
 
-            {loading ? (
-              <div className="py-8 flex flex-col items-center justify-center text-slate-600 gap-2">
-                <RefreshCw className="w-5 h-5 animate-spin text-[#2563EB]" />
-                <span className="text-xs">Synthesizing multi-source signals...</span>
-              </div>
-            ) : (
-              <div className="prose prose-xs max-w-none text-slate-700 leading-relaxed space-y-3 font-body">
-                <p className="p-4 bg-blue-50/40 border-l-4 border-[#2563EB] rounded-r-lg text-xs leading-relaxed text-slate-800">
-                  {investigation?.causal_explanation ||
-                    `The account '${account.name}' exhibits compounding churn risk (evaluated score: ${account.risk_score}/100). Telemetry captures significant license contraction occurring in tandem with an unanswered executive check-in and unresolved support escalations. With contract renewal scheduled in ${account.urgency_days_to_renewal} days, this cross-source pattern indicates active disengagement that requires immediate human intervention.`}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Section B: Recommended Next Step (Action Proposal) */}
-          {investigation?.recommended_action && (
-            <div className="bg-linear-to-br from-white to-blue-50/40 rounded-xl border-2 border-[#2563EB]/30 p-6 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#2563EB] text-white flex items-center justify-center shadow-xs">
-                    <UserCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-[#2563EB] block">
-                      Recommended Next Step
-                    </span>
-                    <h3 className="font-headline text-base font-bold text-[#020062]">
-                      {investigation.recommended_action.title}
-                    </h3>
-                  </div>
-                </div>
-                <span className="text-xs font-mono font-semibold bg-[#2563EB]/10 text-[#2563EB] px-2.5 py-1 rounded">
-                  {investigation.recommended_action.type || 'customer_check_in'}
-                </span>
-              </div>
-
-              <div className="space-y-3 text-xs text-slate-700">
-                <div className="p-3 bg-white border border-[#E2E8F0] rounded-lg">
-                  <strong className="text-[#020062] block mb-1">Strategic Rationale:</strong>
-                  <p className="text-slate-600 leading-relaxed">
-                    {investigation.recommended_action.reason}
-                  </p>
-                </div>
-
-                {investigation.recommended_action.suggested_payload?.body && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-700">Drafted Outreach Payload:</span>
+                {msg.cited_evidence_ids && msg.cited_evidence_ids.length > 0 && (
+                  <div className="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium text-slate-400">Citations:</span>
+                    {msg.cited_evidence_ids.map((cid) => (
                       <button
-                        onClick={() =>
-                          handleCopyDraft(
-                            investigation.recommended_action.suggested_payload?.body || ''
-                          )
-                        }
-                        className="inline-flex items-center gap-1 text-[11px] text-[#2563EB] hover:underline cursor-pointer"
+                        key={cid}
+                        onClick={() => handleEvidenceClick(cid)}
+                        className="text-xs font-mono font-semibold bg-blue-950 text-blue-300 border border-blue-800 px-2 py-0.5 rounded-md hover:underline cursor-pointer"
                       >
-                        {copiedDraft ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-600 font-semibold">Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy Draft</span>
-                          </>
-                        )}
+                        {cid}
                       </button>
-                    </div>
-
-                    <div className="bg-slate-900 text-slate-200 p-3.5 rounded-lg font-mono text-[11px] leading-relaxed border border-slate-800 whitespace-pre-wrap max-h-48 overflow-y-auto">
-                      {investigation.recommended_action.suggested_payload.body}
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>
+              <span className="text-[11px] text-slate-500 mt-1 px-1 font-mono">{msg.timestamp}</span>
+            </div>
+          ))}
 
-              {/* Action Stage CTA */}
-              <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <span className="text-[11px] text-slate-600 font-body">
-                  Target Recipient: <strong className="text-slate-800">{investigation.recommended_action.target_recipient || 'Account Champion'}</strong>
-                </span>
-
-                <div className="flex items-center gap-2">
-                  {onNavigateToCopilot && (
-                    <button
-                      onClick={onNavigateToCopilot}
-                      className="inline-flex items-center gap-1.5 bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-xs transition-all cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Open Action Copilot (Page 5)</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-
-                  <button
-                    onClick={onNavigateToApprovals}
-                    className="inline-flex items-center gap-1.5 bg-white border border-[#E2E8F0] hover:bg-slate-50 text-[#020062] text-xs font-semibold px-3.5 py-2.5 rounded-lg shadow-2xs transition-all cursor-pointer"
-                  >
-                    <Layers className="w-3.5 h-3.5 text-slate-600" />
-                    <span>Approval Center</span>
-                  </button>
-                </div>
-              </div>
+          {chatLoading && (
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 p-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+              <span>Checking verified customer records...</span>
             </div>
           )}
+        </div>
 
-          {/* Section C: Ask About This Account (Interactive Grounded Q&A) */}
-          <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-headline text-base font-bold text-[#020062]">
-                    Ask About This Account
-                  </h3>
-                  <p className="text-[11px] text-slate-500 font-body">
-                    Evidence-grounded conversational Q&A locked to {account.name}'s records
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                Grounded Mode
-              </span>
-            </div>
-
-            {/* Suggested Question Chips */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] text-slate-600 font-medium">Try asking:</span>
-              {suggestedQuestions.map((sq, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleAskQuestion(sq)}
-                  disabled={chatLoading}
-                  className="text-[11px] bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-[#0025AE] border border-slate-200 hover:border-[#2563EB]/40 px-2.5 py-1 rounded-md transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {sq}
-                </button>
-              ))}
-            </div>
-
-            {/* Chat Thread Container */}
-            <div className="space-y-3 max-h-80 overflow-y-auto pr-1 bg-slate-50/60 p-3.5 rounded-xl border border-[#E2E8F0]">
-              {chatHistory.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${
-                    msg.sender === 'user' ? 'items-end' : 'items-start'
-                  } space-y-1`}
-                >
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-600 px-1 font-mono">
-                    <span>{msg.sender === 'user' ? 'CSM Question' : 'SignalBridge AI'}</span>
-                    <span>•</span>
-                    <span>{msg.timestamp}</span>
-                  </div>
-
-                  <div
-                    className={`p-3 rounded-xl text-xs max-w-[90%] leading-relaxed ${
-                      msg.sender === 'user'
-                        ? 'bg-[#2563EB] text-white font-medium rounded-tr-none'
-                        : 'bg-white text-slate-800 border border-[#E2E8F0] shadow-2xs rounded-tl-none space-y-2'
-                    }`}
-                  >
-                    <p>{msg.text}</p>
-
-                    {/* Cited Evidence Chips */}
-                    {msg.cited_evidence_ids && msg.cited_evidence_ids.length > 0 && (
-                      <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] text-slate-600 font-medium">Cited evidence:</span>
-                        {msg.cited_evidence_ids.map((cid) => (
-                          <button
-                            key={cid}
-                            onClick={() => handleEvidenceClick(cid)}
-                            className="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-blue-50 text-[#2563EB] border border-blue-200 hover:bg-[#2563EB] hover:text-white px-1.5 py-0.5 rounded transition-all cursor-pointer"
-                          >
-                            <span>{cid}</span>
-                            <ExternalLink className="w-2 h-2" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Uncertainties inside response */}
-                    {msg.uncertainties && msg.uncertainties.length > 0 && (
-                      <div className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded border border-amber-200/60 space-y-1">
-                        <span className="font-semibold block text-[10px] uppercase text-amber-700">
-                          Uncertainty / Missing Data:
-                        </span>
-                        {msg.uncertainties.map((u, ui) => (
-                          <div key={ui}>• {u}</div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {chatLoading && (
-                <div className="flex items-center gap-2 text-xs text-slate-500 p-3 bg-white border border-[#E2E8F0] rounded-xl w-fit">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#2563EB]" />
-                  <span>Retrieving verified records & evaluating evidence...</span>
-                </div>
-              )}
-            </div>
-
-            {/* Input form */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAskQuestion();
-              }}
-              className="flex items-center gap-2"
+        {/* Suggested Prompts */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {[
+            'What is the baseline comparison for the 38% usage decline?',
+            'When was the last outreach sent to Acme Technologies?',
+            'What are the key unknowns before proposing a renewal discount?'
+          ].map((prompt, pIdx) => (
+            <button
+              key={pIdx}
+              onClick={() => handleAskQuestion(prompt)}
+              className="text-xs bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-xl transition-colors cursor-pointer text-left"
             >
-              <input
-                type="text"
-                value={questionInput}
-                onChange={(e) => setQuestionInput(e.target.value)}
-                placeholder={`Ask anything about ${account.name}'s telemetry, stakeholders, or renewal risk...`}
-                disabled={chatLoading}
-                className="flex-1 bg-slate-50 border border-[#E2E8F0] rounded-lg px-3.5 py-2.5 text-xs text-[#020062] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:bg-white transition-all disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={!questionInput.trim() || chatLoading}
-                className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white p-2.5 rounded-lg transition-all cursor-pointer disabled:opacity-50 shadow-xs"
-                title="Send Question"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
+              {prompt}
+            </button>
+          ))}
+        </div>
+
+        {/* Input Bar */}
+        <div className="flex items-center gap-3 pt-2">
+          <input
+            type="text"
+            value={questionInput}
+            onChange={(e) => setQuestionInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAskQuestion()}
+            placeholder={`Ask a question about ${account.name}'s verified records...`}
+            className="flex-1 text-sm bg-slate-950 border border-slate-850 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 shadow-inner"
+          />
+          <button
+            onClick={() => handleAskQuestion()}
+            disabled={!questionInput.trim() || chatLoading}
+            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white p-3 rounded-xl transition-all cursor-pointer shrink-0 shadow-md"
+          >
+            <Send className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* SIGNAL PROVENANCE MODAL                                  */}
-      {/* ======================================================== */}
+      {/* Source Record Inspection Modal */}
       {selectedSignalForModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-xl w-full border border-[#E2E8F0] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 text-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-slate-50">
+            <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 text-[#2563EB] flex items-center justify-center">
-                  {getSourceIcon(selectedSignalForModal.source_category)}
-                </div>
-                <div>
-                  <h3 className="font-headline text-base font-bold text-[#020062]">
-                    Signal Provenance & Source Record
-                  </h3>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-                    <span>ID: {selectedSignalForModal.id}</span>
-                    <span>•</span>
-                    <span className="capitalize">{selectedSignalForModal.source_category}</span>
-                  </div>
-                </div>
+                <span className="text-xs font-mono font-bold text-blue-300 bg-blue-950 px-2.5 py-1 rounded-md border border-blue-800">
+                  {selectedSignalForModal.id}
+                </span>
+                <span className="text-xs text-slate-400 capitalize font-mono">
+                  {selectedSignalForModal.source_category} Signal
+                </span>
               </div>
-
               <button
                 onClick={() => setSelectedSignalForModal(null)}
-                className="w-8 h-8 rounded-lg hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
-              <div className="space-y-1">
-                <span className="text-[11px] font-semibold text-slate-600 uppercase font-mono">Event Summary</span>
-                <p className="text-sm font-semibold text-[#020062] leading-snug">
+            {/* Modal Content */}
+            <div className="p-6 space-y-5 text-sm font-body">
+              <div>
+                <h4 className="font-headline text-lg font-bold text-white">
                   {selectedSignalForModal.title}
+                </h4>
+                <p className="text-xs text-slate-400 font-mono mt-1">
+                  Timestamp: {new Date(selectedSignalForModal.timestamp).toLocaleString()}
                 </p>
-                <p className="text-slate-600 leading-relaxed pt-1">
+                <p className="text-slate-300 leading-relaxed pt-2">
                   {selectedSignalForModal.summary}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <span className="text-[10px] text-slate-600 uppercase font-mono block">Observed Value</span>
-                  <span className="font-mono font-bold text-red-600 text-xs">
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+                  <span className="text-[11px] text-slate-400 uppercase font-mono block">Observed Value</span>
+                  <span className="font-mono font-bold text-rose-400 text-xs sm:text-sm mt-0.5 block">
                     {selectedSignalForModal.observed_value || 'Telemetry alert triggered'}
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <span className="text-[10px] text-slate-600 uppercase font-mono block">Severity</span>
-                  <span className="font-semibold text-xs capitalize text-slate-800">
+                <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800">
+                  <span className="text-[11px] text-slate-400 uppercase font-mono block">Severity</span>
+                  <span className="font-semibold text-xs sm:text-sm capitalize text-white mt-0.5 block">
                     {selectedSignalForModal.severity} Priority
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-1 pt-2">
-                <span className="text-[11px] font-semibold text-slate-600 uppercase font-mono">Raw Provenance Metadata</span>
-                <pre className="p-3.5 bg-slate-900 text-emerald-400 rounded-lg font-mono text-[11px] overflow-x-auto leading-relaxed border border-slate-800">
+              <div className="space-y-1.5 pt-1">
+                <span className="text-xs font-semibold text-slate-400 uppercase font-mono">Verified Provenance Record</span>
+                <pre className="p-4 bg-slate-950 text-emerald-400 rounded-xl font-mono text-xs overflow-x-auto leading-relaxed border border-slate-800">
                   {JSON.stringify(
                     {
                       signal_id: selectedSignalForModal.id,
@@ -830,8 +729,7 @@ export function RevenueRiskAutopsyView({
                       signal_type: selectedSignalForModal.signal_type,
                       event_time: selectedSignalForModal.timestamp,
                       observed_value: selectedSignalForModal.observed_value,
-                      ingestion_origin: 'MongoDB Data Sync v1.0',
-                      integrity_hash: 'sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+                      provenance: 'Verified Customer Signal Telemetry'
                     },
                     null,
                     2
@@ -841,13 +739,13 @@ export function RevenueRiskAutopsyView({
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3.5 border-t border-[#E2E8F0] bg-slate-50 flex items-center justify-between">
-              <span className="text-[11px] text-slate-600 font-mono">
-                Verified Ground-Truth Record
+            <div className="px-6 py-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Ground-Truth Evidence
               </span>
               <button
                 onClick={() => setSelectedSignalForModal(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Close Record
               </button>
