@@ -28,6 +28,7 @@ import type {
   BatchTriggerScanResult
 } from '../types/api';
 import { FeedbackForm } from './FeedbackForm';
+import { FeedbackFlowInteractiveView } from './FeedbackFlowInteractiveView';
 
 interface FeedbackManagementViewProps {
   accounts: AccountRiskSummary[];
@@ -48,7 +49,7 @@ export function FeedbackManagementView({
   onNavigateToApprovals,
   onNavigateToCopilot
 }: FeedbackManagementViewProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'surveys' | 'interactive_form'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'flow' | 'overview' | 'surveys' | 'interactive_form'>('flow');
   const [selectedAccountId, setSelectedAccountId] = useState<string>(initialAccountId || (accounts[0]?.id || 'acc-101'));
   
   // Data State
@@ -443,6 +444,7 @@ export function FeedbackManagementView({
       <div className="border-b border-[#E2E8F0] flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           {[
+            { id: 'flow', label: '⚡ 20-Node Agent Flowchart', count: 'Interactive' },
             { id: 'overview', label: 'All Responses & AI Analysis', count: responses.length },
             { id: 'surveys', label: 'Dispatched Surveys', count: surveys.length },
             { id: 'interactive_form', label: 'Fill / Test Feedback Form', count: null }
@@ -458,7 +460,9 @@ export function FeedbackManagementView({
             >
               <span>{tab.label}</span>
               {tab.count !== null && (
-                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+                  tab.id === 'flow' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-slate-100 text-slate-600'
+                }`}>
                   {tab.count}
                 </span>
               )}
@@ -466,6 +470,21 @@ export function FeedbackManagementView({
           ))}
         </div>
       </div>
+
+      {/* SUBTAB 0: 20-Node Interactive Agent Flowchart */}
+      {activeSubTab === 'flow' && (
+        <FeedbackFlowInteractiveView
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelectAccount={(accId) => {
+            setSelectedAccountId(accId);
+            onSelectAccount?.(accId);
+          }}
+          onNavigateToCopilot={onNavigateToCopilot}
+          onNavigateToApprovals={onNavigateToApprovals}
+          onNavigateToTimeline={onNavigateToTimeline}
+        />
+      )}
 
       {/* SUBTAB 1: Overview & All Responses */}
       {activeSubTab === 'overview' && (

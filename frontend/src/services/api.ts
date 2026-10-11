@@ -623,3 +623,55 @@ export async function fetchFeedbackResponses(accountId?: string): Promise<Custom
   }
   return res.json();
 }
+
+// ==========================================
+// 20-Node Interactive Feedback Flow APIs
+// ==========================================
+import type {
+  FeedbackFlowGraph,
+  FeedbackFlowExecution,
+  RunFeedbackFlowRequest
+} from '../types/api';
+
+export async function fetchFeedbackFlowGraph(): Promise<FeedbackFlowGraph> {
+  const res = await fetch(`${API_BASE}/api/feedback/flow/graph`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch feedback flow graph: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function runFeedbackFlow(req: RunFeedbackFlowRequest): Promise<FeedbackFlowExecution> {
+  const res = await fetch(`${API_BASE}/api/feedback/flow/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to run feedback flow: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchFeedbackFlowExecutions(accountId?: string): Promise<FeedbackFlowExecution[]> {
+  const url = new URL(`${API_BASE}/api/feedback/flow/executions`);
+  if (accountId) url.searchParams.set('account_id', accountId);
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch flow executions: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchFeedbackFlowExecution(executionId: string): Promise<FeedbackFlowExecution> {
+  const res = await fetch(`${API_BASE}/api/feedback/flow/executions/${executionId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch execution: ${res.statusText}`);
+  }
+  return res.json();
+}
+

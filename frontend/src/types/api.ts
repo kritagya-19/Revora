@@ -847,3 +847,64 @@ export interface PublicSurveyFormData {
   custom_intro?: string;
   template: SurveyFormTemplate;
 }
+
+export type FeedbackFlowNodeType = 'source' | 'agent' | 'decision' | 'positive' | 'negative' | 'action';
+
+export interface FeedbackFlowNode {
+  id: string;
+  title: string;
+  subtitle: string;
+  node_type: FeedbackFlowNodeType;
+  category_class: string;
+  day_label?: string | null;
+  status?: string;
+  summary?: string | null;
+  output_payload?: Record<string, any> | null;
+}
+
+export interface FeedbackFlowEdge {
+  from_node: string;
+  to_node: string;
+  label?: string | null;
+}
+
+export interface FeedbackFlowGraph {
+  nodes: FeedbackFlowNode[];
+  edges: FeedbackFlowEdge[];
+}
+
+export interface FeedbackFlowExecution {
+  execution_id: string;
+  account_id: string;
+  account_name: string;
+  scenario: string;
+  path_taken: string[];
+  current_node: string;
+  node_states: Record<string, {
+    title: string;
+    subtitle?: string;
+    status: string;
+    day_label?: string;
+    timestamp: string;
+    decision?: string;
+    data: Record<string, any>;
+    summary: string;
+  }>;
+  status: 'running' | 'completed' | 'waiting';
+  started_at: string;
+  completed_at?: string | null;
+  outcome_summary: string;
+  sales_notified: boolean;
+  manager_notified: boolean;
+  crm_updated: boolean;
+  healthy_marked: boolean;
+}
+
+export interface RunFeedbackFlowRequest {
+  account_id: string;
+  scenario?: 'auto' | 'healthy' | 'negative_day0' | 'reminder_negative' | 'unresponsive' | 'positive';
+  custom_satisfaction_score?: number;
+  custom_blocker?: string;
+  custom_comments?: string;
+}
+

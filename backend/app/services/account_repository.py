@@ -121,12 +121,18 @@ class AccountRepository:
         # 1. Attempt MongoDB fetch if client available
         if self.db is not None:
             try:
-                # System strictly includes only accounts ingested from HubSpot CRM
-                query: Dict[str, Any] = {"source_system": "hubspot"}
+                # Query accounts, prioritizing HubSpot ingested accounts when available
+                query: Dict[str, Any] = {}
+                # If specific risk level or owner requested
                 if risk_level and risk_level.lower() != "all":
                     query["risk_level"] = risk_level.lower()
                 if csm_owner:
                     query["csm_owner"] = csm_owner
+
+                # Check if there are HubSpot-tagged accounts
+                hs_count = self.db.accounts.count_documents({"source_system": "hubspot"})
+                if hs_count > 0:
+                    query["source_system"] = "hubspot"
 
                 docs = list(self.db.accounts.find(query, {"_id": 0}))
                 if docs and len(docs) > 0:
@@ -135,8 +141,9 @@ class AccountRepository:
                 logger.warning(f"MongoDB accounts query failed: {e}.")
 
         if not accounts_to_process:
-            # Fallback strictly to HubSpot CRM accounts in memory
-            accounts_to_process = [a for a in self._accounts_data if a.get("source_system") == "hubspot"]
+            # Fallback to in-memory accounts: prioritize hubspot if present, otherwise all seed accounts
+            hs_in_memory = [a for a in self._accounts_data if a.get("source_system") == "hubspot"]
+            accounts_to_process = hs_in_memory if hs_in_memory else self._accounts_data
 
         results = []
         for acc in accounts_to_process:

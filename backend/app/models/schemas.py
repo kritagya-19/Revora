@@ -829,3 +829,61 @@ class CreateFeedbackSurveyRequest(BaseModel):
     recipient_email: Optional[str] = None
     recipient_name: Optional[str] = None
 
+
+# ==========================================
+# 20-Node Feedback Flow Execution Schemas
+# ==========================================
+
+class FeedbackFlowNodeType(str, Enum):
+    SOURCE = "source"
+    AGENT = "agent"
+    DECISION = "decision"
+    POSITIVE = "positive"
+    NEGATIVE = "negative"
+    ACTION = "action"
+
+class FeedbackFlowNode(BaseModel):
+    id: str  # A, B, C, D, ... T
+    title: str
+    subtitle: str
+    node_type: FeedbackFlowNodeType
+    category_class: str
+    day_label: Optional[str] = None
+    status: str = "pending"  # pending, active, completed, skipped
+    summary: Optional[str] = None
+    output_payload: Optional[Dict[str, Any]] = None
+
+class FeedbackFlowEdge(BaseModel):
+    from_node: str
+    to_node: str
+    label: Optional[str] = None
+
+class FeedbackFlowGraph(BaseModel):
+    nodes: List[FeedbackFlowNode]
+    edges: List[FeedbackFlowEdge]
+
+class FeedbackFlowExecution(BaseModel):
+    execution_id: str
+    account_id: str
+    account_name: str
+    scenario: str
+    path_taken: List[str] = Field(default_factory=list)
+    current_node: str
+    node_states: Dict[str, Dict[str, Any]] = Field(default_factory=dict)
+    status: str = "completed"  # running, completed, waiting
+    started_at: str
+    completed_at: Optional[str] = None
+    outcome_summary: str
+    sales_notified: bool = False
+    manager_notified: bool = False
+    crm_updated: bool = False
+    healthy_marked: bool = False
+
+class RunFeedbackFlowRequest(BaseModel):
+    account_id: str
+    scenario: str = "auto"  # auto, healthy, negative_day0, reminder_negative, unresponsive, positive
+    custom_satisfaction_score: Optional[int] = None
+    custom_blocker: Optional[str] = None
+    custom_comments: Optional[str] = None
+
+
