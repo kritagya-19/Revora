@@ -89,6 +89,11 @@ class AccountRepository:
         record_id = meta.get("source_record_id") or sig_data.get("source_record_id") or f"REC-{sig_data.get('id', 'SIG').upper()}"
         evidence_id = sig_data.get("evidence_id") or meta.get("evidence_id") or f"ev-{sig_data.get('id', 'sig')}"
 
+        is_sim = sig_data.get("is_simulated")
+        if is_sim is None:
+            is_sim = sig_data.get("mode") == "simulated" or source_cat not in ("crm",) or sig_data.get("source_type") != "hubspot"
+        mode_val = sig_data.get("mode") or ("simulated" if is_sim else "live")
+
         return Signal(
             id=sig_data["id"],
             account_id=sig_data["account_id"],
@@ -99,13 +104,15 @@ class AccountRepository:
             event_type=sig_type,
             title=sig_data["title"],
             summary=sig_data["summary"],
-            description=sig_data["summary"],
+            description=sig_data.get("description") or sig_data["summary"],
             severity=sig_data.get("severity", "medium"),
             timestamp=sig_data["timestamp"],
             event_time=sig_data["timestamp"],
             observed_value=observed,
             source_record_id=record_id,
-            metadata=meta
+            metadata=meta,
+            is_simulated=bool(is_sim),
+            mode=str(mode_val)
         )
 
     def get_all_accounts_with_risk(
@@ -456,7 +463,9 @@ class AccountRepository:
                 summary=s.summary,
                 timestamp=dt,
                 metadata=s.metadata,
-                raw_reference=f"source://{s.source_category}/{s.id}"
+                raw_reference=f"source://{s.source_category}/{s.id}",
+                is_simulated=s.is_simulated,
+                mode=s.mode
             ))
         return records
 

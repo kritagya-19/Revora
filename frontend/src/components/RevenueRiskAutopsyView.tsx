@@ -744,13 +744,24 @@ export function RevenueRiskAutopsyView({
           <div className="bg-white text-slate-800 rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-mono font-bold text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   {selectedSignalForModal.id}
                 </span>
                 <span className="text-xs text-slate-500 capitalize font-mono">
                   {selectedSignalForModal.source_category} Signal
                 </span>
+                {(!selectedSignalForModal.is_simulated && selectedSignalForModal.mode !== 'simulated') ? (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    LIVE API
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200/80 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                    SIMULATED
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => setSelectedSignalForModal(null)}

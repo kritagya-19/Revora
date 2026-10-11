@@ -95,6 +95,8 @@ export function CustomerDetailView({
         return <CalendarDays className="w-4 h-4 text-amber-500" />;
       case 'crm':
         return <FileText className="w-4 h-4 text-emerald-500" />;
+      case 'slack':
+        return <MessageSquare className="w-4 h-4 text-sky-500" />;
       default:
         return <Activity className="w-4 h-4 text-slate-400" />;
     }
@@ -315,12 +317,12 @@ export function CustomerDetailView({
           </div>
 
           {/* Timeline Filter Pills */}
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs">
-            {['all', 'usage', 'support', 'crm', 'email'].map((cat) => (
+          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs overflow-x-auto">
+            {['all', 'crm', 'email', 'calendar', 'slack', 'usage', 'support'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setTimelineFilter(cat)}
-                className={`px-2.5 py-1 rounded-md font-medium capitalize transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md font-medium capitalize transition-colors cursor-pointer whitespace-nowrap ${
                   timelineFilter === cat
                     ? 'bg-white text-slate-900 font-semibold shadow-2xs'
                     : 'text-slate-500 hover:text-slate-900'
@@ -339,14 +341,16 @@ export function CustomerDetailView({
               No evidence signals found for the selected category.
             </div>
           ) : (
-            filteredSignals.map((sig) => (
+            filteredSignals.map((sig) => {
+              const isLive = !sig.is_simulated && sig.mode !== 'simulated';
+              return (
               <div
                 key={sig.id}
                 onClick={() => setSelectedSignal(selectedSignal?.id === sig.id ? null : sig)}
                 className="py-3 sm:py-3.5 hover:bg-slate-50/70 rounded-xl px-3 transition-colors cursor-pointer space-y-1.5"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <div className="p-1.5 rounded-md bg-slate-100 border border-slate-200/60 shrink-0">
                       {getSourceIcon(sig.source_category)}
                     </div>
@@ -356,6 +360,17 @@ export function CustomerDetailView({
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
                       {sig.source_category}
                     </span>
+                    {isLive ? (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        LIVE API
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200/80 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                        SIMULATED
+                      </span>
+                    )}
                   </div>
                   <span className="text-[11px] font-mono text-slate-400 shrink-0">
                     {formatTimestamp(sig.timestamp)}
@@ -363,10 +378,11 @@ export function CustomerDetailView({
                 </div>
 
                 <p className="text-xs text-slate-600 pl-8 leading-relaxed">
-                  {sig.description}
+                  {sig.description || sig.summary}
                 </p>
               </div>
-            ))
+            );
+          })
           )}
         </div>
       </div>

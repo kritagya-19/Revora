@@ -28,6 +28,8 @@ export interface Signal {
   observed_value?: string;
   source_record_id?: string;
   metadata?: Record<string, any>;
+  is_simulated?: boolean;
+  mode?: 'live' | 'simulated';
 }
 
 export interface CustomerMetrics {
@@ -99,12 +101,14 @@ export interface DashboardSummary {
 export interface EvidenceRecord {
   id: string;
   account_id: string;
-  source_category: 'crm' | 'email' | 'calendar' | 'usage' | 'support';
+  source_category: 'crm' | 'email' | 'calendar' | 'usage' | 'support' | 'slack' | string;
   title: string;
   summary: string;
   timestamp: string;
   metadata: Record<string, any>;
   raw_reference?: string;
+  is_simulated?: boolean;
+  mode?: 'live' | 'simulated';
 }
 
 export interface AutopsyFact {

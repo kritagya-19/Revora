@@ -320,10 +320,21 @@ export function AccountDeepDive({
                   className="p-3.5 bg-white border border-[#E2E8F0] rounded-lg space-y-1.5 transition-all hover:border-[#2563EB]/40"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                         {sig.source_category}
                       </span>
+                      {(!sig.is_simulated && sig.mode !== 'simulated') ? (
+                        <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          LIVE API
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-violet-50 text-violet-700 border border-violet-200 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                          SIMULATED
+                        </span>
+                      )}
                       <span className="font-semibold text-xs text-[#020062]">
                         {sig.title}
                       </span>

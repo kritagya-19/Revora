@@ -10,8 +10,77 @@ from app.services.free_pipeline_service import free_pipelines
 
 from app.services.hubspot_sync_service import hubspot_sync_service
 from app.services.hubspot_client import hubspot_client, HubSpotAPIError
+from app.services.unified_demo_system import unified_demo_system
 
 router = APIRouter()
+
+@router.post("/hubspot/seed-unified")
+def seed_unified_demo_data(execute_live_fetch: bool = Query(True, description="Fetch live CRM records from HubSpot API")):
+    """
+    POST /api/integrations/hubspot/seed-unified
+    Triggers deterministic unified demo seeding:
+    - Fetches companies, contacts, and deals from HubSpot API
+    - Generates multi-channel simulated records (Email, Calendar, Slack, Telemetry)
+    - Associates all records to exact internal account IDs with source, timestamp, and simulated/live status
+    - Idempotently persists in MongoDB and recomputes risk scores
+    """
+    try:
+        result = unified_demo_system.seed_all(execute_hubspot_live_fetch=execute_live_fetch)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unified seeding failed: {e}")
+
+from app.services.account_repository import account_repo
+
+@router.get("/hubspot/seed-status")
+def get_unified_seed_status():
+    """
+    GET /api/integrations/hubspot/seed-status
+    Returns summary statistics for accounts, contacts, and signals in the database.
+    """
+    db = account_repo.db
+    if db is None:
+        try:
+            from pymongo import MongoClient
+            client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=1000)
+            client.admin.command("ping")
+            db = client["revora"]
+        except Exception:
+            db = None
+
+    if db is not None:
+        try:
+            total_accounts = db.accounts.count_documents({})
+            live_accounts = db.accounts.count_documents({"is_demo": False})
+            total_contacts = db.contacts.count_documents({})
+            total_signals = db.signals.count_documents({})
+            live_signals = db.signals.count_documents({"is_simulated": False})
+            sim_signals = db.signals.count_documents({"is_simulated": True})
+            return {
+                "status": "ready",
+                "database": "mongodb",
+                "total_accounts": total_accounts,
+                "live_accounts": live_accounts,
+                "total_contacts": total_contacts,
+                "total_signals": total_signals,
+                "live_signals": live_signals,
+                "simulated_signals": sim_signals,
+                "supported_channels": ["crm", "email", "calendar", "slack", "usage", "support"],
+                "hubspot_configured": hubspot_client.is_configured
+            }
+        except Exception as e:
+            pass
+
+    return {
+        "status": "ready_in_memory",
+        "database": "in_memory",
+        "total_accounts": len(account_repo._accounts_data),
+        "total_contacts": len(account_repo._contacts_data),
+        "total_signals": len(account_repo._signals_data),
+        "supported_channels": ["crm", "email", "calendar", "slack", "usage", "support"],
+        "hubspot_configured": hubspot_client.is_configured
+    }
+
 
 @router.get("/hubspot/status")
 def get_hubspot_status():

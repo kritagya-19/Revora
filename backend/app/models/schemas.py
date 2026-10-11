@@ -13,6 +13,7 @@ class SourceCategory(str, Enum):
     CRM = "crm"
     EMAIL = "email"
     CALENDAR = "calendar"
+    SLACK = "slack"
     USAGE = "usage"
     SUPPORT = "support"
 
@@ -76,6 +77,8 @@ class Signal(BaseModel):
     unit: Optional[str] = None
     source_record_id: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    is_simulated: bool = False
+    mode: str = "live"
 
     @model_validator(mode="before")
     @classmethod
@@ -193,6 +196,8 @@ class EvidenceRecord(BaseModel):
     timestamp: datetime
     metadata: Dict[str, Any] = Field(default_factory=dict)
     raw_reference: Optional[str] = None
+    is_simulated: bool = False
+    mode: str = "live"
 
 # Page 4: Revenue Risk Autopsy & Structured Investigation
 class InvestigationFinding(BaseModel):
