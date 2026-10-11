@@ -247,7 +247,14 @@
       "summary": "Usage is 38% below the defined comparison baseline. This is evidence of declining activity, not proof of dissatisfaction.",
       "severity": "high",
       "timestamp": "2026-10-06T14:30:00Z",
-      "metadata": { "drop_pct": 38.0, "current_seats": 148, "baseline": 240 }
+      "metadata": {
+        "drop_pct": 38.0,
+        "current_seats": 148,
+        "baseline": 240
+      },
+      "source_type": "usage",
+      "evidence_id": "ev-sig-101",
+      "source_record_id": "rec-sig-101"
     },
     {
       "id": "sig-102",
@@ -258,7 +265,13 @@
       "summary": "The latest recorded outreach has no recorded reply within 16 days.",
       "severity": "high",
       "timestamp": "2026-10-08T09:15:00Z",
-      "metadata": { "days_since_touchpoint": 16, "status": "no_reply" }
+      "metadata": {
+        "days_since_touchpoint": 16,
+        "status": "no_reply"
+      },
+      "source_type": "crm",
+      "evidence_id": "ev-sig-102",
+      "source_record_id": "rec-sig-102"
     },
     {
       "id": "sig-103",
@@ -269,7 +282,13 @@
       "summary": "The CRM records renewal in 43 days, increasing the urgency of investigating the other signals.",
       "severity": "medium",
       "timestamp": "2026-10-02T16:45:00Z",
-      "metadata": { "days_to_renewal": 43, "renewal_date": "2026-11-23" }
+      "metadata": {
+        "days_to_renewal": 43,
+        "renewal_date": "2026-11-23"
+      },
+      "source_type": "crm",
+      "evidence_id": "ev-sig-103",
+      "source_record_id": "rec-sig-103"
     },
     {
       "id": "sig-104",
@@ -280,7 +299,13 @@
       "summary": "Exec sponsor cancelled QBR renewal review meeting with no reschedule date provided.",
       "severity": "high",
       "timestamp": "2026-10-05T11:00:00Z",
-      "metadata": { "status": "cancelled", "meeting_type": "Executive QBR" }
+      "metadata": {
+        "status": "cancelled",
+        "meeting_type": "Executive QBR"
+      },
+      "source_type": "calendar",
+      "evidence_id": "ev-sig-104",
+      "source_record_id": "rec-sig-104"
     },
     {
       "id": "sig-105",
@@ -291,7 +316,12 @@
       "summary": "Production cluster API calls dropped 52% month-over-month.",
       "severity": "high",
       "timestamp": "2026-10-09T08:00:00Z",
-      "metadata": { "drop_pct": 52.0 }
+      "metadata": {
+        "drop_pct": 52.0
+      },
+      "source_type": "usage",
+      "evidence_id": "ev-sig-105",
+      "source_record_id": "rec-sig-105"
     },
     {
       "id": "sig-106",
@@ -302,7 +332,12 @@
       "summary": "No logged CSM contact in 50 days; renewal in 15 days.",
       "severity": "high",
       "timestamp": "2026-10-10T00:00:00Z",
-      "metadata": { "days_since_touchpoint": 50 }
+      "metadata": {
+        "days_since_touchpoint": 50
+      },
+      "source_type": "crm",
+      "evidence_id": "ev-sig-106",
+      "source_record_id": "rec-sig-106"
     },
     {
       "id": "sig-107",
@@ -313,7 +348,12 @@
       "summary": "Daily active pipeline builders decreased by 25% following recent re-org.",
       "severity": "medium",
       "timestamp": "2026-10-03T10:00:00Z",
-      "metadata": { "drop_pct": 25.0 }
+      "metadata": {
+        "drop_pct": 25.0
+      },
+      "source_type": "usage",
+      "evidence_id": "ev-sig-107",
+      "source_record_id": "rec-sig-107"
     },
     {
       "id": "sig-108",
@@ -324,7 +364,12 @@
       "summary": "Contract renewal due in 41 days with single sponsor contact recorded.",
       "severity": "medium",
       "timestamp": "2026-10-09T14:00:00Z",
-      "metadata": { "days_to_renewal": 41 }
+      "metadata": {
+        "days_to_renewal": 41
+      },
+      "source_type": "crm",
+      "evidence_id": "ev-sig-108",
+      "source_record_id": "rec-sig-108"
     },
     {
       "id": "sig-109",
@@ -335,7 +380,12 @@
       "summary": "Primary executive champion updated LinkedIn status; autoreply confirmed departure.",
       "severity": "high",
       "timestamp": "2026-09-22T08:30:00Z",
-      "metadata": { "risk_type": "sponsor_loss" }
+      "metadata": {
+        "risk_type": "sponsor_loss"
+      },
+      "source_type": "email",
+      "evidence_id": "ev-sig-109",
+      "source_record_id": "rec-sig-109"
     },
     {
       "id": "sig-110",
@@ -346,7 +396,12 @@
       "summary": "Security compliance sign-off blocked on custom SAML SSO query.",
       "severity": "medium",
       "timestamp": "2026-10-04T12:00:00Z",
-      "metadata": { "ticket_id": "5102" }
+      "metadata": {
+        "ticket_id": "5102"
+      },
+      "source_type": "support",
+      "evidence_id": "ev-sig-110",
+      "source_record_id": "rec-sig-110"
     },
     {
       "id": "sig-111",
@@ -357,7 +412,12 @@
       "summary": "Customer reached 98% user license limit across all hospitals; upsell candidate.",
       "severity": "low",
       "timestamp": "2026-10-07T11:00:00Z",
-      "metadata": { "utilization_pct": 98.2 }
+      "metadata": {
+        "utilization_pct": 98.2
+      },
+      "source_type": "usage",
+      "evidence_id": "ev-sig-111",
+      "source_record_id": "rec-sig-111"
     },
     {
       "id": "sig-112",
@@ -368,7 +428,12 @@
       "summary": "Positive quarterly review completed with CIO; expansion approved for Q1.",
       "severity": "low",
       "timestamp": "2026-10-07T15:20:00Z",
-      "metadata": { "sentiment": "very_positive" }
+      "metadata": {
+        "sentiment": "very_positive"
+      },
+      "source_type": "calendar",
+      "evidence_id": "ev-sig-112",
+      "source_record_id": "rec-sig-112"
     },
     {
       "id": "sig-113",
@@ -379,7 +444,12 @@
       "summary": "Query volume down 12% due to corporate holiday week in Singapore branch.",
       "severity": "low",
       "timestamp": "2026-10-01T09:00:00Z",
-      "metadata": { "drop_pct": 12.0 }
+      "metadata": {
+        "drop_pct": 12.0
+      },
+      "source_type": "usage",
+      "evidence_id": "ev-sig-113",
+      "source_record_id": "rec-sig-113"
     },
     {
       "id": "sig-114",
@@ -390,7 +460,12 @@
       "summary": "Throughput holding steady with +8% growth in catalog synchronizations.",
       "severity": "low",
       "timestamp": "2026-10-05T16:00:00Z",
-      "metadata": { "growth_pct": 8.0 }
+      "metadata": {
+        "growth_pct": 8.0
+      },
+      "source_type": "usage",
+      "evidence_id": "ev-sig-114",
+      "source_record_id": "rec-sig-114"
     },
     {
       "id": "sig-115",
@@ -401,7 +476,466 @@
       "summary": "Last touchpoint 32 days ago; scheduled check-in recommended.",
       "severity": "medium",
       "timestamp": "2026-10-08T10:00:00Z",
-      "metadata": { "days_since_touchpoint": 32 }
+      "metadata": {
+        "days_since_touchpoint": 32
+      },
+      "source_type": "crm",
+      "evidence_id": "ev-sig-115",
+      "source_record_id": "rec-sig-115"
+    },
+    {
+      "id": "sig-116",
+      "account_id": "acc-101",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "downgrade_inquiry",
+      "title": "Procurement Inbound Downgrade Inquiry",
+      "summary": "Inbound email from Acme Procurement requesting pricing options for lower tier with reduced seat count.",
+      "severity": "high",
+      "timestamp": "2026-10-07T16:20:00Z",
+      "evidence_id": "ev-sig-116",
+      "source_record_id": "rec-sig-116",
+      "metadata": {
+        "sender": "procurement@acmetechnologies.com",
+        "subject": "Contract renewal tier adjustments",
+        "sentiment": "negative"
+      }
+    },
+    {
+      "id": "sig-117",
+      "account_id": "acc-101",
+      "source_category": "calendar",
+      "source_type": "calendar",
+      "signal_type": "qbr_rescheduled",
+      "title": "Executive QBR Meeting Cancelled",
+      "summary": "Executive Sponsor cancelled the scheduled Q4 strategy review meeting without setting a fallback date.",
+      "severity": "medium",
+      "timestamp": "2026-10-05T14:00:00Z",
+      "evidence_id": "ev-sig-117",
+      "source_record_id": "rec-sig-117",
+      "metadata": {
+        "meeting_name": "Acme Q4 Strategic Review",
+        "status": "cancelled_by_client"
+      }
+    },
+    {
+      "id": "sig-118",
+      "account_id": "acc-101",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "Critical SLA Escalation Ticket #4920",
+      "summary": "Ticket #4920: Data pipeline ingestion latency breaching SLA; marked Urgent by Director of Engineering.",
+      "severity": "critical",
+      "timestamp": "2026-10-09T11:45:00Z",
+      "evidence_id": "ev-sig-118",
+      "source_record_id": "rec-sig-118",
+      "metadata": {
+        "ticket_id": "4920",
+        "priority": "critical",
+        "sla_status": "breached",
+        "days_open": 6
+      }
+    },
+    {
+      "id": "sig-119",
+      "account_id": "acc-102",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "data_export_inquiry",
+      "title": "Inbound Request Regarding Bulk Data Export",
+      "summary": "Lead Architect inquired about historical data offloading protocols and API transition schedules.",
+      "severity": "medium",
+      "timestamp": "2026-10-04T13:10:00Z",
+      "evidence_id": "ev-sig-119",
+      "source_record_id": "rec-sig-119",
+      "metadata": {
+        "sender": "radams@cloudnova.io",
+        "intent": "data_export",
+        "sentiment": "neutral"
+      }
+    },
+    {
+      "id": "sig-120",
+      "account_id": "acc-102",
+      "source_category": "calendar",
+      "source_type": "calendar",
+      "signal_type": "meeting_declined",
+      "title": "Architecture Sync Declined",
+      "summary": "Engineering Lead declined the scheduled bi-weekly architecture check-in citing internal priority shifting.",
+      "severity": "low",
+      "timestamp": "2026-10-06T10:00:00Z",
+      "evidence_id": "ev-sig-120",
+      "source_record_id": "rec-sig-120",
+      "metadata": {
+        "event": "Bi-weekly Architecture Sync",
+        "status": "declined"
+      }
+    },
+    {
+      "id": "sig-121",
+      "account_id": "acc-102",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "Webhook Delivery Failures in CI/CD",
+      "summary": "Ticket #5031: Webhook retry storm causing deployment queue delays across staging clusters.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T15:30:00Z",
+      "evidence_id": "ev-sig-121",
+      "source_record_id": "rec-sig-121",
+      "metadata": {
+        "ticket_id": "5031",
+        "priority": "high",
+        "days_open": 2
+      }
+    },
+    {
+      "id": "sig-122",
+      "account_id": "acc-103",
+      "source_category": "crm",
+      "source_type": "crm",
+      "signal_type": "account_health_review",
+      "title": "Annual Account Review Logged",
+      "summary": "CSM logged positive annual account review; client expressed satisfaction with enterprise SLA performance.",
+      "severity": "low",
+      "timestamp": "2026-10-03T11:00:00Z",
+      "evidence_id": "ev-sig-122",
+      "source_record_id": "rec-sig-122",
+      "metadata": {
+        "csm": "Sarah Jenkins",
+        "status": "satisfied"
+      }
+    },
+    {
+      "id": "sig-123",
+      "account_id": "acc-103",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "seat_expansion_inquiry",
+      "title": "Additional Seats Quote Requested",
+      "summary": "Head of Quantitative Infrastructure requested pricing addendum for 25 additional analyst licenses.",
+      "severity": "low",
+      "timestamp": "2026-10-06T09:40:00Z",
+      "evidence_id": "ev-sig-123",
+      "source_record_id": "rec-sig-123",
+      "metadata": {
+        "sender": "liam@vortexdata.ai",
+        "intent": "expansion",
+        "sentiment": "positive"
+      }
+    },
+    {
+      "id": "sig-124",
+      "account_id": "acc-103",
+      "source_category": "calendar",
+      "source_type": "calendar",
+      "signal_type": "roadmap_sync_completed",
+      "title": "Q4 Product Roadmap Alignment Completed",
+      "summary": "Successful sync held with data engineering team reviewing upcoming real-time streaming connectors.",
+      "severity": "low",
+      "timestamp": "2026-10-07T14:30:00Z",
+      "evidence_id": "ev-sig-124",
+      "source_record_id": "rec-sig-124",
+      "metadata": {
+        "meeting_type": "Roadmap Review",
+        "attendance": "full"
+      }
+    },
+    {
+      "id": "sig-125",
+      "account_id": "acc-103",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "Query Syntax Verification Resolved",
+      "summary": "Ticket #4812: Minor SQL syntax verification for BigQuery integration resolved within 1 hour.",
+      "severity": "low",
+      "timestamp": "2026-09-29T16:00:00Z",
+      "evidence_id": "ev-sig-125",
+      "source_record_id": "rec-sig-125",
+      "metadata": {
+        "ticket_id": "4812",
+        "priority": "low",
+        "resolution_time_hrs": 1
+      }
+    },
+    {
+      "id": "sig-126",
+      "account_id": "acc-104",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "cfo_termination_inquiry",
+      "title": "CFO Early Termination Clause Inquiry",
+      "summary": "Inbound email from CFO Vikram Patel inquiring about early contract termination terms and compute credit refunds.",
+      "severity": "critical",
+      "timestamp": "2026-10-08T18:15:00Z",
+      "evidence_id": "ev-sig-126",
+      "source_record_id": "rec-sig-126",
+      "metadata": {
+        "sender": "vikram@hyperscalelabs.co",
+        "intent": "cancellation",
+        "sentiment": "very_negative"
+      }
+    },
+    {
+      "id": "sig-127",
+      "account_id": "acc-104",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "billing_dispute",
+      "title": "Unpaid Invoice & Billing Dispute Ticket #5201",
+      "summary": "Finance escalation regarding disputed overage charge; automatic billing retry failed for October cycle.",
+      "severity": "high",
+      "timestamp": "2026-10-09T09:30:00Z",
+      "evidence_id": "ev-sig-127",
+      "source_record_id": "rec-sig-127",
+      "metadata": {
+        "ticket_id": "5201",
+        "priority": "high",
+        "amount_disputed": 14500.0
+      }
+    },
+    {
+      "id": "sig-128",
+      "account_id": "acc-105",
+      "source_category": "crm",
+      "source_type": "crm",
+      "signal_type": "expansion_opportunity",
+      "title": "Enterprise HIPAA Upgrade Opportunity Created",
+      "summary": "Opportunity staged in CRM for $45,000 ARR expansion to support additional regional hospital division.",
+      "severity": "low",
+      "timestamp": "2026-10-08T11:20:00Z",
+      "evidence_id": "ev-sig-128",
+      "source_record_id": "rec-sig-128",
+      "metadata": {
+        "deal_size": 45000,
+        "stage": "Proposal"
+      }
+    },
+    {
+      "id": "sig-129",
+      "account_id": "acc-105",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "procurement_confirmation",
+      "title": "Procurement Sign-off Ready for Review",
+      "summary": "Email from Dr. Patricia Hayes confirming clinical IT budget allocation approved for enterprise upgrade.",
+      "severity": "low",
+      "timestamp": "2026-10-08T14:45:00Z",
+      "evidence_id": "ev-sig-129",
+      "source_record_id": "rec-sig-129",
+      "metadata": {
+        "sender": "phayes@omnihealth.org",
+        "sentiment": "enthusiastic"
+      }
+    },
+    {
+      "id": "sig-130",
+      "account_id": "acc-105",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "compliance_request",
+      "title": "HIPAA BAA Agreement Validation Request",
+      "summary": "Ticket #5180: Legal team requested latest executed Business Associate Agreement (BAA) and SOC2 Type II audit report.",
+      "severity": "low",
+      "timestamp": "2026-10-04T10:15:00Z",
+      "evidence_id": "ev-sig-130",
+      "source_record_id": "rec-sig-130",
+      "metadata": {
+        "ticket_id": "5180",
+        "priority": "medium",
+        "status": "fulfilled"
+      }
+    },
+    {
+      "id": "sig-131",
+      "account_id": "acc-106",
+      "source_category": "crm",
+      "source_type": "crm",
+      "signal_type": "stakeholder_risk",
+      "title": "Key Champion Loss Flagged in CRM",
+      "summary": "CRM stakeholder relationship marked Red following departure of Chief Technology Officer.",
+      "severity": "high",
+      "timestamp": "2026-09-23T10:00:00Z",
+      "evidence_id": "ev-sig-131",
+      "source_record_id": "rec-sig-131",
+      "metadata": {
+        "role": "CTO",
+        "status": "vacant"
+      }
+    },
+    {
+      "id": "sig-132",
+      "account_id": "acc-106",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "sso_auth_drop",
+      "title": "SSO Authentications Down 35%",
+      "summary": "Active Single Sign-On authentications dropped 35% in past two weeks following organizational restructuring.",
+      "severity": "medium",
+      "timestamp": "2026-10-05T08:00:00Z",
+      "evidence_id": "ev-sig-132",
+      "source_record_id": "rec-sig-132",
+      "metadata": {
+        "drop_pct": 35.0,
+        "auth_type": "SAML_SSO"
+      }
+    },
+    {
+      "id": "sig-133",
+      "account_id": "acc-106",
+      "source_category": "calendar",
+      "source_type": "calendar",
+      "signal_type": "security_briefing_pending",
+      "title": "InfoSec Briefing Rescheduling Requested",
+      "summary": "Interim Security Officer requested rescheduling mandatory annual compliance audit briefing.",
+      "severity": "medium",
+      "timestamp": "2026-10-06T15:00:00Z",
+      "evidence_id": "ev-sig-133",
+      "source_record_id": "rec-sig-133",
+      "metadata": {
+        "meeting": "Annual InfoSec Audit Review",
+        "status": "rescheduled"
+      }
+    },
+    {
+      "id": "sig-134",
+      "account_id": "acc-107",
+      "source_category": "crm",
+      "source_type": "crm",
+      "signal_type": "onboarding_milestone",
+      "title": "Merchant Onboarding Milestone Completed",
+      "summary": "CSM logged successful launch of 120 e-commerce merchants on new automated catalog sync engine.",
+      "severity": "low",
+      "timestamp": "2026-10-02T11:00:00Z",
+      "evidence_id": "ev-sig-134",
+      "source_record_id": "rec-sig-134",
+      "metadata": {
+        "merchants_active": 120,
+        "milestone": "Stage 3"
+      }
+    },
+    {
+      "id": "sig-135",
+      "account_id": "acc-107",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "positive_feedback",
+      "title": "Praise for Latency Improvement",
+      "summary": "Chloe Nguyen sent note acknowledging sub-100ms checkout inventory lookups during flash sale test.",
+      "severity": "low",
+      "timestamp": "2026-10-07T17:15:00Z",
+      "evidence_id": "ev-sig-135",
+      "source_record_id": "rec-sig-135",
+      "metadata": {
+        "sender": "chloe@kiteflow.shop",
+        "sentiment": "very_positive"
+      }
+    },
+    {
+      "id": "sig-136",
+      "account_id": "acc-107",
+      "source_category": "calendar",
+      "source_type": "calendar",
+      "signal_type": "biweekly_attended",
+      "title": "Peak Traffic Readiness Sync Attended",
+      "summary": "Infrastructure team attended bi-weekly sync; confirmed load test target of 5,000 req/sec for November.",
+      "severity": "low",
+      "timestamp": "2026-10-08T13:00:00Z",
+      "evidence_id": "ev-sig-136",
+      "source_record_id": "rec-sig-136",
+      "metadata": {
+        "target_rps": 5000,
+        "readiness": "green"
+      }
+    },
+    {
+      "id": "sig-137",
+      "account_id": "acc-107",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "Webhook Signature Verification Resolved",
+      "summary": "Ticket #4995: Clarification on HMAC SHA-256 webhook header verification resolved and verified by developer.",
+      "severity": "low",
+      "timestamp": "2026-10-01T14:20:00Z",
+      "evidence_id": "ev-sig-137",
+      "source_record_id": "rec-sig-137",
+      "metadata": {
+        "ticket_id": "4995",
+        "status": "closed",
+        "resolution_time_hrs": 2
+      }
+    },
+    {
+      "id": "sig-138",
+      "account_id": "acc-108",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "transcoding_steady",
+      "title": "Video Telemetry Volume Steady",
+      "summary": "Publishing pipeline processed 1.2M video rendering minutes with zero pipeline stalls this billing period.",
+      "severity": "low",
+      "timestamp": "2026-10-06T12:00:00Z",
+      "evidence_id": "ev-sig-138",
+      "source_record_id": "rec-sig-138",
+      "metadata": {
+        "minutes_processed": 1200000,
+        "uptime_pct": 99.98
+      }
+    },
+    {
+      "id": "sig-139",
+      "account_id": "acc-108",
+      "source_category": "email",
+      "source_type": "email",
+      "signal_type": "feature_inquiry",
+      "title": "Inquiry on Multi-Region CDN Routing",
+      "summary": "Arthur Pendelton emailed asking about upcoming support for edge rendering and multi-region CDN caching.",
+      "severity": "low",
+      "timestamp": "2026-10-07T10:30:00Z",
+      "evidence_id": "ev-sig-139",
+      "source_record_id": "rec-sig-139",
+      "metadata": {
+        "sender": "arthur@starlightmedia.io",
+        "sentiment": "curious"
+      }
+    },
+    {
+      "id": "sig-140",
+      "account_id": "acc-108",
+      "source_category": "calendar",
+      "source_type": "calendar",
+      "signal_type": "feedback_scheduled",
+      "title": "Product Feedback Session Scheduled",
+      "summary": "Calendar invite accepted for 45-minute workflow feedback session with Revora product design team.",
+      "severity": "low",
+      "timestamp": "2026-10-09T16:00:00Z",
+      "evidence_id": "ev-sig-140",
+      "source_record_id": "rec-sig-140",
+      "metadata": {
+        "event": "Product Feedback Review",
+        "status": "confirmed"
+      }
+    },
+    {
+      "id": "sig-141",
+      "account_id": "acc-108",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "CDN Cache Header Configuration Ticket #5088",
+      "summary": "Ticket #5088: Guidance on Cloudflare cache-control header TTL configuration provided and closed.",
+      "severity": "low",
+      "timestamp": "2026-10-03T15:40:00Z",
+      "evidence_id": "ev-sig-141",
+      "source_record_id": "rec-sig-141",
+      "metadata": {
+        "ticket_id": "5088",
+        "status": "closed",
+        "priority": "low"
+      }
     }
   ]
 }

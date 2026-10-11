@@ -93,7 +93,10 @@ def init_mongodb(uri: str = "mongodb://localhost:27017", db_name: str = "revora"
             # Ensure normalized fields are set
             doc["signal_id"] = doc.get("signal_id") or doc["id"]
             doc["source"] = doc.get("source") or doc.get("source_category")
+            doc["source_type"] = doc.get("source_type") or doc["source"]
             doc["occurred_at"] = doc.get("occurred_at") or doc.get("timestamp")
+            doc["evidence_id"] = doc.get("evidence_id") or f"ev-{doc['id']}"
+            doc["source_record_id"] = doc.get("source_record_id") or f"rec-{doc['id']}"
             db.signals.update_one({"id": doc["id"]}, {"$set": doc}, upsert=True)
         logger.info(f"Upserted {len(signals)} signals.")
 

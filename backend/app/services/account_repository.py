@@ -79,13 +79,15 @@ class AccountRepository:
         else:
             observed = sig_data.get("summary", "")[:40]
 
-        record_id = meta.get("source_record_id") or f"REC-{sig_data.get('id', 'SIG').upper()}"
+        record_id = meta.get("source_record_id") or sig_data.get("source_record_id") or f"REC-{sig_data.get('id', 'SIG').upper()}"
+        evidence_id = sig_data.get("evidence_id") or meta.get("evidence_id") or f"ev-{sig_data.get('id', 'sig')}"
 
         return Signal(
             id=sig_data["id"],
             account_id=sig_data["account_id"],
             source_category=source_cat,
             source_type=source_cat,
+            evidence_id=evidence_id,
             signal_type=sig_type,
             event_type=sig_type,
             title=sig_data["title"],

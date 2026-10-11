@@ -61,6 +61,7 @@ class Signal(BaseModel):
     source_type: Optional[str] = None
     source: Optional[str] = None
     signal_id: Optional[str] = None
+    evidence_id: Optional[str] = None
     signal_type: str
     event_type: Optional[str] = None
     title: str = ""
@@ -85,6 +86,11 @@ class Signal(BaseModel):
             if sig_id:
                 data["id"] = str(sig_id)
                 data["signal_id"] = str(sig_id)
+
+            # Normalize evidence_id and source_record_id
+            ev_id = data.get("evidence_id") or data.get("source_record_id") or (f"ev-{sig_id}" if sig_id else "ev-sig")
+            data["evidence_id"] = str(ev_id)
+            data["source_record_id"] = data.get("source_record_id") or str(ev_id)
 
             # Normalize Source
             source = data.get("source_category") or data.get("source") or data.get("source_type") or "system"
