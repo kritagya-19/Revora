@@ -215,7 +215,8 @@ class AccountRepository:
         csm_owner: Optional[str] = None,
         renewal_within_days: Optional[int] = None,
         sort_by: Optional[str] = "risk_score",
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        classification: Optional[str] = None
     ) -> List[AccountRiskSummary]:
         accounts_to_process = []
 
@@ -250,6 +251,7 @@ class AccountRepository:
         for acc in accounts_to_process:
             signals_summary = acc.get("signals_summary", {})
             acc_signals = self.get_account_signals(acc["id"])
+            evidence_ids = [s.id for s in acc_signals]
             
             # If signals_summary is not attached directly, derive from signals
             if not signals_summary:
@@ -277,7 +279,9 @@ class AccountRepository:
                 usage_drop_pct=float(signals_summary.get("usage_drop_pct", 0.0)),
                 days_since_last_touchpoint=int(signals_summary.get("days_since_last_touchpoint", 15)),
                 open_critical_tickets=int(signals_summary.get("open_critical_tickets", 0)),
-                arr=float(acc.get("arr", 0.0))
+                arr=float(acc.get("arr", 0.0)),
+                evidence_ids=evidence_ids,
+                account_id=acc.get("id")
             )
 
             # Derive main warning
@@ -302,9 +306,12 @@ class AccountRepository:
                 urgency_label = "Stable (>60d)"
 
             calculated_level = RiskLevel(eval_res["risk_level"])
+            account_class = eval_res.get("classification", "healthy")
 
             # Apply in-memory filtering if needed
             if risk_level and risk_level.lower() != "all" and calculated_level.value != risk_level.lower():
+                continue
+            if classification and classification.lower() != "all" and account_class != classification.lower():
                 continue
             if csm_owner and acc.get("csm_owner") != csm_owner:
                 continue
@@ -332,11 +339,14 @@ class AccountRepository:
                 status=acc.get("status", "active"),
                 risk_level=calculated_level,
                 risk_score=eval_res["risk_score"],
+                classification=account_class,
                 urgency_days_to_renewal=days_to_ren,
                 urgency_label=urgency_label,
                 primary_reason_code=eval_res["primary_reason_code"],
                 main_warning=main_warning,
-                contributing_factors=eval_res["contributing_factors"]
+                contributing_factors=eval_res["contributing_factors"],
+                investigation_triggered=eval_res.get("investigation_triggered", False),
+                display_churn_probability=False
             ))
 
         # Sorting logic
@@ -474,6 +484,10 @@ class AccountRepository:
             health_score=health,
             tier=raw_account.get("tier", "Standard"),
             status=raw_account.get("status", "active"),
+            crm_status=raw_account.get("crm_status"),
+            forecast_status=raw_account.get("forecast_status"),
+            last_crm_update=raw_account.get("last_crm_update"),
+            last_crm_updated_by=raw_account.get("last_crm_updated_by"),
             risk_level=RiskLevel(eval_res["risk_level"]),
             risk_score=eval_res["risk_score"],
             urgency_days_to_renewal=days_to_ren,
@@ -490,17 +504,31 @@ class AccountRepository:
         account = self.get_account_by_id(account_id)
         if not account:
             return None
+
+        # Evaluate rich deterministic rules and compound multi-signals
+        eval_res = DeterministicRiskEngine.evaluate_account(account_id, auto_trigger_investigation=False)
+
         return AccountRiskDetail(
             account_id=account.id,
             account_name=account.name,
-            risk_score=account.risk_score,
+            risk_score=eval_res["risk_score"],
             risk_level=account.risk_level,
+            classification=eval_res.get("classification", "healthy"),
             urgency_days_to_renewal=account.urgency_days_to_renewal,
             urgency_label=account.urgency_label or "Moderate",
-            primary_reason_code=account.primary_reason_code,
-            main_warning=account.main_warning or account.primary_reason_code,
-            contributing_factors=account.contributing_factors,
-            rule_version="v2.0.0",
+            primary_reason_code=eval_res["primary_reason_code"],
+            main_warning=account.main_warning or eval_res["primary_reason_code"],
+            contributing_factors=eval_res["contributing_factors"],
+            rule_breakdown=eval_res.get("rule_breakdown", []),
+            compound_rules_triggered=eval_res.get("compound_rules_triggered", []),
+            investigation_triggered=eval_res.get("investigation_triggered", False),
+            investigation_trigger_reason=eval_res.get("investigation_trigger_reason"),
+            investigation_id=eval_res.get("investigation_id"),
+            churn_probability=None,
+            display_churn_probability=False,
+            churn_probability_disclaimer=eval_res.get("churn_probability_disclaimer", ""),
+            statistical_confidence=eval_res.get("statistical_confidence", "high"),
+            rule_version=DeterministicRiskEngine.RULE_VERSION,
             signals_count=len(account.signals),
             arr=account.arr,
             renewal_date=account.renewal_date
@@ -588,5 +616,107 @@ class AccountRepository:
             details={"signal_id": signal.id, "type": signal.signal_type, "severity": signal.severity}
         )
         return signal
+
+    def apply_approved_crm_update(
+        self,
+        account_id: str,
+        field_name: str,
+        proposed_value: str,
+        field_updates: Optional[List[Dict[str, Any]]] = None,
+        approved_by: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Task E: Persists approved CRM updates against the account and records CRM transaction history.
+        """
+        timestamp = datetime.utcnow().isoformat()
+        applied_fields = {}
+
+        # 1. Update in-memory account data
+        target_acc = None
+        for acc in self._accounts_data:
+            if acc["id"] == account_id:
+                target_acc = acc
+                break
+
+        if target_acc:
+            target_acc["crm_status"] = proposed_value
+            applied_fields["crm_status"] = proposed_value
+
+            if field_updates:
+                for fu in field_updates:
+                    fname = fu.get("field", "").lower()
+                    fval = fu.get("proposed")
+                    if "tier" in fname:
+                        target_acc["tier"] = fval
+                        applied_fields["tier"] = fval
+                    elif "status" in fname or "forecast" in fname:
+                        target_acc["forecast_status"] = fval
+                        applied_fields["forecast_status"] = fval
+            target_acc["last_crm_update"] = timestamp
+            target_acc["last_crm_updated_by"] = approved_by or "CSM Lead"
+
+        # 2. Update MongoDB if active
+        if self.db is not None:
+            try:
+                update_doc = {
+                    "crm_status": proposed_value,
+                    "last_crm_update": timestamp,
+                    "last_crm_updated_by": approved_by or "CSM Lead",
+                    **applied_fields
+                }
+                self.db.accounts.update_one({"id": account_id}, {"$set": update_doc}, upsert=False)
+
+                crm_record = {
+                    "id": f"crm-rec-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+                    "account_id": account_id,
+                    "field_name": field_name,
+                    "proposed_value": proposed_value,
+                    "field_updates": field_updates or [],
+                    "approved_by": approved_by,
+                    "applied_at": timestamp
+                }
+                self.db.crm_records.insert_one(crm_record)
+            except Exception as e:
+                logger.warning(f"MongoDB apply_approved_crm_update error: {e}")
+
+        # 3. Add to in-memory crm transaction records
+        if not hasattr(self, "_crm_records"):
+            self._crm_records = []
+        crm_record = {
+            "id": f"crm-rec-{len(self._crm_records)+1}",
+            "account_id": account_id,
+            "field_name": field_name,
+            "proposed_value": proposed_value,
+            "field_updates": field_updates or [],
+            "approved_by": approved_by,
+            "applied_at": timestamp
+        }
+        self._crm_records.append(crm_record)
+
+        # 4. Record audit trail
+        from app.services.proposal_repository import proposal_repo
+        proposal_repo._record_audit(
+            account_id=account_id,
+            proposal_id=None,
+            event_type="crm_updated",
+            actor=approved_by or "system",
+            details={"field_name": field_name, "proposed_value": proposed_value, "applied_fields": applied_fields}
+        )
+
+        return {
+            "applied": True,
+            "account_id": account_id,
+            "field_name": field_name,
+            "proposed_value": proposed_value,
+            "applied_fields": applied_fields,
+            "applied_at": timestamp
+        }
+
+    def get_crm_records(self, account_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        if not hasattr(self, "_crm_records"):
+            self._crm_records = []
+        if account_id:
+            return [r for r in self._crm_records if r["account_id"] == account_id]
+        return self._crm_records
 
 account_repo = AccountRepository()

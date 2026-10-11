@@ -212,11 +212,13 @@ YOUR INSTRUCTIONS:
 2. Separate FACTS (direct observations) from INTERPRETATIONS (hypotheses/inferences).
 3. Every claim in 'verified_facts' and 'interpretations' MUST cite valid evidence IDs from the catalog above.
 4. Identify any CONFLICTING evidence (e.g. usage drop despite positive sales notes).
-5. Explicitly state UNCERTAINTIES and what the CSM must verify.
+5. Explicitly state UNCERTAINTIES, MISSING INFORMATION, and ALTERNATIVE EXPLANATIONS.
+6. Provide an executive SITUATION SUMMARY capturing current operational metrics.
 
 RETURN JSON:
 {{
   "risk_summary": "Concise 1-2 sentence risk executive summary",
+  "situation_summary": "Comprehensive 2-3 sentence overview of current customer situation, ARR, days to renewal, and status",
   "causal_explanation": "Detailed explanation connecting usage, communication, and support signals",
   "verified_facts": [
     {{"claim": "Product usage dropped by X%", "evidence_ids": ["EVID-xxx"], "source_category": "usage"}}
@@ -225,7 +227,8 @@ RETURN JSON:
     {{"hypothesis": "Team abandoned platform following champion departure", "supporting_evidence_ids": ["EVID-xxx"], "confidence": "high"}}
   ],
   "conflicting_evidence": ["Any conflicting signals or 'None detected'"],
-  "uncertainties": ["What the CSM must verify directly with customer"]
+  "uncertainties": ["What the CSM must verify directly with customer"],
+  "alternative_explanations": ["Reasonable alternative hypotheses for observed metrics, e.g. seasonal budget freeze or team reorg"]
 }}
 """
 
@@ -289,20 +292,34 @@ RETURN JSON:
         elif not conflicting:
             conflicting.append("No direct conflicting signals detected; telemetry consistently points to disengagement.")
 
-        # 4. Formulate uncertainties
+        # 4. Formulate uncertainties and missing information
         uncertainties = [
-            f"Whether executive decision-makers have initiated formal RFP or competitive review.",
+            f"Whether executive decision-makers have initiated formal RFP or competitor review.",
             f"Actual root cause of seat abandonment without direct CSM discovery interview.",
             f"Customer's internal Q4 procurement budget cycle timeline."
         ]
 
-        # 5. Causal synthesis narrative
+        # 5. Formulate alternative explanations (Task C requirement)
+        usage_drop_val = signal_analysis.usage_baseline_comparison.get('usage_drop_pct', 0)
+        alternative_explanations = [
+            f"License usage contraction (-{usage_drop_val}%) could stem from temporary organizational restructuring or seasonal holiday freeze rather than deliberate dissatisfaction.",
+            f"Touchpoint silence ({account.days_to_renewal}d renewal horizon) may reflect champion project sprint or role handover rather than disengagement.",
+            f"Support ticket activity could reflect intensive implementation of new workflows rather than core platform failure."
+        ]
+
+        # 6. Causal synthesis narrative & situation summary
         all_cited = [e.evidence_id for e in evidence]
         causal = (
             f"The account '{account.name}' exhibits a compounding churn profile evaluated at an authoritative score of "
             f"{deterministic_risk.risk_score}/100 ({deterministic_risk.risk_level.value.upper()}). "
             f"Cross-channel correlation reveals that {deterministic_risk.main_warning} has occurred against a {account.days_to_renewal}-day renewal horizon. "
             f"The convergence of product seat contraction and communication silence indicates elevated risk of non-renewal."
+        )
+
+        situation = (
+            f"Account '{account.name}' (${account.arr:,.0f} ARR) is {account.days_to_renewal} days from contract renewal ({account.renewal_date}). "
+            f"Evaluated at risk score {deterministic_risk.risk_score}/100 ({deterministic_risk.risk_level.value.upper()}) due to {deterministic_risk.primary_reason_code.replace('_', ' ')}. "
+            f"Recent activity indicates -{usage_drop_val}% license contraction across active users, compounded by touchpoint silence."
         )
 
         return InvestigationAutopsy(
@@ -313,6 +330,7 @@ RETURN JSON:
                 f"Revenue risk autopsy for {account.name} (ARR: ${account.arr:,.0f}): "
                 f"{deterministic_risk.primary_reason_code.replace('_', ' ').title()} near renewal."
             ),
+            situation_summary=situation,
             authoritative_risk_score=deterministic_risk.risk_score,
             authoritative_risk_level=deterministic_risk.risk_level,
             primary_reason_code=deterministic_risk.primary_reason_code,
@@ -320,6 +338,7 @@ RETURN JSON:
             interpretations=interpretations,
             conflicting_evidence=conflicting,
             uncertainties=uncertainties,
+            alternative_explanations=alternative_explanations,
             causal_explanation=causal,
             cited_evidence_ids=all_cited,
             rule_version=deterministic_risk.rule_version,

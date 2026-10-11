@@ -76,6 +76,22 @@ export async function fetchAccountRisk(accountId: string): Promise<AccountRiskDe
   return res.json();
 }
 
+export async function triggerAccountInvestigation(accountId: string): Promise<{
+  status: string;
+  account_id: string;
+  investigation_id?: string;
+  risk_score: number;
+  classification: string;
+  message?: string;
+}> {
+  const res = await fetch(`${API_BASE}/api/accounts/${accountId}/risk/trigger-investigation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error(`Failed to trigger investigation: ${res.statusText}`);
+  return res.json();
+}
+
 export async function fetchAccountEvidence(accountId: string): Promise<EvidenceRecord[]> {
   const res = await fetch(`${API_BASE}/api/v1/accounts/${accountId}/evidence`);
   if (!res.ok) throw new Error(`Failed to fetch evidence: ${res.statusText}`);
@@ -85,6 +101,15 @@ export async function fetchAccountEvidence(accountId: string): Promise<EvidenceR
 export async function fetchAccountAutopsy(accountId: string): Promise<RevenueRiskAutopsy> {
   const res = await fetch(`${API_BASE}/api/v1/accounts/${accountId}/autopsy`);
   if (!res.ok) throw new Error(`Failed to fetch autopsy: ${res.statusText}`);
+  return res.json();
+}
+
+export async function runAccountAutopsy(accountId: string): Promise<RevenueRiskAutopsy> {
+  const res = await fetch(`${API_BASE}/api/v1/accounts/${accountId}/autopsy/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error(`Failed to run autopsy: ${res.statusText}`);
   return res.json();
 }
 
@@ -687,5 +712,54 @@ export async function automatePortfolioFeedback(): Promise<PortfolioAutomationRe
   }
   return res.json();
 }
+
+// ==========================================
+// Member 2 Task A: Dynamic Signal Analysis API
+// ==========================================
+
+import type {
+  AccountSignalAnalysisResult,
+  SignalValidationReport,
+  BatchSignalAnalysisSummary
+} from '../types/api';
+
+export async function fetchAccountSignalAnalysis(accountId: string): Promise<AccountSignalAnalysisResult> {
+  const res = await fetch(`${API_BASE}/api/signals/account/${accountId}/analysis`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch signal analysis: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchAccountSignalValidation(accountId: string): Promise<SignalValidationReport> {
+  const res = await fetch(`${API_BASE}/api/signals/account/${accountId}/validation`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch signal validation: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchPortfolioSignalAnalysis(): Promise<BatchSignalAnalysisSummary> {
+  const res = await fetch(`${API_BASE}/api/signals/portfolio/analysis`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch portfolio signal analysis: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function triggerAutomatedPortfolioScan(): Promise<BatchSignalAnalysisSummary> {
+  const res = await fetch(`${API_BASE}/api/signals/portfolio/automated-scan`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to trigger automated scan: ${res.statusText}`);
+  }
+  return res.json();
+}
+
 
 

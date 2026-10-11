@@ -353,6 +353,7 @@ export function ApprovalCenterView({
                     const isProcessing = actionInProgressId === prop.id;
                     const isProposed = prop.status === 'proposed';
                     const isApproved = prop.status === 'approved' || prop.status === 'succeeded';
+                    const isFailed = prop.status === 'failed' || prop.execution_result?.status === 'failed';
 
                     return (
                       <tr key={prop.id} className="hover:bg-[#F8FAFC] transition-colors">
@@ -496,10 +497,37 @@ export function ApprovalCenterView({
 
                             {/* Executed Badge */}
                             {isApproved && (
-                              <span className="text-xs text-emerald-800 font-semibold inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                Executed ({prop.execution_result?.mode || 'simulated'})
-                              </span>
+                              <div className="flex flex-col items-end gap-1">
+                                <span className="text-xs text-emerald-800 font-semibold inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                  Executed ({prop.execution_result?.mode || 'simulated'})
+                                </span>
+                                {prop.execution_result?.task_id && (
+                                  <span className="text-[11px] font-mono text-slate-500">
+                                    Task: {prop.execution_result.task_id}
+                                  </span>
+                                )}
+                                {prop.execution_result?.crm_synced && (
+                                  <span className="text-[11px] font-mono text-purple-600">
+                                    CRM Synced
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Failed Badge */}
+                            {isFailed && (
+                              <div className="flex flex-col items-end gap-1">
+                                <span className="text-xs text-rose-800 font-semibold inline-flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg" title={prop.execution_result?.error || 'Execution failed'}>
+                                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                                  Execution Failed
+                                </span>
+                                {prop.execution_result?.error && (
+                                  <span className="text-[11px] text-rose-600 max-w-[140px] truncate" title={prop.execution_result.error}>
+                                    {prop.execution_result.error}
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
                         </td>
@@ -637,24 +665,55 @@ export function ApprovalCenterView({
 
               {/* CRM Update Details */}
               {selectedProposal.action_type.includes('crm') && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-1.5">
-                    <span className="text-xs uppercase font-mono font-bold text-slate-500 block">
-                      Current Value in CRM
-                    </span>
-                    <div className="font-bold text-slate-800 text-base">
-                      {selectedProposal.payload?.current_value || selectedProposal.payload?.value || 'Standard Risk'}
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-1.5">
+                      <span className="text-xs uppercase font-mono font-bold text-slate-500 block">
+                        Current Value in CRM
+                      </span>
+                      <div className="font-bold text-slate-800 text-base">
+                        {selectedProposal.payload?.current_value || selectedProposal.payload?.value || 'Standard Risk'}
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-[#F0F5FF] border border-[#2563EB]/30 rounded-xl space-y-1.5">
+                      <span className="text-xs uppercase font-mono font-bold text-[#0025AE] block">
+                        Proposed New Value
+                      </span>
+                      <div className="font-bold text-[#020062] text-base">
+                        {selectedProposal.payload?.proposed_value || selectedProposal.payload?.value || 'High Churn Risk'}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#F0F5FF] border border-[#2563EB]/30 rounded-xl space-y-1.5">
-                    <span className="text-xs uppercase font-mono font-bold text-[#0025AE] block">
-                      Proposed New Value
-                    </span>
-                    <div className="font-bold text-[#020062] text-base">
-                      {selectedProposal.payload?.proposed_value || selectedProposal.payload?.value || 'High Churn Risk'}
+                  {(selectedProposal.payload?.supporting_rationale || selectedProposal.payload?.reason) && (
+                    <div className="p-3 bg-white border border-[#E2E8F0] rounded-xl">
+                      <span className="text-xs uppercase font-mono text-slate-500 block mb-1">Update Rationale</span>
+                      <p className="text-xs text-slate-700 leading-relaxed">
+                        {selectedProposal.payload?.supporting_rationale || selectedProposal.payload?.reason}
+                      </p>
                     </div>
-                  </div>
+                  )}
+
+                  {selectedProposal.payload?.field_updates && Array.isArray(selectedProposal.payload.field_updates) && (
+                    <div className="space-y-2 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
+                      <span className="text-xs uppercase font-mono font-bold text-slate-600 block">
+                        Target Field Mutations ({selectedProposal.payload.field_updates.length})
+                      </span>
+                      <div className="space-y-1.5">
+                        {selectedProposal.payload.field_updates.map((fu: any, idx: number) => (
+                          <div key={idx} className="bg-white p-2.5 rounded-lg border border-[#E2E8F0] text-xs flex items-center justify-between">
+                            <span className="font-mono font-bold text-[#020062]">{fu.field}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-400 line-through font-mono">{fu.current}</span>
+                              <span className="text-slate-400">→</span>
+                              <span className="font-mono font-semibold text-emerald-700">{fu.proposed}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -688,19 +747,83 @@ export function ApprovalCenterView({
                     <span className="font-bold text-[#020062] text-base">{selectedProposal.payload?.title || selectedProposal.title}</span>
                   </div>
 
-                  <div>
-                    <span className="text-xs uppercase font-mono text-slate-500 block mb-1">Assigned To & Due Date</span>
-                    <span className="text-slate-600">
-                      {selectedProposal.payload?.assigned_to || selectedProposal.account_owner} • Due: {selectedProposal.payload?.due_date || 'Within 7 days'}
-                    </span>
+                  {selectedProposal.payload?.objective && (
+                    <div>
+                      <span className="text-xs uppercase font-mono text-slate-500 block mb-1">Objective</span>
+                      <span className="text-xs text-slate-700 font-medium">{selectedProposal.payload.objective}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className="text-xs uppercase font-mono text-slate-500 block mb-1">Assigned To</span>
+                      <span className="text-slate-700 text-xs font-semibold">
+                        {selectedProposal.payload?.assigned_to || selectedProposal.account_owner}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase font-mono text-slate-500 block mb-1">Deadline / Due Date</span>
+                      <span className="text-rose-700 text-xs font-semibold">
+                        {selectedProposal.payload?.deadline || selectedProposal.payload?.due_date || 'Within 7 days'}
+                      </span>
+                    </div>
                   </div>
 
                   <div>
                     <span className="text-xs uppercase font-mono text-slate-500 block mb-1">Description</span>
-                    <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-slate-700">
+                    <div className="bg-white p-3 rounded-lg border border-[#E2E8F0] text-slate-700 text-xs">
                       {selectedProposal.payload?.description || selectedProposal.reason}
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Execution Result Banner */}
+              {selectedProposal.execution_result && (
+                <div className={`p-4 rounded-xl border space-y-2 ${
+                  selectedProposal.execution_result.status === 'failed' || selectedProposal.status === 'failed'
+                    ? 'bg-rose-50 border-rose-200 text-rose-900'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                      {selectedProposal.execution_result.status === 'failed' || selectedProposal.status === 'failed' ? (
+                        <>
+                          <AlertTriangle className="w-4 h-4 text-rose-600" />
+                          Truthful Execution Failure
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          Execution Confirmed ({selectedProposal.execution_result.mode || 'simulated'})
+                        </>
+                      )}
+                    </span>
+                    <span className="font-mono text-[11px] text-slate-500">
+                      {selectedProposal.execution_result.executed_at || selectedProposal.approved_at || 'Just now'}
+                    </span>
+                  </div>
+
+                  {selectedProposal.execution_result.error ? (
+                    <div className="p-2.5 bg-white/80 rounded-lg border border-rose-200 font-mono text-xs text-rose-700">
+                      Error: {selectedProposal.execution_result.error}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                      {selectedProposal.execution_result.task_id && (
+                        <div>
+                          <span className="text-slate-500">Persisted Task ID:</span>{' '}
+                          <strong className="text-slate-800">{selectedProposal.execution_result.task_id}</strong>
+                        </div>
+                      )}
+                      {selectedProposal.execution_result.crm_synced && (
+                        <div>
+                          <span className="text-slate-500">CRM Record Sync:</span>{' '}
+                          <strong className="text-purple-700">Applied & Persisted</strong>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

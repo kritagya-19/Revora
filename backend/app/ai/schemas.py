@@ -292,6 +292,7 @@ class InvestigationAutopsy(BaseModel):
     account_id: str
     account_name: str
     risk_summary: str
+    situation_summary: Optional[str] = None
     authoritative_risk_score: int
     authoritative_risk_level: RiskLevel
     primary_reason_code: str
@@ -299,9 +300,10 @@ class InvestigationAutopsy(BaseModel):
     interpretations: List[InterpretationItem] = Field(default_factory=list)
     conflicting_evidence: List[str] = Field(default_factory=list)
     uncertainties: List[str] = Field(default_factory=list)
+    alternative_explanations: List[str] = Field(default_factory=list)
     causal_explanation: str
     cited_evidence_ids: List[str] = Field(default_factory=list)
-    rule_version: str = "v2.0.0"
+    rule_version: str = "v2.1.0"
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
     @property

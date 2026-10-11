@@ -46,6 +46,17 @@ export interface CustomerMetrics {
   health_score: number;
 }
 
+export type AccountClassification = 'healthy' | 'needing_attention' | 'high_risk';
+
+export interface RuleBreakdownItem {
+  rule_id: string;
+  rule_name: string;
+  points: number;
+  category: string;
+  description: string;
+  evidence_ids?: string[];
+}
+
 export interface AccountRiskSummary {
   id: string;
   name: string;
@@ -59,11 +70,14 @@ export interface AccountRiskSummary {
   status?: string;
   risk_level: RiskLevel;
   risk_score: number;
+  classification?: AccountClassification;
   urgency_days_to_renewal: number;
   urgency_label?: string;
   primary_reason_code: string;
   main_warning?: string;
   contributing_factors: string[];
+  investigation_triggered?: boolean;
+  display_churn_probability?: boolean;
 }
 
 export interface AccountDetail extends AccountRiskSummary {
@@ -77,11 +91,21 @@ export interface AccountRiskDetail {
   account_name: string;
   risk_score: number;
   risk_level: RiskLevel;
+  classification: AccountClassification;
   urgency_days_to_renewal: number;
   urgency_label: string;
   primary_reason_code: string;
   main_warning: string;
   contributing_factors: string[];
+  rule_breakdown: RuleBreakdownItem[];
+  compound_rules_triggered: string[];
+  investigation_triggered: boolean;
+  investigation_trigger_reason?: string | null;
+  investigation_id?: string | null;
+  churn_probability?: number | null;
+  display_churn_probability: boolean;
+  churn_probability_disclaimer: string;
+  statistical_confidence: string;
   rule_version: string;
   signals_count: number;
   arr: number;
@@ -134,17 +158,28 @@ export interface RecommendedAction {
   suggested_payload?: Record<string, any>;
 }
 
+export interface AutopsyInterpretationItem {
+  hypothesis: string;
+  supporting_evidence_ids?: string[];
+  confidence?: string;
+}
+
 export interface Investigation {
   id: string;
   account_id: string;
   account_name: string;
   risk_summary: string;
+  situation_summary?: string;
   risk_score: number;
   risk_level: RiskLevel;
   primary_reason_code: string;
   findings: InvestigationFinding[];
+  observed_facts?: InvestigationFinding[];
+  interpretations?: Array<AutopsyInterpretationItem | string>;
   causal_explanation: string;
   uncertainties: string[];
+  missing_information?: string[];
+  alternative_explanations?: string[];
   recommended_action: RecommendedAction;
   rule_version: string;
   created_at: string;
@@ -161,13 +196,19 @@ export interface AskAccountQuestionResponse {
 
 export interface RevenueRiskAutopsy {
   account_id: string;
+  account_name?: string;
   risk_score: number;
   risk_level: RiskLevel;
   rule_version: string;
+  situation_summary?: string;
   facts: AutopsyFact[];
-  interpretations: string[];
+  observed_facts?: AutopsyFact[];
+  interpretations: Array<AutopsyInterpretationItem | string>;
+  missing_information?: string[];
+  alternative_explanations?: string[];
   unknowns: string[];
   suggested_action_type: string;
+  created_at?: string;
 }
 
 // Page 5: Next-Best-Action Copilot Types
@@ -184,9 +225,11 @@ export interface ProposedTask {
   id?: string;
   account_id: string;
   title: string;
+  objective?: string;
   description: string;
   assigned_to: string;
   due_date: string;
+  deadline?: string;
   priority: 'high' | 'medium' | 'low';
   status?: string;
   evidence_ids: string[];
@@ -198,6 +241,25 @@ export interface ProposedCRMUpdate {
   current_value: string;
   proposed_value: string;
   reason: string;
+  supporting_rationale?: string;
+  field_updates?: Array<{
+    field: string;
+    current: string;
+    proposed: string;
+    rationale: string;
+  }>;
+  evidence_ids: string[];
+}
+
+export interface RecommendedNextStepItem {
+  id: string;
+  step_type: string;
+  title: string;
+  description: string;
+  rationale: string;
+  suitability_score: number;
+  urgency: string;
+  is_primary?: boolean;
   evidence_ids: string[];
 }
 
@@ -251,6 +313,8 @@ export interface DraftActionsResponse {
   email_draft: EmailDraftItem;
   task_draft: ProposedTask;
   crm_update: ProposedCRMUpdate;
+  recommended_next_steps?: RecommendedNextStepItem[];
+  suggested_next_step?: string;
   history_aware_context?: HistoryAwareContext | null;
   created_at: string;
 }
@@ -930,5 +994,128 @@ export interface PortfolioAutomationResult {
     risk_score: number;
   }>;
 }
+
+// ==========================================
+// Member 2 Task A: Dynamic Signal Analysis Types
+// ==========================================
+
+export type SignalTrajectory = 'improving' | 'stable' | 'deteriorating' | 'severe_deterioration';
+
+export interface UsageAnalysis {
+  current_active_users: number;
+  baseline_active_users: number;
+  drop_percentage: number;
+  trajectory: SignalTrajectory;
+  evidence_signal_ids: string[];
+  summary: string;
+}
+
+export interface EngagementAnalysis {
+  days_since_last_touchpoint: number;
+  last_contact_date?: string | null;
+  channel_breakdown: Record<string, number>;
+  status: 'active' | 'lag_warning' | 'critical_silence';
+  evidence_signal_ids: string[];
+  summary: string;
+}
+
+export interface RenewalAnalysis {
+  renewal_date?: string | null;
+  days_to_renewal: number;
+  window_tier: 'immediate' | 'critical' | 'approaching' | 'safe';
+  urgency_label: string;
+  evidence_signal_ids: string[];
+  summary: string;
+}
+
+export interface MeetingsAnalysis {
+  recent_meetings_count: number;
+  upcoming_meetings_count: number;
+  last_meeting_date?: string | null;
+  next_meeting_date?: string | null;
+  cadence_health: 'active_cadence' | 'scheduled' | 'missing_meetings' | 'cadence_broken';
+  evidence_signal_ids: string[];
+  summary: string;
+}
+
+export interface SupportAnalysis {
+  open_tickets_count: number;
+  critical_tickets_count: number;
+  high_tickets_count: number;
+  unresolved_blockers: string[];
+  status: 'nominal' | 'escalated' | 'critical_blockers';
+  evidence_signal_ids: string[];
+  summary: string;
+}
+
+export interface BaselineComparison {
+  baseline_period_days: number;
+  current_window_days: number;
+  usage_delta_pct: number;
+  touchpoint_frequency_delta_pct: number;
+  support_volume_delta: number;
+  trajectory: SignalTrajectory;
+  trend_description: string;
+}
+
+export type SignalValidationIssueType = 'missing' | 'stale' | 'conflicting' | 'insufficient';
+
+export interface SignalValidationIssue {
+  issue_type: SignalValidationIssueType;
+  category: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  recommendation: string;
+  affected_signal_ids: string[];
+}
+
+export interface SignalValidationReport {
+  is_valid: boolean;
+  missing_signals: SignalValidationIssue[];
+  stale_signals: SignalValidationIssue[];
+  conflicting_signals: SignalValidationIssue[];
+  insufficient_signals: SignalValidationIssue[];
+  total_issues_count: number;
+  quality_score: number;
+  confidence_level: 'high' | 'medium' | 'low';
+  summary: string;
+}
+
+export interface AccountSignalAnalysisResult {
+  account_id: string;
+  account_name: string;
+  analyzed_at: string;
+  total_signals_examined: number;
+  categories_present: string[];
+  product_usage: UsageAnalysis;
+  customer_engagement: EngagementAnalysis;
+  renewal_window: RenewalAnalysis;
+  meetings_calendar: MeetingsAnalysis;
+  support_issues: SupportAnalysis;
+  baseline_comparison: BaselineComparison;
+  validation_report: SignalValidationReport;
+  executive_signal_verdict: string;
+}
+
+export interface BatchSignalAnalysisSummary {
+  total_accounts_scanned: number;
+  analyzed_at: string;
+  accounts_with_conflicts: number;
+  accounts_with_stale_signals: number;
+  accounts_with_missing_signals: number;
+  average_signal_quality_score: number;
+  account_summaries: Array<{
+    account_id: string;
+    account_name: string;
+    quality_score: number;
+    confidence_level: string;
+    trajectory: string;
+    conflicts_count: number;
+    stale_count: number;
+    missing_count: number;
+    verdict: string;
+  }>;
+}
+
 
 

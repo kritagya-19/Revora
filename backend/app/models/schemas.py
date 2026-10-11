@@ -147,15 +147,22 @@ class AccountBase(BaseModel):
     health_score: Optional[int] = None
     tier: Optional[str] = "Standard"
     status: Optional[str] = "active"
+    crm_status: Optional[str] = None
+    forecast_status: Optional[str] = None
+    last_crm_update: Optional[str] = None
+    last_crm_updated_by: Optional[str] = None
 
 class AccountRiskSummary(AccountBase):
     risk_level: RiskLevel
     risk_score: int = Field(..., ge=0, le=100, description="Deterministic risk score 0-100")
+    classification: Optional[str] = Field(default="healthy", description="Classification: healthy, needing_attention, high_risk")
     urgency_days_to_renewal: int
     urgency_label: Optional[str] = None
     primary_reason_code: str
     main_warning: Optional[str] = None
     contributing_factors: List[str] = []
+    investigation_triggered: bool = False
+    display_churn_probability: bool = False
 
 class AccountDetail(AccountRiskSummary):
     contacts: List[Contact] = []
@@ -167,12 +174,25 @@ class AccountRiskDetail(BaseModel):
     account_name: str
     risk_score: int
     risk_level: RiskLevel
+    classification: str = "healthy"  # healthy, needing_attention, high_risk
     urgency_days_to_renewal: int
     urgency_label: str
     primary_reason_code: str
     main_warning: str
     contributing_factors: List[str]
-    rule_version: str = "v1.0.0"
+    rule_breakdown: List[Dict[str, Any]] = Field(default_factory=list)
+    compound_rules_triggered: List[str] = Field(default_factory=list)
+    investigation_triggered: bool = False
+    investigation_trigger_reason: Optional[str] = None
+    investigation_id: Optional[str] = None
+    churn_probability: Optional[float] = None
+    display_churn_probability: bool = False
+    churn_probability_disclaimer: str = (
+        "SignalBridge AI strictly avoids presenting speculative churn percentage probabilities without validated statistical modeling. "
+        "Prioritization is guided by transparent, reproducible deterministic risk rules."
+    )
+    statistical_confidence: str = "high"
+    rule_version: str = "v2.1.0"
     signals_count: int
     arr: float
     renewal_date: str
@@ -219,14 +239,19 @@ class Investigation(BaseModel):
     account_id: str
     account_name: str
     risk_summary: str
+    situation_summary: Optional[str] = None
     risk_score: int
     risk_level: RiskLevel
     primary_reason_code: str
     findings: List[InvestigationFinding]
+    observed_facts: List[InvestigationFinding] = Field(default_factory=list)
+    interpretations: List[Dict[str, Any]] = Field(default_factory=list)
     causal_explanation: str
-    uncertainties: List[str]
+    uncertainties: List[str] = Field(default_factory=list)
+    missing_information: List[str] = Field(default_factory=list)
+    alternative_explanations: List[str] = Field(default_factory=list)
     recommended_action: RecommendedAction
-    rule_version: str = "v1.0.0"
+    rule_version: str = "v2.1.0"
     created_at: str
 
 class AskAccountQuestionRequest(BaseModel):
@@ -253,9 +278,11 @@ class ProposedTask(BaseModel):
     id: Optional[str] = None
     account_id: str
     title: str
+    objective: Optional[str] = None  # Task D: Specific operational objectives
     description: str
     assigned_to: str
     due_date: str
+    deadline: Optional[str] = None   # Task D: Explicit strategic deadline
     priority: str = "high"  # high, medium, low
     status: str = "proposed"  # proposed, pending, in_progress, completed
     evidence_ids: List[str] = []
@@ -266,7 +293,23 @@ class ProposedCRMUpdate(BaseModel):
     current_value: str
     proposed_value: str
     reason: str
+    supporting_rationale: Optional[str] = None  # Task D: Comprehensive supporting rationale
+    field_updates: List[Dict[str, Any]] = Field(default_factory=list)  # Multi-field proposed updates
     evidence_ids: List[str] = []
+
+class RecommendedNextStepItem(BaseModel):
+    """
+    Task D: Recommended suitable next step, such as adoption support or customer-success check-in.
+    """
+    id: str
+    step_type: str  # "csm_check_in", "adoption_support", "technical_escalation", "contract_restructuring"
+    title: str
+    description: str
+    rationale: str
+    suitability_score: int = Field(default=90, ge=0, le=100)
+    urgency: str = "urgent"  # "urgent", "recommended", "optional"
+    is_primary: bool = False
+    evidence_ids: List[str] = Field(default_factory=list)
 
 class HistoryAwareContext(BaseModel):
     account_id: str
@@ -288,6 +331,8 @@ class DraftActionsResponse(BaseModel):
     email_draft: EmailDraftItem
     task_draft: ProposedTask
     crm_update: ProposedCRMUpdate
+    recommended_next_steps: List[RecommendedNextStepItem] = Field(default_factory=list)  # Task D: Suitable next steps
+    suggested_next_step: Optional[str] = "csm_check_in"
     history_aware_context: Optional[HistoryAwareContext] = None
     created_at: str
 
@@ -328,13 +373,19 @@ class ActionProposal(BaseModel):
 # Autopsy model
 class RevenueRiskAutopsy(BaseModel):
     account_id: str
+    account_name: Optional[str] = None
     risk_score: int
     risk_level: RiskLevel
-    rule_version: str
+    rule_version: str = "v2.1.0"
+    situation_summary: Optional[str] = ""
     facts: List[Dict[str, Any]] = Field(..., description="Evidence-backed facts with evidence_id")
-    interpretations: List[str] = Field(..., description="Derived context or hypothesis")
-    unknowns: List[str] = Field(..., description="Missing signals or unknowns")
+    observed_facts: List[Dict[str, Any]] = Field(default_factory=list, description="Observed verifiable telemetry facts")
+    interpretations: List[Any] = Field(..., description="Derived context or hypothesis")
+    missing_information: List[str] = Field(default_factory=list, description="Missing signals or unknowns")
+    alternative_explanations: List[str] = Field(default_factory=list, description="Alternative explanations for observed behavior")
+    unknowns: List[str] = Field(default_factory=list, description="Missing signals or unknowns")
     suggested_action_type: str
+    created_at: Optional[str] = None
 
 # Page 7: Settings and Integrations
 class IntegrationStatus(str, Enum):
@@ -902,6 +953,168 @@ class PortfolioAutomationResult(BaseModel):
     emails_recorded: int
     timestamp: str
     automated_actions: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+# ==========================================
+# Member 2 Task A: Dynamic Signal Analysis Schemas
+# ==========================================
+
+class SignalTrajectory(str, Enum):
+    IMPROVING = "improving"
+    STABLE = "stable"
+    DETERIORATING = "deteriorating"
+    SEVERE_DETERIORATION = "severe_deterioration"
+
+class UsageAnalysis(BaseModel):
+    current_active_users: int = 0
+    baseline_active_users: int = 0
+    drop_percentage: float = 0.0
+    trajectory: SignalTrajectory = SignalTrajectory.STABLE
+    evidence_signal_ids: List[str] = Field(default_factory=list)
+    summary: str = ""
+
+class EngagementAnalysis(BaseModel):
+    days_since_last_touchpoint: int = 0
+    last_contact_date: Optional[str] = None
+    channel_breakdown: Dict[str, int] = Field(default_factory=dict)
+    status: str = "active"  # active, lag_warning, critical_silence
+    evidence_signal_ids: List[str] = Field(default_factory=list)
+    summary: str = ""
+
+class RenewalAnalysis(BaseModel):
+    renewal_date: Optional[str] = None
+    days_to_renewal: int = 999
+    window_tier: str = "healthy"  # immediate (<=30d), critical (<=60d), approaching (<=90d), safe (>90d)
+    urgency_label: str = "Low Urgency"
+    evidence_signal_ids: List[str] = Field(default_factory=list)
+    summary: str = ""
+
+class MeetingsAnalysis(BaseModel):
+    recent_meetings_count: int = 0
+    upcoming_meetings_count: int = 0
+    last_meeting_date: Optional[str] = None
+    next_meeting_date: Optional[str] = None
+    cadence_health: str = "active_cadence"  # active_cadence, scheduled, missing_meetings, cadence_broken
+    evidence_signal_ids: List[str] = Field(default_factory=list)
+    summary: str = ""
+
+class SupportAnalysis(BaseModel):
+    open_tickets_count: int = 0
+    critical_tickets_count: int = 0
+    high_tickets_count: int = 0
+    unresolved_blockers: List[str] = Field(default_factory=list)
+    status: str = "nominal"  # nominal, escalated, critical_blockers
+    evidence_signal_ids: List[str] = Field(default_factory=list)
+    summary: str = ""
+
+class BaselineComparison(BaseModel):
+    baseline_period_days: int = 90
+    current_window_days: int = 30
+    usage_delta_pct: float = 0.0
+    touchpoint_frequency_delta_pct: float = 0.0
+    support_volume_delta: int = 0
+    trajectory: SignalTrajectory = SignalTrajectory.STABLE
+    trend_description: str = ""
+
+class SignalValidationIssueType(str, Enum):
+    MISSING = "missing"
+    STALE = "stale"
+    CONFLICTING = "conflicting"
+    INSUFFICIENT = "insufficient"
+
+class SignalValidationIssue(BaseModel):
+    issue_type: SignalValidationIssueType
+    category: str
+    severity: str = "medium"  # low, medium, high, critical
+    description: str
+    recommendation: str
+    affected_signal_ids: List[str] = Field(default_factory=list)
+
+class SignalValidationReport(BaseModel):
+    is_valid: bool = True
+    missing_signals: List[SignalValidationIssue] = Field(default_factory=list)
+    stale_signals: List[SignalValidationIssue] = Field(default_factory=list)
+    conflicting_signals: List[SignalValidationIssue] = Field(default_factory=list)
+    insufficient_signals: List[SignalValidationIssue] = Field(default_factory=list)
+    total_issues_count: int = 0
+    quality_score: int = 100  # 0 to 100
+    confidence_level: str = "high"  # high, medium, low
+    summary: str = ""
+
+class AccountSignalAnalysisResult(BaseModel):
+    account_id: str
+    account_name: str
+    analyzed_at: str
+    total_signals_examined: int
+    categories_present: List[str] = Field(default_factory=list)
+    product_usage: UsageAnalysis
+    customer_engagement: EngagementAnalysis
+    renewal_window: RenewalAnalysis
+    meetings_calendar: MeetingsAnalysis
+    support_issues: SupportAnalysis
+    baseline_comparison: BaselineComparison
+    validation_report: SignalValidationReport
+    executive_signal_verdict: str
+
+class BatchSignalAnalysisSummary(BaseModel):
+    total_accounts_scanned: int
+    analyzed_at: str
+    accounts_with_conflicts: int
+    accounts_with_stale_signals: int
+    accounts_with_missing_signals: int
+    average_signal_quality_score: float
+    account_summaries: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+# ==========================================
+# Member 2 Task B: Risk Scoring & Classification Schemas
+# ==========================================
+
+class AccountClassification(str, Enum):
+    HEALTHY = "healthy"
+    NEEDING_ATTENTION = "needing_attention"
+    HIGH_RISK = "high_risk"
+
+class RiskRuleEvaluation(BaseModel):
+    rule_id: str
+    name: str
+    points_contributed: int
+    max_points: int
+    threshold_applied: str
+    is_compound_rule: bool = False
+    evidence_description: str
+    evidence_ids: List[str] = Field(default_factory=list)
+
+class DetailedRiskScoreResult(BaseModel):
+    account_id: str
+    account_name: str
+    risk_score: int
+    classification: AccountClassification
+    risk_level: RiskLevel
+    primary_reason_code: str
+    main_warning: str
+    contributing_factors: List[str] = Field(default_factory=list)
+    rule_breakdown: List[RiskRuleEvaluation] = Field(default_factory=list)
+    compound_rules_triggered: List[str] = Field(default_factory=list)
+    investigation_triggered: bool = False
+    investigation_trigger_reason: Optional[str] = None
+    investigation_id: Optional[str] = None
+    churn_probability: Optional[float] = None
+    display_churn_probability: bool = False
+    churn_probability_disclaimer: str = (
+        "SignalBridge AI avoids speculative churn percentage probabilities without validated statistical modeling. "
+        "Prioritization is driven by transparent, reproducible deterministic risk rules."
+    )
+    statistical_confidence: str = "high"
+    rule_version: str = "v2.1.0"
+    evaluated_at: str
+
+class TriggerInvestigationRequest(BaseModel):
+    account_id: str
+    force_rerun: bool = False
+    custom_rationale: Optional[str] = None
+
+
 
 
 

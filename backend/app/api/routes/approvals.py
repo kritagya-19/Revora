@@ -99,8 +99,13 @@ async def approve_and_execute_proposal(
         from app.services.action_tracker_repository import action_tracker_repo
         from app.models.schemas import ActionExecutionStatus
         acc = account_repo.get_account_by_id(approved_prop.account_id)
-        acc_name = acc.name if acc else "Customer Account"
-        action_status = ActionExecutionStatus.EXECUTED if (execution_result and execution_result.get("status") == "succeeded") else ActionExecutionStatus.APPROVED
+        acc_name = acc.name if acc else "Unknown Account"
+        if execution_result and execution_result.get("status") == "succeeded":
+            action_status = ActionExecutionStatus.EXECUTED
+        elif execution_result and execution_result.get("status") == "failed":
+            action_status = ActionExecutionStatus.FAILED
+        else:
+            action_status = ActionExecutionStatus.APPROVED
         action_tracker_repo.sync_from_approved_proposal(
             proposal_id=approved_prop.id,
             account_id=approved_prop.account_id,

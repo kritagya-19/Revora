@@ -154,17 +154,32 @@ class PersistAndDisplayManager:
         )
 
         inv_id = f"inv-{result.account_id}"
+        observed_facts = [f for f in findings if f.type == "observed_fact"]
+        interp_dicts = [
+            {
+                "hypothesis": interp.hypothesis,
+                "supporting_evidence_ids": interp.supporting_evidence_ids,
+                "confidence": interp.confidence
+            }
+            for interp in autopsy.interpretations
+        ]
+
         inv = Investigation(
             id=inv_id,
             account_id=result.account_id,
             account_name=result.account_name,
             risk_summary=autopsy.risk_summary,
+            situation_summary=getattr(autopsy, "situation_summary", None) or autopsy.risk_summary,
             risk_score=autopsy.authoritative_risk_score,
             risk_level=autopsy.authoritative_risk_level,
             primary_reason_code=autopsy.primary_reason_code,
             findings=findings,
+            observed_facts=observed_facts,
+            interpretations=interp_dicts,
             causal_explanation=autopsy.causal_explanation,
             uncertainties=autopsy.uncertainties,
+            missing_information=autopsy.uncertainties,
+            alternative_explanations=getattr(autopsy, "alternative_explanations", []) or [],
             recommended_action=rec_action,
             rule_version=autopsy.rule_version,
             created_at=datetime.now(timezone.utc).isoformat()

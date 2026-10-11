@@ -158,6 +158,8 @@ class ProposalRepository:
             raise ValueError(f"Proposal {proposal_id} is already approved.")
         if prop.status in (ActionStatus.EXECUTING, ActionStatus.SUCCEEDED):
             raise ValueError(f"Proposal {proposal_id} has already executed.")
+        if prop.status == ActionStatus.REJECTED:
+            raise ValueError(f"Proposal {proposal_id} was rejected and cannot be approved.")
 
         if expected_hash and prop.content_hash != expected_hash:
             raise ValueError("Stale approval error: Proposal content has changed since it was reviewed.")

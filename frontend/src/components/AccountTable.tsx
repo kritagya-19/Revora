@@ -79,7 +79,18 @@ export function AccountTable({
   // Filter accounts
   const filteredAccounts = useMemo(() => {
     return accounts.filter((acc) => {
-      if (filterRisk !== 'all' && acc.risk_level !== filterRisk) return false;
+      if (filterRisk !== 'all') {
+        const accCls = acc.classification || (acc.risk_score >= 50 ? 'high_risk' : acc.risk_score >= 25 ? 'needing_attention' : 'healthy');
+        if (filterRisk === 'high_risk') {
+          if (accCls !== 'high_risk' && acc.risk_level !== 'critical' && acc.risk_level !== 'high') return false;
+        } else if (filterRisk === 'needing_attention') {
+          if (accCls !== 'needing_attention' && acc.risk_level !== 'medium') return false;
+        } else if (filterRisk === 'healthy') {
+          if (accCls !== 'healthy' && acc.risk_level !== 'low') return false;
+        } else if (acc.risk_level !== filterRisk) {
+          return false;
+        }
+      }
       if (filterOwner !== 'all' && acc.csm_owner !== filterOwner) return false;
       if (filterRenewal === '30' && (acc.urgency_days_to_renewal || 999) > 30) return false;
       if (filterRenewal === '60' && (acc.urgency_days_to_renewal || 999) > 60) return false;
@@ -222,15 +233,14 @@ export function AccountTable({
           {/* Risk Level Pills */}
           <div className="flex items-center gap-1.5 flex-wrap text-xs">
             <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
-              Risk:
+              Classification:
             </span>
             <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
               {[
-                { key: 'all', label: 'All' },
-                { key: 'critical', label: 'Critical' },
-                { key: 'high', label: 'High' },
-                { key: 'medium', label: 'Medium' },
-                { key: 'low', label: 'Healthy' }
+                { key: 'all', label: 'All Accounts' },
+                { key: 'high_risk', label: 'High Risk (≥50)' },
+                { key: 'needing_attention', label: 'Needing Attention (25–49)' },
+                { key: 'healthy', label: 'Healthy (<25)' }
               ].map((tier) => (
                 <button
                   key={tier.key}
@@ -399,7 +409,12 @@ export function AccountTable({
 
                     {/* 3. Risk Score + Badge */}
                     <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
-                      <RiskBadge level={account.risk_level} score={account.risk_score} size="md" />
+                      <RiskBadge
+                        level={account.risk_level}
+                        classification={account.classification}
+                        score={account.risk_score}
+                        size="md"
+                      />
                     </td>
 
                     {/* 4. Structured Problem / Detected Issue */}

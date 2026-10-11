@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type {
   AccountDetail,
   AccountRiskSummary,
@@ -34,7 +34,10 @@ import {
   DollarSign,
   Activity,
   Building,
-  HelpCircle
+  HelpCircle,
+  CheckCircle2,
+  GitFork,
+  Scale
 } from 'lucide-react';
 
 interface RevenueRiskAutopsyViewProps {
@@ -84,7 +87,10 @@ export function RevenueRiskAutopsyView({
     }
   ]);
 
-  // Load latest investigation for selected account
+  // Task C Evidence Filter Tab State
+  const [evidenceViewTab, setEvidenceViewTab] = useState<'both' | 'facts' | 'interpretations'>('both');
+
+  // Load latest investigation for selected account (Task C: Automatically investigates)
   const loadInvestigation = async (forceRerun = false) => {
     try {
       if (forceRerun) {
@@ -93,8 +99,14 @@ export function RevenueRiskAutopsyView({
         setInvestigation(data);
       } else {
         setLoading(true);
-        const data = await fetchAccountInvestigation(account.id);
-        setInvestigation(data);
+        try {
+          const data = await fetchAccountInvestigation(account.id);
+          setInvestigation(data);
+        } catch {
+          // If no investigation exists yet, automatically create and run it
+          const data = await runAccountInvestigation(account.id);
+          setInvestigation(data);
+        }
       }
     } catch (err) {
       console.error('Failed to load investigation:', err);
@@ -200,55 +212,92 @@ export function RevenueRiskAutopsyView({
     return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 0 })}`;
   };
 
-  // Structured problem root causes
-  const structuredProblems = [
-    {
-      id: 'p1',
-      problem: 'Severe Usage Contraction',
-      signal: `${usageTrend} active seats below baseline`,
-      evidenceId: account.signals[0]?.id || 'sig-106',
-      severity: 'Critical',
-      severityColor: 'bg-rose-50 text-rose-700 border-rose-200',
-      icon: TrendingDown,
-      impact: 'Indicates workflow abandonment or silent evaluation of competitors.',
-      recommendation: 'Check whether team downsized or if technical blockers stall adoption.'
-    },
-    {
-      id: 'p2',
-      problem: 'Touchpoint Silence',
-      signal: `${lastReplyDays} days since last recorded contact`,
-      evidenceId: account.signals[1]?.id || 'sig-127',
-      severity: 'High',
-      severityColor: 'bg-amber-50 text-amber-800 border-amber-200',
-      icon: UserX,
-      impact: 'Absence of champion contact prevents early discovery of churn blockers.',
-      recommendation: 'Executive check-in email to re-engage economic buyer immediately.'
-    },
-    {
-      id: 'p3',
-      problem: 'Imminent Renewal Window',
-      signal: `Contract expires in ${renewalDays} days (${account.renewal_date || '2026-10-25'})`,
-      evidenceId: account.signals[2]?.id || 'sig-105',
-      severity: isUrgentRenewal ? 'Immediate' : 'Warning',
-      severityColor: isUrgentRenewal ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-800 border-amber-200',
-      icon: Clock,
-      impact: 'Insufficient time buffer for extended negotiation if churn intent solidifies.',
-      recommendation: 'Prepare multi-year renewal concession package with SLA guarantee.'
+  // Task C: Situation Summary
+  const situationSummary = useMemo(() => {
+    if (investigation?.situation_summary) return investigation.situation_summary;
+    return `${account.name} ($${account.arr.toLocaleString()} ARR) is approaching contract renewal in ${renewalDays} days (${account.renewal_date || 'upcoming'}). Evaluated at deterministic risk score ${account.risk_score}/100 (${account.risk_level.toUpperCase()}) due to ${account.primary_reason_code.replace(/_/g, ' ')}. Telemetry shows active user decline (${usageTrend}) with ${account.signals.length} recorded cross-channel signals.`;
+  }, [investigation, account, renewalDays, usageTrend]);
+
+  // Task C: Observed Facts (verifiable telemetry/CRM/support/calendar records)
+  const observedFacts = useMemo(() => {
+    if (investigation?.observed_facts && investigation.observed_facts.length > 0) {
+      return investigation.observed_facts;
     }
-  ];
+    if (investigation?.findings) {
+      const facts = investigation.findings.filter((f) => f.type === 'observed_fact' || !f.type);
+      if (facts.length > 0) return facts;
+    }
+    return (account.signals || []).map((s) => ({
+      claim: `${s.title}: ${s.summary}${s.observed_value ? ` (Observed: ${s.observed_value})` : ''}`,
+      evidence_ids: [s.id],
+      type: 'observed_fact',
+      severity: s.severity
+    }));
+  }, [investigation, account.signals]);
+
+  // Task C: Interpretations (causal deductions and hypotheses)
+  const interpretationsList = useMemo(() => {
+    if (investigation?.interpretations && investigation.interpretations.length > 0) {
+      return investigation.interpretations.map((item) => {
+        if (typeof item === 'string') {
+          return { hypothesis: item, supporting_evidence_ids: [] as string[], confidence: 'high' };
+        }
+        return {
+          hypothesis: item.hypothesis,
+          supporting_evidence_ids: item.supporting_evidence_ids || [],
+          confidence: item.confidence || 'high'
+        };
+      });
+    }
+    if (investigation?.findings) {
+      const interps = investigation.findings
+        .filter((f) => f.type === 'causal_link' || f.claim.startsWith('[Interpretation]'))
+        .map((f) => ({
+          hypothesis: f.claim.replace('[Interpretation] ', ''),
+          supporting_evidence_ids: f.evidence_ids,
+          confidence: 'high'
+        }));
+      if (interps.length > 0) return interps;
+    }
+    return [
+      {
+        hypothesis: `Compounding disengagement observed across product usage (${usageTrend}) and communication silence ahead of ${renewalDays}d renewal horizon.`,
+        supporting_evidence_ids: account.signals.slice(0, 2).map((s) => s.id),
+        confidence: 'high'
+      }
+    ];
+  }, [investigation, account.signals, usageTrend, renewalDays]);
+
+  // Task C: Missing Information (Blindspots)
+  const missingInfoList = useMemo(() => {
+    if (investigation?.missing_information && investigation.missing_information.length > 0) {
+      return investigation.missing_information;
+    }
+    if (investigation?.uncertainties && investigation.uncertainties.length > 0) {
+      return investigation.uncertainties;
+    }
+    return [
+      "Customer internal Q4 procurement budget approval status is unverified.",
+      "Whether executive sponsor has actively engaged competitive vendor alternatives.",
+      "Exact root cause of active seat abandonment without direct discovery interview."
+    ];
+  }, [investigation]);
+
+  // Task C: Possible Alternative Explanations
+  const alternativeExplanationsList = useMemo(() => {
+    if (investigation?.alternative_explanations && investigation.alternative_explanations.length > 0) {
+      return investigation.alternative_explanations;
+    }
+    return [
+      `License usage contraction (${usageTrend}) may reflect temporary organizational restructuring or seasonal holiday freeze rather than dissatisfaction.`,
+      `Touchpoint silence (${lastReplyDays} days) may stem from champion project sprint priority rather than executive disengagement.`,
+      `Support escalations may reflect intensive workflow onboarding rather than system failure.`
+    ];
+  }, [investigation, usageTrend, lastReplyDays]);
 
   // AI Causal Synthesis text
   const conclusionText = investigation?.causal_explanation ||
     `The combined signals demonstrate elevated renewal risk. Product activity has dropped significantly while customer communication is silent, and the contract expires in ${renewalDays} days. CSM outreach must address adoption friction before discussing renewal terms.`;
-
-  // Pre-Meeting Blindspots / Uncertainties (What CSM must check)
-  const uncertainties = investigation?.uncertainties && investigation.uncertainties.length > 0
-    ? investigation.uncertainties
-    : [
-        'Is the seat contraction seasonal or due to an internal team restructuring?',
-        'Is the executive sponsor / champion still in the same role?',
-        'Are there any unaddressed support escalations or billing disputes?'
-      ];
 
   // Recommended Next Action
   const recommendedTitle = investigation?.recommended_action?.title ||
@@ -357,6 +406,33 @@ export function RevenueRiskAutopsyView({
         </div>
       </div>
 
+      {/* 2.5 EXECUTIVE SITUATION SUMMARY CARD (Task C Requirement 2) */}
+      <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/30 to-white border border-blue-200/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-[#2563EB] text-white shadow-2xs">
+              <FileText className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                Executive Situation Summary
+              </h2>
+              <p className="text-[11px] text-slate-500">
+                Automated customer diagnostic baseline & risk context
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-blue-100/80 text-[#1D4ED8] border border-blue-200">
+            <Sparkles className="w-3 h-3 text-[#2563EB]" />
+            <span>Automated Autopsy</span>
+          </span>
+        </div>
+
+        <div className="bg-white/90 backdrop-blur-xs border border-blue-100 rounded-xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed font-sans shadow-2xs">
+          {situationSummary}
+        </div>
+      </div>
+
       {/* 3. 4 KEY TELEMETRY KPI CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* At-Risk ARR */}
@@ -437,7 +513,7 @@ export function RevenueRiskAutopsyView({
         </div>
       </div>
 
-      {/* 4. VISUAL TELEMETRY & STRUCTURED PROBLEM MATRIX (2-COLUMN GRID) */}
+      {/* 4. VISUAL TELEMETRY & EVIDENCE FINDINGS MATRIX (2-COLUMN GRID) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Left Column: Visual Telemetry Time-Series Chart */}
         <div className="lg:col-span-6 space-y-4">
@@ -449,128 +525,247 @@ export function RevenueRiskAutopsyView({
           />
         </div>
 
-        {/* Right Column: Structured Root-Cause Problem Matrix */}
+        {/* Right Column: Evidence-Grounded Findings (Observed Facts vs Interpretations) */}
         <div className="lg:col-span-6 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-base font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                 <Activity className="w-4 h-4 text-[#2563EB]" />
-                <span>Key Warning Signs & Proof</span>
+                <span>Evidence & Findings Analysis</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Activity alerts that triggered this risk score
+                Strict separation of verified telemetry from causal deductions
               </p>
             </div>
-            <span className="text-[11px] font-mono font-semibold text-slate-400">
-              3 Verified Records
-            </span>
+
+            {/* View Mode Switcher */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setEvidenceViewTab('both')}
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  evidenceViewTab === 'both'
+                    ? 'bg-white text-slate-900 shadow-2xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                All Findings
+              </button>
+              <button
+                type="button"
+                onClick={() => setEvidenceViewTab('facts')}
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  evidenceViewTab === 'facts'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-500 hover:text-emerald-700'
+                }`}
+              >
+                Observed Facts
+              </button>
+              <button
+                type="button"
+                onClick={() => setEvidenceViewTab('interpretations')}
+                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  evidenceViewTab === 'interpretations'
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-500 hover:text-indigo-700'
+                }`}
+              >
+                Interpretations
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {structuredProblems.map((prob) => {
-              const IconComp = prob.icon;
-              return (
-                <div
-                  key={prob.id}
-                  className="p-3.5 rounded-xl border border-slate-100 bg-[#FAFCFF] hover:border-slate-200 transition-colors space-y-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1 rounded-md bg-white border border-slate-200 text-slate-700 shadow-2xs">
-                        <IconComp className="w-3.5 h-3.5 text-slate-700" />
-                      </div>
-                      <span className="font-semibold text-xs text-slate-900">
-                        {prob.problem}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.2 rounded text-[10px] font-mono font-semibold border ${prob.severityColor}`}>
-                        {prob.severity}
-                      </span>
-                      <button
-                        onClick={() => handleEvidenceClick(prob.evidenceId)}
-                        className="text-[10px] font-mono font-semibold text-[#2563EB] hover:text-[#1D4ED8] bg-white border border-blue-200 px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1 shadow-2xs"
-                        title="View verified source record"
-                      >
-                        <span>{prob.evidenceId}</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
+          <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+            {/* 1. OBSERVED FACTS */}
+            {(evidenceViewTab === 'both' || evidenceViewTab === 'facts') && (
+              <div className="space-y-2.5">
+                {evidenceViewTab === 'both' && (
+                  <div className="flex items-center gap-2 text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50/70 px-2.5 py-1 rounded-md border border-emerald-200/60">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Observed Facts (Telemetry & Activity Records)</span>
                   </div>
+                )}
+                {observedFacts.map((fact, fIdx) => (
+                  <div
+                    key={`fact-${fIdx}`}
+                    className="p-3.5 rounded-xl border border-emerald-100 bg-[#F9FDFB] hover:border-emerald-200 transition-colors space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Observed Fact
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {(fact.evidence_ids || []).map((evId) => (
+                          <button
+                            key={evId}
+                            onClick={() => handleEvidenceClick(evId)}
+                            className="text-[10px] font-mono font-semibold text-[#2563EB] hover:text-[#1D4ED8] bg-white border border-blue-200 px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1 shadow-2xs"
+                            title="Inspect ground-truth evidence record"
+                          >
+                            <span>{evId}</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                      {fact.claim}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
 
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {prob.signal} • <span className="text-slate-500">{prob.impact}</span>
-                  </p>
-                </div>
-              );
-            })}
+            {/* 2. CAUSAL INTERPRETATIONS */}
+            {(evidenceViewTab === 'both' || evidenceViewTab === 'interpretations') && (
+              <div className="space-y-2.5 pt-1">
+                {evidenceViewTab === 'both' && (
+                  <div className="flex items-center gap-2 text-[11px] font-mono font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50/70 px-2.5 py-1 rounded-md border border-indigo-200/60">
+                    <GitFork className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Causal Interpretations (Diagnostic Hypotheses)</span>
+                  </div>
+                )}
+                {interpretationsList.map((interp, iIdx) => (
+                  <div
+                    key={`interp-${iIdx}`}
+                    className="p-3.5 rounded-xl border border-indigo-100 bg-[#FAF9FE] hover:border-indigo-200 transition-colors space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-indigo-100 text-indigo-800 border border-indigo-200">
+                          Interpretation
+                        </span>
+                        <span className="text-[10px] font-medium text-indigo-600 bg-white border border-indigo-200 px-1.5 py-0.2 rounded capitalize">
+                          {interp.confidence} Confidence
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {(interp.supporting_evidence_ids || []).map((evId) => (
+                          <button
+                            key={evId}
+                            onClick={() => handleEvidenceClick(evId)}
+                            className="text-[10px] font-mono font-semibold text-[#2563EB] hover:text-[#1D4ED8] bg-white border border-blue-200 px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1 shadow-2xs"
+                            title="Inspect supporting evidence record"
+                          >
+                            <span>{evId}</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      {interp.hypothesis}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 5. AI CAUSAL SYNTHESIS & PRE-MEETING BLINDSPOTS (2-COLUMN GRID) */}
+      {/* 5. DIAGNOSTIC RIGOR: MISSING INFO & ALTERNATIVE EXPLANATIONS (Task C Requirement 5) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: AI Diagnosis */}
-        <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Sparkles className="w-4 h-4 text-[#2563EB]" />
-            <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-              AI Summary: Why This Customer Is at Risk
-            </h3>
-          </div>
-
-          <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-            {conclusionText}
-          </p>
-
-          <div className="pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap text-xs text-slate-500 font-mono">
-            <span className="font-semibold text-slate-700 font-sans">What Happened:</span>
-            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-              Usage Dropped (-38%)
-            </span>
-            <span>→</span>
-            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-              No Reply in 16 Days
-            </span>
-            <span>→</span>
-            <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-semibold">
-              Renewal in 15 Days
-            </span>
-          </div>
-        </div>
-
-        {/* Right Column: Pre-Meeting Questions / Missing Info */}
-        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
+        {/* Left Column: Missing Information (Diagnostic Blindspots) */}
+        <div className="lg:col-span-6 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-amber-600" />
-              <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-                Things to Check Before Calling
-              </h3>
+              <div className="p-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                <HelpCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+                  Missing Information & Blindspots
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Critical unknowns requiring verification before customer intervention
+                </p>
+              </div>
             </div>
             <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-2 py-0.5 rounded font-semibold border border-amber-200">
-              Verify First
+              Needs Verification
             </span>
           </div>
 
-          <p className="text-xs text-slate-500">
-            Important questions to verify before discussing discounts or contract terms:
-          </p>
-
-          <div className="space-y-2">
-            {uncertainties.map((unc, idx) => (
+          <div className="space-y-2.5">
+            {missingInfoList.map((item, idx) => (
               <div
-                key={idx}
-                className="flex items-start gap-2.5 text-xs text-slate-700 bg-amber-50/50 border border-amber-200/60 rounded-xl p-2.5"
+                key={`missing-${idx}`}
+                className="flex items-start gap-2.5 text-xs text-slate-700 bg-amber-50/40 border border-amber-200/60 rounded-xl p-3"
               >
-                <div className="w-4 h-4 rounded border border-amber-400 bg-white flex items-center justify-center shrink-0 mt-0.5 text-amber-700 font-bold text-[10px]">
+                <div className="w-4 h-4 rounded-full border border-amber-400 bg-white flex items-center justify-center shrink-0 mt-0.5 text-amber-700 font-bold text-[10px]">
                   {idx + 1}
                 </div>
-                <span className="leading-relaxed">{unc}</span>
+                <span className="leading-relaxed">{item}</span>
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Right Column: Possible Alternative Explanations */}
+        <div className="lg:col-span-6 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-purple-50 text-purple-700 border border-purple-200">
+                <Scale className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+                  Possible Alternative Explanations
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Counter-hypotheses evaluated to prevent single-silo analytical bias
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono text-purple-800 bg-purple-50 px-2 py-0.5 rounded font-semibold border border-purple-200">
+              Counter-Hypotheses
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {alternativeExplanationsList.map((alt, idx) => (
+              <div
+                key={`alt-${idx}`}
+                className="flex items-start gap-2.5 text-xs text-slate-700 bg-purple-50/40 border border-purple-200/60 rounded-xl p-3"
+              >
+                <div className="w-4 h-4 rounded-full border border-purple-300 bg-white flex items-center justify-center shrink-0 mt-0.5 text-purple-700 font-bold text-[10px]">
+                  {idx + 1}
+                </div>
+                <span className="leading-relaxed">{alt}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 5.5 AI CAUSAL SYNTHESIS */}
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+          <Sparkles className="w-4 h-4 text-[#2563EB]" />
+          <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+            AI Diagnosis: Root-Cause Synthesis
+          </h3>
+        </div>
+
+        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+          {conclusionText}
+        </p>
+
+        <div className="pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap text-xs text-slate-500 font-mono">
+          <span className="font-semibold text-slate-700 font-sans">Observed Event Chain:</span>
+          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            Usage Dropped ({usageTrend})
+          </span>
+          <span>→</span>
+          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            No Reply in {lastReplyDays} Days
+          </span>
+          <span>→</span>
+          <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-semibold">
+            Renewal in {renewalDays} Days
+          </span>
         </div>
       </div>
 

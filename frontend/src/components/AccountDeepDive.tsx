@@ -193,7 +193,7 @@ export function AccountDeepDive({
               {autopsy?.interpretations && autopsy.interpretations.length > 0 ? (
                 autopsy.interpretations.map((item, idx) => (
                   <div key={idx} className="p-2.5 bg-blue-50/50 border border-blue-100 rounded text-xs text-slate-700 leading-relaxed">
-                    {item}
+                    {typeof item === 'string' ? item : item.hypothesis}
                   </div>
                 ))
               ) : (

@@ -4,7 +4,8 @@ import type {
   AccountRiskSummary,
   DraftActionsResponse,
   ActionProposal,
-  OutcomeIntelligenceReport
+  OutcomeIntelligenceReport,
+  RecommendedNextStepItem
 } from '../types/api';
 import {
   draftAccountActions,
@@ -40,7 +41,10 @@ import {
   Check,
   Activity,
   Layers,
-  AtSign
+  AtSign,
+  Compass,
+  Target,
+  ListChecks
 } from 'lucide-react';
 
 interface NextBestActionCopilotViewProps {
@@ -89,9 +93,11 @@ export function NextBestActionCopilotView({
 
   // Form states for Task
   const [taskTitle, setTaskTitle] = useState<string>('');
+  const [taskObjective, setTaskObjective] = useState<string>('');
   const [taskDescription, setTaskDescription] = useState<string>('');
   const [taskAssignedTo, setTaskAssignedTo] = useState<string>('');
   const [taskDueDate, setTaskDueDate] = useState<string>('');
+  const [taskDeadline, setTaskDeadline] = useState<string>('');
   const [taskPriority, setTaskPriority] = useState<'high' | 'medium' | 'low'>('high');
 
   // Form states for CRM Update
@@ -99,6 +105,16 @@ export function NextBestActionCopilotView({
   const [crmCurrentValue, setCrmCurrentValue] = useState<string>('');
   const [crmProposedValue, setCrmProposedValue] = useState<string>('');
   const [crmReason, setCrmReason] = useState<string>('');
+  const [crmSupportingRationale, setCrmSupportingRationale] = useState<string>('');
+  const [crmFieldUpdates, setCrmFieldUpdates] = useState<Array<{
+    field: string;
+    current: string;
+    proposed: string;
+    rationale: string;
+  }>>([]);
+
+  // Strategy Selector state
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('csm_check_in');
 
   // UI state
   const [savingState, setSavingState] = useState<'idle' | 'saving' | 'submitting'>('idle');
@@ -136,9 +152,11 @@ export function NextBestActionCopilotView({
 
       // Populate Task Tab
       setTaskTitle(draftsRes.task_draft.title || '');
+      setTaskObjective(draftsRes.task_draft.objective || '');
       setTaskDescription(draftsRes.task_draft.description || '');
       setTaskAssignedTo(draftsRes.task_draft.assigned_to || account.csm_owner || '');
       setTaskDueDate(draftsRes.task_draft.due_date || '');
+      setTaskDeadline(draftsRes.task_draft.deadline || '');
       setTaskPriority(draftsRes.task_draft.priority || 'high');
 
       // Populate CRM Tab
@@ -146,6 +164,13 @@ export function NextBestActionCopilotView({
       setCrmCurrentValue(draftsRes.crm_update.current_value || '');
       setCrmProposedValue(draftsRes.crm_update.proposed_value || '');
       setCrmReason(draftsRes.crm_update.reason || '');
+      setCrmSupportingRationale(draftsRes.crm_update.supporting_rationale || draftsRes.crm_update.reason || '');
+      setCrmFieldUpdates(draftsRes.crm_update.field_updates || []);
+
+      // Populate Recommended Strategy
+      if (draftsRes.suggested_next_step) {
+        setSelectedStrategyId(draftsRes.suggested_next_step);
+      }
 
       // Check existing proposals
       if (Array.isArray(existingProps)) {
@@ -232,9 +257,11 @@ export function NextBestActionCopilotView({
       } else if (type === 'task') {
         const payload = {
           title: taskTitle,
+          objective: taskObjective,
           description: taskDescription,
           assigned_to: taskAssignedTo,
           due_date: taskDueDate,
+          deadline: taskDeadline,
           priority: taskPriority,
           evidence_ids: draftData?.task_draft.evidence_ids || []
         };
@@ -277,6 +304,9 @@ export function NextBestActionCopilotView({
           field_name: crmFieldName,
           current_value: crmCurrentValue,
           proposed_value: crmProposedValue,
+          reason: crmReason,
+          supporting_rationale: crmSupportingRationale,
+          field_updates: crmFieldUpdates,
           evidence_ids: draftData?.crm_update.evidence_ids || []
         };
 
@@ -322,6 +352,32 @@ export function NextBestActionCopilotView({
       });
     } finally {
       setSavingState('idle');
+    }
+  };
+
+  // Handler: Select Strategic Next Step to instantly re-align follow-up preparations
+  const handleSelectStrategy = (step: RecommendedNextStepItem) => {
+    setSelectedStrategyId(step.step_type);
+    if (step.step_type === 'csm_check_in') {
+      setEmailSubject(`Executive Check-in & Value Alignment: ${account.name}`);
+      setEmailReason(`Customer-Success Executive Check-in: ${step.rationale}`);
+      setTaskTitle(`Executive Business & Alignment Check-in: ${account.name}`);
+      setTaskObjective(`1. Validate primary sponsor sentiment and renewal alignment.\n2. Address contract timeline and roadmap deliverables.\n3. Secure date for executive steering sync.`);
+    } else if (step.step_type === 'adoption_support') {
+      setEmailSubject(`Accelerating team adoption & platform enablement for ${account.name}`);
+      setEmailReason(`Product Enablement & Adoption Support: ${step.rationale}`);
+      setTaskTitle(`Launch Technical & Workflow Enablement Sprint: ${account.name}`);
+      setTaskObjective(`1. Conduct 30-min hands-on enablement session for inactive licenses.\n2. Identify friction points in daily workflow adoption.\n3. Provide dedicated solution architect review.`);
+    } else if (step.step_type === 'technical_escalation') {
+      setEmailSubject(`Priority review of technical support & SLA resolution for ${account.name}`);
+      setEmailReason(`Technical Escalation & Resolution: ${step.rationale}`);
+      setTaskTitle(`Coordinate Engineering & Support SLA Resolution: ${account.name}`);
+      setTaskObjective(`1. Audit open/unresolved support tickets with VP of Engineering.\n2. Provide hotfix or work-around timetable to customer lead.\n3. Re-establish customer confidence in platform reliability.`);
+    } else if (step.step_type === 'commercial_tier_review') {
+      setEmailSubject(`Optimizing license allocation & commercial terms for ${account.name}`);
+      setEmailReason(`Commercial Right-Sizing: ${step.rationale}`);
+      setTaskTitle(`Prepare Tier Right-Sizing & Commercial Proposal: ${account.name}`);
+      setTaskObjective(`1. Model cost-effective seat tier aligning with actual active seats.\n2. Propose multi-year discount or flexible add-on structure.\n3. Eliminate churn friction by proactively addressing shelfware.`);
     }
   };
 
@@ -416,6 +472,89 @@ export function NextBestActionCopilotView({
             <span>View in Approval Center</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
+        </div>
+      )}
+
+      {/* Task D: Recommended Suitable Next Steps Strategy Selector */}
+      {draftData?.recommended_next_steps && draftData.recommended_next_steps.length > 0 && (
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-xs space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 border border-blue-200">
+                <Compass className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#2563EB]">
+                    Task D · Recommended Suitable Next Steps
+                  </span>
+                  <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-semibold">
+                    {draftData.recommended_next_steps.length} Strategic Options
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  Select Suitable Next-Step Strategy
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 hidden sm:block">
+              Click a strategy to dynamically align follow-up email drafts, remediation tasks, and CRM fields.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {draftData.recommended_next_steps.map((step) => {
+              const isSelected = selectedStrategyId === step.step_type;
+              return (
+                <div
+                  key={step.id}
+                  onClick={() => handleSelectStrategy(step)}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                    isSelected
+                      ? 'bg-blue-50/70 border-[#2563EB] shadow-xs ring-1 ring-[#2563EB]/40'
+                      : 'bg-white hover:bg-slate-50/80 border-slate-200'
+                  }`}
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {Math.round(step.suitability_score * 100)}% Match
+                      </span>
+                      {step.is_primary && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-[#2563EB] border border-blue-300">
+                          Primary
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{step.title}</h4>
+                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                      {step.rationale}
+                    </p>
+                  </div>
+
+                  <div className="pt-2.5 mt-2.5 border-t border-slate-100/80 flex items-center justify-between text-[11px]">
+                    <span className={`font-semibold capitalize ${
+                      step.urgency === 'critical' ? 'text-rose-600' : 'text-amber-600'
+                    }`}>
+                      {step.urgency} Urgency
+                    </span>
+                    <span className={`font-bold flex items-center gap-1 ${
+                      isSelected ? 'text-[#2563EB]' : 'text-slate-400'
+                    }`}>
+                      {isSelected ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" />
+                          <span>Active</span>
+                        </>
+                      ) : (
+                        <span>Select</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -611,6 +750,37 @@ export function NextBestActionCopilotView({
                 )}
               </div>
 
+              {/* Account Situation Context Indicator (Task D.1) */}
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50/40 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <span>Account's Real-Time Situation Context</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Personalized Grounds
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="bg-white border border-slate-200/80 rounded-lg p-2 text-center">
+                    <span className="text-[10px] text-slate-400 block font-mono">Usage Trajectory</span>
+                    <span className="font-bold text-rose-600">-38% vs baseline</span>
+                  </div>
+                  <div className="bg-white border border-slate-200/80 rounded-lg p-2 text-center">
+                    <span className="text-[10px] text-slate-400 block font-mono">Seat Utilization</span>
+                    <span className="font-bold text-slate-800">148 / 240 active</span>
+                  </div>
+                  <div className="bg-white border border-slate-200/80 rounded-lg p-2 text-center">
+                    <span className="text-[10px] text-slate-400 block font-mono">Touchpoint Lag</span>
+                    <span className="font-bold text-amber-600">16 days silent</span>
+                  </div>
+                  <div className="bg-white border border-slate-200/80 rounded-lg p-2 text-center">
+                    <span className="text-[10px] text-slate-400 block font-mono">Renewal Window</span>
+                    <span className="font-bold text-rose-600">{renewalDays} days remaining</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Recipient & Subject Inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1.5">
@@ -734,6 +904,25 @@ export function NextBestActionCopilotView({
                 />
               </div>
 
+              {/* Task Strategic Objectives (Task D.2) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="task-objective-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <span>Task Objectives & Key Deliverables</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">Milestones</span>
+                </div>
+                <textarea
+                  id="task-objective-input"
+                  rows={3}
+                  value={taskObjective}
+                  onChange={(e) => setTaskObjective(e.target.value)}
+                  placeholder="Explicit operational objectives for this follow-up..."
+                  className="w-full text-xs sm:text-sm bg-[#FAFCFF] border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:border-[#2563EB] focus:bg-white focus:outline-none"
+                />
+              </div>
+
               {/* Task Description */}
               <div className="space-y-1.5">
                 <label htmlFor="task-desc-input" className="text-xs font-semibold text-slate-700">Task Instructions</label>
@@ -747,8 +936,8 @@ export function NextBestActionCopilotView({
                 />
               </div>
 
-              {/* Assigned To, Due Date, Priority */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {/* Assigned To, Due Date, Strategic Deadline, Priority */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
                 <div className="space-y-1.5">
                   <label htmlFor="task-assigned-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-slate-400" />
@@ -774,6 +963,21 @@ export function NextBestActionCopilotView({
                     value={taskDueDate}
                     onChange={(e) => setTaskDueDate(e.target.value)}
                     className="w-full text-xs sm:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 focus:border-[#2563EB] focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="task-deadline-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Strategic Deadline</span>
+                  </label>
+                  <input
+                    id="task-deadline-input"
+                    type="text"
+                    value={taskDeadline}
+                    onChange={(e) => setTaskDeadline(e.target.value)}
+                    placeholder="e.g. 7 days before renewal"
+                    className="w-full text-xs sm:text-sm bg-amber-50/40 border border-amber-200 rounded-xl px-3.5 py-2 font-medium text-amber-900 focus:border-amber-400 focus:outline-none"
                   />
                 </div>
 
@@ -896,6 +1100,54 @@ export function NextBestActionCopilotView({
                   className="w-full text-xs sm:text-sm bg-[#FAFCFF] border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:border-[#2563EB] focus:bg-white focus:outline-none"
                 />
               </div>
+
+              {/* Supporting Evidentiary Rationale (Task D.4) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="crm-rationale-input" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <span>Supporting Evidentiary Rationale</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">Deterministic Grounding</span>
+                </div>
+                <textarea
+                  id="crm-rationale-input"
+                  rows={3}
+                  value={crmSupportingRationale}
+                  onChange={(e) => setCrmSupportingRationale(e.target.value)}
+                  placeholder="Detailed telemetry rationale supporting the CRM risk downgrade..."
+                  className="w-full text-xs sm:text-sm bg-[#FAFCFF] border border-slate-200 rounded-xl p-3.5 text-slate-800 focus:border-[#2563EB] focus:bg-white focus:outline-none leading-relaxed"
+                />
+              </div>
+
+              {/* Multi-Field Updates Preview */}
+              {crmFieldUpdates && crmFieldUpdates.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <ListChecks className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <span>Proposed Multi-Field CRM Alignments</span>
+                  </span>
+                  <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+                    {crmFieldUpdates.map((fu, idx) => (
+                      <div key={idx} className="p-2.5 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div>
+                          <span className="font-semibold text-slate-900 block">{fu.field}</span>
+                          <span className="text-[11px] text-slate-500">{fu.rationale}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 font-mono text-[11px]">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 line-through">
+                            {fu.current}
+                          </span>
+                          <ArrowRight className="w-3 h-3 text-slate-400" />
+                          <span className="px-2 py-0.5 rounded bg-blue-100 text-[#2563EB] font-bold">
+                            {fu.proposed}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons Footer */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">

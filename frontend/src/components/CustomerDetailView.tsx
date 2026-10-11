@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
-import type { AccountDetail, Signal } from '../types/api';
+import type { AccountDetail, Signal, AccountRiskSummary } from '../types/api';
 import { RiskBadge } from './RiskBadge';
+import { DynamicSignalAnalysisView } from './DynamicSignalAnalysisView';
+import { RiskScoringClassificationView } from './RiskScoringClassificationView';
 import {
   Sparkles,
   Users,
@@ -16,7 +18,9 @@ import {
   CalendarDays,
   FileText,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Zap,
+  Flame
 } from 'lucide-react';
 
 interface CustomerDetailViewProps {
@@ -27,6 +31,8 @@ interface CustomerDetailViewProps {
   onInvestigateWithAI?: () => void;
   onNavigateToCopilot?: () => void;
   onNavigateToFeedback?: () => void;
+  allAccounts?: AccountRiskSummary[];
+  onSelectAccount?: (accountId: string) => void;
 }
 
 export function CustomerDetailView({
@@ -35,8 +41,11 @@ export function CustomerDetailView({
   currency = 'USD',
   onInvestigateWithAI,
   onNavigateToCopilot,
-  onNavigateToFeedback
+  onNavigateToFeedback,
+  allAccounts = [],
+  onSelectAccount
 }: CustomerDetailViewProps) {
+  const [activeViewTab, setActiveViewTab] = useState<'risk' | 'analysis' | 'timeline'>('risk');
   const [timelineFilter, setTimelineFilter] = useState<string>('all');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
 
@@ -303,89 +312,143 @@ export function CustomerDetailView({
         </div>
       </div>
 
-      {/* 4. CHRONOLOGICAL MULTI-SOURCE EVIDENCE TIMELINE */}
-      <div className="border border-[#E2E8F0] rounded-2xl bg-white p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="text-base font-semibold text-slate-900 tracking-normal flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#2563EB]" />
-              <span>Multi-Source Chronological Evidence Feed</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Verified signals collected across Usage Telemetry, Zendesk, HubSpot CRM, and Calendar
-            </p>
-          </div>
-
-          {/* Timeline Filter Pills */}
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs overflow-x-auto">
-            {['all', 'crm', 'email', 'calendar', 'slack', 'usage', 'support'].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setTimelineFilter(cat)}
-                className={`px-2.5 py-1 rounded-md font-medium capitalize transition-colors cursor-pointer whitespace-nowrap ${
-                  timelineFilter === cat
-                    ? 'bg-white text-slate-900 font-semibold shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Signal Items List */}
-        <div className="divide-y divide-slate-100">
-          {filteredSignals.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-500">
-              No evidence signals found for the selected category.
-            </div>
-          ) : (
-            filteredSignals.map((sig) => {
-              const isLive = !sig.is_simulated && sig.mode !== 'simulated';
-              return (
-              <div
-                key={sig.id}
-                onClick={() => setSelectedSignal(selectedSignal?.id === sig.id ? null : sig)}
-                className="py-3 sm:py-3.5 hover:bg-slate-50/70 rounded-xl px-3 transition-colors cursor-pointer space-y-1.5"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-1.5 rounded-md bg-slate-100 border border-slate-200/60 shrink-0">
-                      {getSourceIcon(sig.source_category)}
-                    </div>
-                    <span className="font-semibold text-xs text-slate-900">
-                      {sig.title}
-                    </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
-                      {sig.source_category}
-                    </span>
-                    {isLive ? (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        LIVE API
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200/80 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
-                        SIMULATED
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-400 shrink-0">
-                    {formatTimestamp(sig.timestamp)}
-                  </span>
-                </div>
-
-                <p className="text-xs text-slate-600 pl-8 leading-relaxed">
-                  {sig.description || sig.summary}
-                </p>
-              </div>
-            );
-          })
-          )}
-        </div>
+      {/* 4. SIGNAL INTELLIGENCE & EVIDENCE TABS */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 flex-wrap">
+        <button
+          onClick={() => setActiveViewTab('risk')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors flex items-center gap-2 ${
+            activeViewTab === 'risk'
+              ? 'bg-[#2563EB] text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+          }`}
+        >
+          <Flame className="w-3.5 h-3.5 text-amber-300" />
+          <span>Risk Scoring &amp; Classification (Task B)</span>
+        </button>
+        <button
+          onClick={() => setActiveViewTab('analysis')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors flex items-center gap-2 ${
+            activeViewTab === 'analysis'
+              ? 'bg-[#2563EB] text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-300" />
+          <span>Dynamic Signal Analysis (Task A)</span>
+        </button>
+        <button
+          onClick={() => setActiveViewTab('timeline')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors flex items-center gap-2 ${
+            activeViewTab === 'timeline'
+              ? 'bg-[#2563EB] text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5" />
+          <span>Raw Telemetry Feed ({account.signals.length})</span>
+        </button>
       </div>
+
+      {activeViewTab === 'risk' ? (
+        <RiskScoringClassificationView
+          account={account}
+          allAccounts={allAccounts}
+          onSelectAccount={onSelectAccount}
+          onNavigateToAutopsy={handleInvestigateWithAI}
+        />
+      ) : activeViewTab === 'analysis' ? (
+        <DynamicSignalAnalysisView
+          account={account}
+          allAccounts={allAccounts}
+          onSelectAccount={onSelectAccount}
+          onNavigateToAutopsy={handleInvestigateWithAI}
+        />
+      ) : (
+        /* CHRONOLOGICAL MULTI-SOURCE EVIDENCE TIMELINE */
+        <div className="border border-[#E2E8F0] rounded-2xl bg-white p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900 tracking-normal flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#2563EB]" />
+                <span>Multi-Source Chronological Evidence Feed</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Verified signals collected across Usage Telemetry, Zendesk, HubSpot CRM, and Calendar
+              </p>
+            </div>
+
+            {/* Timeline Filter Pills */}
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-xs overflow-x-auto">
+              {['all', 'crm', 'email', 'calendar', 'slack', 'usage', 'support'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setTimelineFilter(cat)}
+                  className={`px-2.5 py-1 rounded-md font-medium capitalize transition-colors cursor-pointer whitespace-nowrap ${
+                    timelineFilter === cat
+                      ? 'bg-white text-slate-900 font-semibold shadow-2xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Signal Items List */}
+          <div className="divide-y divide-slate-100">
+            {filteredSignals.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-500">
+                No evidence signals found for the selected category.
+              </div>
+            ) : (
+              filteredSignals.map((sig) => {
+                const isLive = !sig.is_simulated && sig.mode !== 'simulated';
+                return (
+                  <div
+                    key={sig.id}
+                    onClick={() => setSelectedSignal(selectedSignal?.id === sig.id ? null : sig)}
+                    className="py-3 sm:py-3.5 hover:bg-slate-50/70 rounded-xl px-3 transition-colors cursor-pointer space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="p-1.5 rounded-md bg-slate-100 border border-slate-200/60 shrink-0">
+                          {getSourceIcon(sig.source_category)}
+                        </div>
+                        <span className="font-semibold text-xs text-slate-900">
+                          {sig.title}
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
+                          {sig.source_category}
+                        </span>
+                        {isLive ? (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            LIVE API
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200/80 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                            SIMULATED
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-400 shrink-0">
+                        {formatTimestamp(sig.timestamp)}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-600 pl-8 leading-relaxed">
+                      {sig.description || sig.summary}
+                    </p>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
 
       {/* 5. KEY STAKEHOLDERS & CONTACTS */}
       {account.contacts && account.contacts.length > 0 && (

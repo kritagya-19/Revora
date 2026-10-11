@@ -400,6 +400,8 @@ export function App() {
             selectedAccountDetail ? (
               <CustomerDetailView
                 account={selectedAccountDetail}
+                allAccounts={accounts}
+                onSelectAccount={handleSelectAccount}
                 onBackToAccounts={() => {
                   if (currentTab === 'dashboard') {
                     setViewMode('radar');
