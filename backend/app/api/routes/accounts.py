@@ -150,3 +150,13 @@ def draft_account_actions(account_id: str):
     drafts = llm_service.generate_draft_actions(acc, investigation)
     return drafts
 
+@router.get("/{account_id}/actions/history-aware", response_model=DraftActionsResponse)
+def get_history_aware_actions(account_id: str):
+    """
+    GET /api/accounts/{id}/actions/history-aware
+    Feature 5: Generates recommendations informed by past outcomes and empirical patterns,
+    including previous actions, customer reactions, unresolved commitments, and comparative rationale.
+    """
+    return draft_account_actions(account_id)
+
+

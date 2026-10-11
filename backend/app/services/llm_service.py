@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from app.core.config import settings
 from app.models.schemas import (
     AccountDetail,
@@ -396,16 +396,33 @@ Return JSON:
             else f"Proactively mitigate {account.primary_reason_code.replace('_', ' ')} ahead of {account.renewal_date} contract renewal."
         )
 
-        # Attempt OpenRouter LLM dynamic drafting
+        # Incorporate Feature 5 History-Aware Context
+        try:
+            from app.services.outcome_intelligence import outcome_intelligence
+            history_ctx = outcome_intelligence.get_account_history_context(account.id)
+        except Exception:
+            history_ctx = None
+
+        # Attempt OpenRouter LLM dynamic drafting with history-aware context
         if llm_client.is_available():
             try:
+                history_prompt_snippet = ""
+                if history_ctx and history_ctx.unresolved_commitments:
+                    history_prompt_snippet = (
+                        f"\nACCOUNT HISTORY & RECORDED COMMITMENTS:\n"
+                        f"- Open Commitment: {history_ctx.unresolved_commitments[0].get('commitment')}\n"
+                        f"- Anti-Repetition Rule: {history_ctx.preferable_to_repeating_reason}\n"
+                        f"- Days since last contact: {history_ctx.days_since_last_followup}\n"
+                    )
+
                 email_prompt = (
                     f"Account: {account.name} (ARR: ${account.arr:,.0f}, Renewal: {account.renewal_date}).\n"
                     f"Recipient: {recipient_name} ({recipient}).\n"
                     f"CSM Owner: {account.csm_owner}.\n"
                     f"Key Signals: {json.dumps([s.summary for s in top_signals])}.\n"
                     f"Action Reason: {action_reason}.\n"
-                    "Draft an executive outreach email to mitigate churn and request a brief alignment session.\n"
+                    f"{history_prompt_snippet}"
+                    "Draft an executive outreach email that directly addresses recorded commitments, avoids repetitive re-discovery, and mitigates churn.\n"
                     "Return JSON with keys: 'subject', 'body', 'reason'."
                 )
                 res = llm_client.generate_json(
@@ -424,20 +441,37 @@ Return JSON:
             except Exception as e:
                 logger.warning(f"OpenRouter email drafting failed: {e}. Using template.")
 
-        subject = f"{account.name} — Platform Continuity & Executive Alignment ({account.renewal_date})"
-        body = (
-            f"Hi {recipient_name},\n\n"
-            f"I hope you're having a productive week. As your Customer Success Partner at Revora, "
-            f"I have been tracking your team's utilization trends and upcoming renewal scheduled for {account.renewal_date}.\n\n"
-            f"Recently, our operational telemetry detected a few items we want to ensure are addressed swiftly:\n"
-            f"• Verified usage shifts: {top_signals[0].summary if top_signals else 'Telemetry variance observed'}\n"
-            f"• Service continuity: Addressing open SLA escalations and optimizing seat allocations across departments.\n\n"
-            f"I would like to schedule a brief 20-minute alignment session this Thursday or Friday with our Solutions Architect to review these metrics, provide direct resolution on open tickets, and tailor your license tier to maximize ROI.\n\n"
-            f"Please let me know if Thursday 2:00 PM or Friday 11:00 AM works for your calendar.\n\n"
-            f"Best regards,\n"
-            f"{account.csm_owner}\n"
-            f"Revora Customer Success"
-        )
+        # History-aware deterministic template
+        if history_ctx and history_ctx.unresolved_commitments:
+            commit = history_ctx.unresolved_commitments[0].get('commitment', '')
+            subject = f"{account.name} — Update on {commit[:40]}... & Next Steps"
+            body = (
+                f"Hi {recipient_name},\n\n"
+                f"I hope your week is off to a great start. Following our recent checkpoint regarding your team's upcoming renewal on {account.renewal_date}, "
+                f"I am writing back specifically to deliver on what we discussed:\n\n"
+                f"• Recorded Commitment: {commit}\n"
+                f"• Technical & Service Continuity: Ensuring all active engineering seats are unblocked and license tiering is aligned with your budget.\n\n"
+                f"I have assembled the requested breakdown and would like to review it together for 15 minutes this Thursday afternoon or Friday morning. "
+                f"Please let me know if Thursday 2:30 PM works for your calendar.\n\n"
+                f"Best regards,\n"
+                f"{account.csm_owner}\n"
+                f"Revora Customer Success"
+            )
+        else:
+            subject = f"{account.name} — Platform Continuity & Executive Alignment ({account.renewal_date})"
+            body = (
+                f"Hi {recipient_name},\n\n"
+                f"I hope you're having a productive week. As your Customer Success Partner at Revora, "
+                f"I have been tracking your team's utilization trends and upcoming renewal scheduled for {account.renewal_date}.\n\n"
+                f"Recently, our operational telemetry detected a few items we want to ensure are addressed swiftly:\n"
+                f"• Verified usage shifts: {top_signals[0].summary if top_signals else 'Telemetry variance observed'}\n"
+                f"• Service continuity: Addressing open SLA escalations and optimizing seat allocations across departments.\n\n"
+                f"I would like to schedule a brief 20-minute alignment session this Thursday or Friday with our Solutions Architect to review these metrics, provide direct resolution on open tickets, and tailor your license tier to maximize ROI.\n\n"
+                f"Please let me know if Thursday 2:00 PM or Friday 11:00 AM works for your calendar.\n\n"
+                f"Best regards,\n"
+                f"{account.csm_owner}\n"
+                f"Revora Customer Success"
+            )
 
         return {
             "recipient": recipient,
@@ -496,8 +530,17 @@ Return JSON:
 
     def generate_draft_actions(self, account: AccountDetail, investigation: Optional[Investigation] = None) -> Dict[str, Any]:
         """
-        Synthesizes the complete Next-Best-Action copilot draft set across Email, Task, and CRM fields.
+        Synthesizes the complete Next-Best-Action copilot draft set across Email, Task, and CRM fields,
+        enriched with Feature 5 History-Aware Context.
         """
+        # Feature 5: Retrieve relevant past outcomes, similar situations, and anti-repetition rationale
+        history_ctx = None
+        try:
+            from app.services.outcome_intelligence import outcome_intelligence
+            history_ctx = outcome_intelligence.get_account_history_context(account.id)
+        except Exception as e:
+            logger.warning(f"Could not retrieve history context for {account.id}: {e}")
+
         email_draft = self.draft_followup_email(account, investigation)
         task_draft = self.draft_followup_task(account, investigation)
         crm_draft = self.draft_crm_update(account, investigation)
@@ -512,7 +555,8 @@ Return JSON:
                 **task_draft
             },
             "crm_update": crm_draft,
-            "created_at": datetime.utcnow().isoformat()
+            "history_aware_context": history_ctx.model_dump() if history_ctx else None,
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
 
 llm_service = LLMService()

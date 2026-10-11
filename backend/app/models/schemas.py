@@ -263,6 +263,19 @@ class ProposedCRMUpdate(BaseModel):
     reason: str
     evidence_ids: List[str] = []
 
+class HistoryAwareContext(BaseModel):
+    account_id: str
+    previous_actions_count: int = 0
+    previous_actions: List[Dict[str, Any]] = Field(default_factory=list)
+    similar_situations_from_other_accounts: List[Dict[str, Any]] = Field(default_factory=list)
+    unresolved_commitments: List[Dict[str, Any]] = Field(default_factory=list)
+    days_since_last_followup: Optional[int] = None
+    preferable_to_repeating_reason: str = ""
+    confidence_score: float = 0.85
+    confidence_justification: str = ""
+    historical_examples_supporting: int = 0
+    supporting_evidence_ids: List[str] = Field(default_factory=list)
+
 class DraftActionsResponse(BaseModel):
     account_id: str
     account_name: str
@@ -270,6 +283,7 @@ class DraftActionsResponse(BaseModel):
     email_draft: EmailDraftItem
     task_draft: ProposedTask
     crm_update: ProposedCRMUpdate
+    history_aware_context: Optional[HistoryAwareContext] = None
     created_at: str
 
 class CreateActionProposalRequest(BaseModel):
@@ -470,4 +484,66 @@ class SaveOutcomeRequest(BaseModel):
 
 class AutoCaptureOutcomeRequest(BaseModel):
     source: Optional[str] = None
+
+# Feature 4: Outcome Intelligence Schemas
+class ActionTypeResponseStat(BaseModel):
+    action_type: str
+    action_type_label: str
+    total_dispatched: int
+    responses_received: int
+    response_rate_pct: float
+    avg_response_hours: float
+    benchmark_verdict: str  # High Impact, Moderate, Passive
+
+class TimelinessMetric(BaseModel):
+    total_completed: int
+    completed_on_time: int
+    on_time_rate_pct: float
+    overdue_count: int
+    avg_completion_days: float
+
+class CustomerBlocker(BaseModel):
+    blocker_id: str
+    category: str
+    description: str
+    affected_accounts_count: int
+    affected_account_names: List[str]
+    unresolved: bool
+    first_observed: str
+    last_touchpoint: str
+    severity: str  # critical, high, medium
+    recommended_remedy: str
+
+class ActionSignalAssociation(BaseModel):
+    action_type: str
+    action_type_label: str
+    positive_subsequent_signals_count: int
+    neutral_or_no_change_count: int
+    negative_subsequent_signals_count: int
+    success_rate_pct: float
+    observed_impact_summary: str
+
+class LearnedPattern(BaseModel):
+    pattern_id: str
+    title: str
+    condition: str
+    recommended_strategy: str
+    ineffective_strategy: str
+    historical_examples_count: int
+    success_confidence_pct: float
+    cited_account_ids: List[str]
+    empirical_evidence_summary: str
+
+class OutcomeIntelligenceReport(BaseModel):
+    total_historical_actions: int
+    overall_response_rate_pct: float
+    on_time_completion_pct: float
+    unresolved_blockers_count: int
+    positive_outcome_pct: float
+    action_type_stats: List[ActionTypeResponseStat]
+    timeliness: TimelinessMetric
+    unresolved_blockers: List[CustomerBlocker]
+    action_signal_associations: List[ActionSignalAssociation]
+    learned_patterns: List[LearnedPattern]
+    generated_at: str
 

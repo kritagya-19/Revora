@@ -49,28 +49,40 @@ class Agent4ActionPlanning:
         recipient_email = primary_contact.email if primary_contact else f"exec@{account.domain or 'company.com'}"
         recipient_name = primary_contact.name if primary_contact else "Executive Team"
 
+        history_ctx = None
+        try:
+            from app.services.outcome_intelligence import outcome_intelligence
+            history_ctx = outcome_intelligence.get_account_history_context(account.account_id)
+        except Exception as e:
+            logger.debug(f"History context fetch error in Agent 4: {e}")
+
         # 1. Attempt LLM action proposal if OpenRouter or Gemini is active
         if llm_client.is_available() or (self.api_key and self.api_key.strip()):
             try:
-                plan = self._run_llm_planning(context, autopsy, recipient_email, recipient_name)
+                plan = self._run_llm_planning(context, autopsy, recipient_email, recipient_name, history_ctx)
                 if plan:
                     return plan
             except Exception as e:
                 logger.warning(f"Agent 4 LLM planning failed: {e}. Falling back to deterministic proposal.")
 
         # 2. Deterministic action proposal synthesis
-        return self._run_deterministic_planning(context, autopsy, recipient_email, recipient_name)
+        return self._run_deterministic_planning(context, autopsy, recipient_email, recipient_name, history_ctx)
 
     def _run_llm_planning(
         self,
         context: InvestigationContext,
         autopsy: InvestigationAutopsy,
         recipient_email: str,
-        recipient_name: str
+        recipient_name: str,
+        history_ctx: Optional[Any] = None
     ) -> Optional[ActionPlanOutput]:
         """
-        Prompts OpenRouter (or Gemini) to draft personalized action proposal based on autopsy findings.
+        Prompts OpenRouter (or Gemini) to draft personalized action proposal based on autopsy findings and history context.
         """
+        history_snippet = ""
+        if history_ctx and hasattr(history_ctx, "unresolved_commitments") and history_ctx.unresolved_commitments:
+            history_snippet = f"\n- Recorded Open Commitment: {history_ctx.unresolved_commitments[0].get('commitment')}\n- Anti-Repetition Rule: {history_ctx.preferable_to_repeating_reason}\n"
+
         prompt = f"""
 You are Agent 4 (Action Planning Specialist) for Revora.
 Draft an actionable Next-Best-Action proposal for CSM {context.account.csm_owner} to engage {context.account.name}.
@@ -83,10 +95,10 @@ INVESTIGATION FINDINGS:
 - Causal Synthesis: {autopsy.causal_explanation}
 - Target Stakeholder: {recipient_name} ({recipient_email})
 - Top Evidence Citations: {autopsy.cited_evidence_ids[:3]}
-
+{history_snippet}
 INSTRUCTIONS:
 1. Propose a targeted customer outreach action ('csm_outreach_email').
-2. Draft a clear, personalized email addressed to {recipient_name}.
+2. Draft a clear, personalized email addressed to {recipient_name}. Directly address any recorded commitments.
 3. Create a follow-up task for the CSM with a clear due date and high priority.
 4. The proposal MUST remain in 'proposed' status awaiting CSM human review.
 
@@ -162,13 +174,17 @@ RETURN JSON:
             cited_evidence_ids=task_data.get("cited_evidence_ids", autopsy.cited_evidence_ids[:2])
         )
 
+        reason = parsed.get("reason", f"Intervene proactively on {autopsy.primary_reason_code} ahead of {context.account.renewal_date}.")
+        if history_ctx and hasattr(history_ctx, "preferable_to_repeating_reason") and history_ctx.preferable_to_repeating_reason:
+            reason = f"{reason} | {history_ctx.preferable_to_repeating_reason}"
+
         return ActionPlanOutput(
             id=f"plan-{context.account.account_id}",
             account_id=context.account.account_id,
             account_name=context.account.name,
             action_type=parsed.get("action_type", "csm_outreach_email"),
             title=parsed.get("title", f"Executive Renewal & Utilization Alignment for {context.account.name}"),
-            reason=parsed.get("reason", f"Intervene proactively on {autopsy.primary_reason_code} ahead of {context.account.renewal_date}."),
+            reason=reason,
             target_contact=recipient_name,
             email_draft=email_draft,
             task_draft=task_draft,
@@ -182,7 +198,8 @@ RETURN JSON:
         context: InvestigationContext,
         autopsy: InvestigationAutopsy,
         recipient_email: str,
-        recipient_name: str
+        recipient_name: str,
+        history_ctx: Optional[Any] = None
     ) -> ActionPlanOutput:
         """
         Pure Python fallback to construct a complete, professional action proposal.
@@ -190,21 +207,44 @@ RETURN JSON:
         account = context.account
         top_eids = autopsy.cited_evidence_ids[:3]
 
-        email_body = (
-            f"Hi {recipient_name},\n\n"
-            f"I hope you are having a productive week. As we approach your upcoming renewal on {account.renewal_date}, "
-            f"I wanted to reach out directly to ensure your team is getting maximum value from the platform.\n\n"
-            f"We noticed recent seat utilization changes and want to ensure any open technical items are fully addressed. "
-            f"Could we schedule a brief 20-minute alignment call with our solutions team this Thursday or Friday?\n\n"
-            f"Best regards,\n"
-            f"{account.csm_owner}\n"
-            f"Customer Success, Revora"
-        )
+        if history_ctx and hasattr(history_ctx, "unresolved_commitments") and history_ctx.unresolved_commitments:
+            commit = history_ctx.unresolved_commitments[0].get("commitment", "")
+            email_subject = f"{account.name} — Update on {commit[:35]}... & Partnership Continuity"
+            email_body = (
+                f"Hi {recipient_name},\n\n"
+                f"I hope you are having a productive week. Following up on our recent checkpoint regarding your team's upcoming renewal on {account.renewal_date}, "
+                f"I am writing back specifically to deliver on what we discussed:\n\n"
+                f"• Recorded Commitment: {commit}\n"
+                f"• Technical & Service Continuity: Ensuring all active engineering seats are unblocked and license tiering is aligned with your budget.\n\n"
+                f"Could we schedule a brief 15-minute alignment call with our solutions team this Thursday or Friday to review the custom tier breakdown?\n\n"
+                f"Best regards,\n"
+                f"{account.csm_owner}\n"
+                f"Customer Success, Revora"
+            )
+            reason = f"Fulfill recorded commitment: '{commit}'. {history_ctx.preferable_to_repeating_reason}"
+        else:
+            email_subject = f"{account.name} Partnership & Renewal Alignment"
+            email_body = (
+                f"Hi {recipient_name},\n\n"
+                f"I hope you are having a productive week. As we approach your upcoming renewal on {account.renewal_date}, "
+                f"I wanted to reach out directly to ensure your team is getting maximum value from the platform.\n\n"
+                f"We noticed recent seat utilization changes and want to ensure any open technical items are fully addressed. "
+                f"Could we schedule a brief 20-minute alignment call with our solutions team this Thursday or Friday?\n\n"
+                f"Best regards,\n"
+                f"{account.csm_owner}\n"
+                f"Customer Success, Revora"
+            )
+            reason = (
+                f"Address compounding risk factors ({autopsy.primary_reason_code.replace('_', ' ')}) "
+                f"ahead of {account.renewal_date} under ${account.arr:,.0f} ARR."
+            )
+            if history_ctx and hasattr(history_ctx, "preferable_to_repeating_reason") and history_ctx.preferable_to_repeating_reason:
+                reason = f"{reason} | {history_ctx.preferable_to_repeating_reason}"
 
         email_draft = ProposedEmailDraft(
             recipient_email=recipient_email,
             recipient_name=recipient_name,
-            subject=f"{account.name} Partnership & Renewal Alignment",
+            subject=email_subject,
             body=email_body,
             cited_evidence_ids=top_eids
         )
@@ -227,10 +267,7 @@ RETURN JSON:
             account_name=account.name,
             action_type="csm_outreach_email",
             title=f"Executive Renewal Alignment for {account.name}",
-            reason=(
-                f"Address compounding risk factors ({autopsy.primary_reason_code.replace('_', ' ')}) "
-                f"ahead of {account.renewal_date} under ${account.arr:,.0f} ARR."
-            ),
+            reason=reason,
             target_contact=recipient_name,
             email_draft=email_draft,
             task_draft=task_draft,

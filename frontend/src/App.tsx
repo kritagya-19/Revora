@@ -33,7 +33,7 @@ import {
 export function App() {
   const [currentTab, setCurrentTab] = useState<NavItem>('dashboard');
   const [viewMode, setViewMode] = useState<'radar' | 'customer_detail' | 'autopsy' | 'copilot'>('radar');
-  const [copilotTab, setCopilotTab] = useState<'email' | 'task' | 'crm'>('email');
+  const [copilotTab, setCopilotTab] = useState<'email' | 'task' | 'crm' | 'intelligence'>('email');
   const [selectedRiskFilter, setSelectedRiskFilter] = useState<string>('all');
   const [accounts, setAccounts] = useState<AccountRiskSummary[]>([]);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);

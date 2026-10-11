@@ -197,6 +197,49 @@ export interface ProposedCRMUpdate {
   evidence_ids: string[];
 }
 
+export interface HistoryAwareContext {
+  account_id: string;
+  previous_actions_count: number;
+  previous_actions: Array<{
+    id?: string;
+    title: string;
+    action_type: string;
+    work_status: string;
+    action_status: string;
+    assigned_to: string;
+    created_at?: string;
+    outcome_notes?: string;
+    customer_response?: string;
+    commitments?: string;
+    next_steps?: string;
+    recorded_at?: string;
+  }>;
+  similar_situations_from_other_accounts: Array<{
+    account_name: string;
+    action_type: string;
+    action_title: string;
+    situation: string;
+    action_taken: string;
+    customer_response: string;
+    observed_result: string;
+    success: boolean;
+  }>;
+  unresolved_commitments: Array<{
+    action_id?: string;
+    action_title?: string;
+    commitment: string;
+    next_steps?: string;
+    recorded_at?: string;
+    owner?: string;
+  }>;
+  days_since_last_followup?: number | null;
+  preferable_to_repeating_reason: string;
+  confidence_score: number;
+  confidence_justification: string;
+  historical_examples_supporting: number;
+  supporting_evidence_ids: string[];
+}
+
 export interface DraftActionsResponse {
   account_id: string;
   account_name: string;
@@ -204,6 +247,7 @@ export interface DraftActionsResponse {
   email_draft: EmailDraftItem;
   task_draft: ProposedTask;
   crm_update: ProposedCRMUpdate;
+  history_aware_context?: HistoryAwareContext | null;
   created_at: string;
 }
 
@@ -320,5 +364,70 @@ export interface TriggerSyncResponse {
   freshness_minutes: number;
 }
 
+// Feature 4: Outcome Intelligence Types
+export interface ActionTypeResponseStat {
+  action_type: string;
+  action_type_label: string;
+  total_dispatched: number;
+  responses_received: number;
+  response_rate_pct: number;
+  avg_response_hours: number;
+  benchmark_verdict: 'High Impact' | 'Moderate' | 'Passive' | string;
+}
 
+export interface TimelinessMetric {
+  total_completed: number;
+  completed_on_time: number;
+  on_time_rate_pct: number;
+  overdue_count: number;
+  avg_completion_days: number;
+}
 
+export interface CustomerBlocker {
+  blocker_id: string;
+  category: string;
+  description: string;
+  affected_accounts_count: number;
+  affected_account_names: string[];
+  unresolved: boolean;
+  first_observed: string;
+  last_touchpoint: string;
+  severity: 'critical' | 'high' | 'medium' | string;
+  recommended_remedy: string;
+}
+
+export interface ActionSignalAssociation {
+  action_type: string;
+  action_type_label: string;
+  positive_subsequent_signals_count: number;
+  neutral_or_no_change_count: number;
+  negative_subsequent_signals_count: number;
+  success_rate_pct: number;
+  observed_impact_summary: string;
+}
+
+export interface LearnedPattern {
+  pattern_id: string;
+  title: string;
+  condition: string;
+  recommended_strategy: string;
+  ineffective_strategy: string;
+  historical_examples_count: number;
+  success_confidence_pct: number;
+  cited_account_ids: string[];
+  empirical_evidence_summary: string;
+}
+
+export interface OutcomeIntelligenceReport {
+  total_historical_actions: number;
+  overall_response_rate_pct: number;
+  on_time_completion_pct: number;
+  unresolved_blockers_count: number;
+  positive_outcome_pct: number;
+  action_type_stats: ActionTypeResponseStat[];
+  timeliness: TimelinessMetric;
+  unresolved_blockers: CustomerBlocker[];
+  action_signal_associations: ActionSignalAssociation[];
+  learned_patterns: LearnedPattern[];
+  generated_at: string;
+}

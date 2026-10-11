@@ -16,7 +16,9 @@ import type {
   EnrichedPendingApproval,
   IntegrationConnector,
   SyncRunRecord,
-  TriggerSyncResponse
+  TriggerSyncResponse,
+  OutcomeIntelligenceReport,
+  HistoryAwareContext
 } from '../types/api';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8000';
@@ -300,6 +302,26 @@ export async function fetchRecentSyncRuns(limit = 20): Promise<SyncRunRecord[]> 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to fetch sync runs: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Feature 4: Outcome Intelligence API
+export async function fetchOutcomeIntelligence(): Promise<OutcomeIntelligenceReport> {
+  const res = await fetch(`${API_BASE}/api/tracker/intelligence`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch outcome intelligence: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Feature 5: History-Aware Recommendation Context API
+export async function fetchAccountHistoryContext(accountId: string): Promise<HistoryAwareContext> {
+  const res = await fetch(`${API_BASE}/api/tracker/intelligence/account/${accountId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch account history context: ${res.statusText}`);
   }
   return res.json();
 }

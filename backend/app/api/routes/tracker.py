@@ -7,7 +7,9 @@ from app.models.schemas import (
     SaveOutcomeRequest,
     AutoCaptureOutcomeRequest,
     ActionExecutionStatus,
-    WorkStatus
+    WorkStatus,
+    OutcomeIntelligenceReport,
+    HistoryAwareContext
 )
 from app.services.action_tracker_repository import action_tracker_repo
 from app.services.account_repository import account_repo
@@ -33,6 +35,30 @@ def list_tracked_actions(
         work_status=work_status,
         has_outcome=has_outcome
     )
+
+# Feature 4: Outcome Intelligence Endpoint
+@router.get("/intelligence", response_model=OutcomeIntelligenceReport)
+@router.get("/outcome-intelligence", response_model=OutcomeIntelligenceReport)
+def get_outcome_intelligence():
+    """
+    GET /api/tracker/intelligence
+    Feature 4: Analyzes historical actions and observed outcomes to identify empirical patterns,
+    response rates, on-time completion, and unresolved customer blockers.
+    """
+    from app.services.outcome_intelligence import outcome_intelligence
+    return outcome_intelligence.get_outcome_intelligence_report()
+
+# Feature 5: History-Aware Context Endpoint
+@router.get("/intelligence/account/{account_id}", response_model=HistoryAwareContext)
+@router.get("/outcome-intelligence/account/{account_id}", response_model=HistoryAwareContext)
+def get_account_history_intelligence(account_id: str):
+    """
+    GET /api/tracker/intelligence/account/{account_id}
+    Feature 5: Retrieves past actions, customer reactions, unresolved commitments,
+    and anti-repetition comparative rationale for an account.
+    """
+    from app.services.outcome_intelligence import outcome_intelligence
+    return outcome_intelligence.get_account_history_context(account_id)
 
 @router.get("/{item_id}", response_model=ActionTrackerItem)
 def get_tracked_action(item_id: str):

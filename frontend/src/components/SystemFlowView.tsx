@@ -336,6 +336,112 @@ export function SystemFlowView({ onNavigateToTab, onOpenAutopsyForDemo }: System
         </div>
       </section>
 
+      {/* SECTION 3: Closed-Loop Learning Cycle (Features 4 & 5) */}
+      <section className="space-y-6 pt-6">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold block">
+              Autonomous Closed-Loop Feedback
+            </span>
+            <h2 className="font-headline text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Features 4 & 5 — The Continuous Learning Cycle
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 font-body mt-0.5">
+              How captured outcomes continuously train the History-Aware Recommendation Engine without manual retraining
+            </p>
+          </div>
+          <span className="text-xs font-mono font-bold bg-blue-950 text-blue-300 px-3.5 py-1.5 rounded-lg border border-blue-800">
+            Closed-Loop AI
+          </span>
+        </div>
+
+        <div className="space-y-3 max-w-3xl mx-auto">
+          {/* Card 4 */}
+          <div className="bg-[#0b1329] border border-emerald-900/60 rounded-2xl p-5 text-white flex items-center justify-between shadow-lg">
+            <div className="space-y-1">
+              <h3 className="font-headline text-base font-bold text-emerald-300">
+                4. Capture the outcome
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 font-body">
+                Record completion, notes, customer response, and supporting evidence.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 shrink-0">
+              Feature 1–3
+            </span>
+          </div>
+
+          <div className="flex justify-center py-0.5">
+            <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center">
+              <ArrowDown className="w-3.5 h-3.5" />
+            </div>
+          </div>
+
+          {/* Card 5 */}
+          <div className="bg-[#0b1329] border border-blue-900/60 rounded-2xl p-5 text-white flex items-center justify-between shadow-lg">
+            <div className="space-y-1">
+              <h3 className="font-headline text-base font-bold text-blue-300">
+                5. Learn from account history
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 font-body">
+                Find which actions worked in similar situations, and which did not.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-blue-950 text-blue-300 border border-blue-800 shrink-0">
+              Feature 4: Outcome Intelligence
+            </span>
+          </div>
+
+          <div className="flex justify-center py-0.5">
+            <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center">
+              <ArrowDown className="w-3.5 h-3.5" />
+            </div>
+          </div>
+
+          {/* Card 6 */}
+          <div className="bg-[#0b1329] border border-indigo-900/60 rounded-2xl p-5 text-white flex items-center justify-between shadow-lg">
+            <div className="space-y-1">
+              <h3 className="font-headline text-base font-bold text-indigo-300">
+                6. Improve the next recommendation
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 font-body">
+                Use the new outcome as context for future investigations and anti-repetition rules.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 shrink-0">
+              Feature 5: History-Aware Engine
+            </span>
+          </div>
+
+          <div className="flex justify-center py-0.5">
+            <div className="w-6 h-6 rounded-full bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center">
+              <ArrowDown className="w-3.5 h-3.5" />
+            </div>
+          </div>
+
+          {/* Card 7 */}
+          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl p-5 text-white flex items-center justify-between shadow-lg">
+            <div className="space-y-1">
+              <h3 className="font-headline text-base font-bold text-white">
+                7. Return updated information to React
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 font-body">
+                Show the new status, history, results, and recommended next step in Action Copilot.
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
+              React UI Shell
+            </span>
+          </div>
+
+          <div className="text-center pt-2">
+            <p className="text-xs font-mono text-slate-400">
+              The cycle repeats whenever new signals or outcomes become available.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Interactive Quick-Jump Banner */}
       <div className="bg-linear-to-r from-slate-900 to-blue-950 border border-slate-800 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
         <div className="space-y-1.5">

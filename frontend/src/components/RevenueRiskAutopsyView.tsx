@@ -37,7 +37,7 @@ interface RevenueRiskAutopsyViewProps {
   onBackToRadar: () => void;
   currency?: 'USD' | 'INR';
   onNavigateToApprovals?: () => void;
-  onNavigateToCopilot?: (subtab?: 'email' | 'task' | 'crm') => void;
+  onNavigateToCopilot?: (subtab?: 'email' | 'task' | 'crm' | 'intelligence') => void;
 }
 
 interface ChatMessage {

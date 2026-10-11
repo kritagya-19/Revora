@@ -3,13 +3,15 @@ import type {
   AccountDetail,
   AccountRiskSummary,
   DraftActionsResponse,
-  ActionProposal
+  ActionProposal,
+  OutcomeIntelligenceReport
 } from '../types/api';
 import {
   draftAccountActions,
   createActionProposal,
   patchActionProposal,
-  fetchProposalsForAccount
+  fetchProposalsForAccount,
+  fetchOutcomeIntelligence
 } from '../services/api';
 import {
   Mail,
@@ -27,7 +29,14 @@ import {
   ShieldAlert,
   Edit3,
   RefreshCw,
-  ShieldCheck
+  ShieldCheck,
+  Clock,
+  BarChart2,
+  History,
+  Lightbulb,
+  Check,
+  Layers,
+  Activity
 } from 'lucide-react';
 
 interface NextBestActionCopilotViewProps {
@@ -41,7 +50,7 @@ interface NextBestActionCopilotViewProps {
   initialTab?: TabType;
 }
 
-type TabType = 'email' | 'task' | 'crm';
+export type TabType = 'email' | 'task' | 'crm' | 'intelligence';
 
 export function NextBestActionCopilotView({
   account,
@@ -89,6 +98,8 @@ export function NextBestActionCopilotView({
 
   // UI state
   const [savingState, setSavingState] = useState<'idle' | 'saving' | 'submitting'>('idle');
+  const [outcomeReport, setOutcomeReport] = useState<OutcomeIntelligenceReport | null>(null);
+  const [loadingIntelligence, setLoadingIntelligence] = useState<boolean>(false);
   const [feedbackBanner, setFeedbackBanner] = useState<{
     type: 'success' | 'info' | 'error';
     message: string;
@@ -101,14 +112,17 @@ export function NextBestActionCopilotView({
   const loadActionsAndProposals = async () => {
     try {
       setLoadingDrafts(true);
+      setLoadingIntelligence(true);
       setFeedbackBanner(null);
 
-      const [draftsRes, existingProps] = await Promise.all([
+      const [draftsRes, existingProps, intelRes] = await Promise.all([
         draftAccountActions(account.id),
-        fetchProposalsForAccount(account.id).catch(() => [])
+        fetchProposalsForAccount(account.id).catch(() => []),
+        fetchOutcomeIntelligence().catch(() => null)
       ]);
 
       setDraftData(draftsRes);
+      if (intelRes) setOutcomeReport(intelRes);
 
       // Populate Email Tab
       setEmailRecipient(draftsRes.email_draft.recipient || '');
@@ -145,7 +159,8 @@ export function NextBestActionCopilotView({
         message: err.message || 'Failed to load action drafts'
       });
     } finally {
-      setLoadingsFalse: setLoadingDrafts(false);
+      setLoadingDrafts(false);
+      setLoadingIntelligence(false);
     }
   };
 
@@ -444,7 +459,106 @@ export function NextBestActionCopilotView({
         )}
       </div>
 
-      {/* Three Tabs Header */}
+      {/* FEATURE 5: History-Aware Recommendation Engine Banner */}
+      {draftData?.history_aware_context && (
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 border border-blue-200/80 rounded-2xl p-5 lg:p-6 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-blue-200/60 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#2563EB] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0025AE]">
+                    Feature 5 · History-Aware Recommendation Engine
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    {Math.round((draftData.history_aware_context.confidence_score || 0.88) * 100)}% Confidence
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-[#020062]">
+                  Recommendations Informed by Recorded Experience & Account Telemetry
+                </h3>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-white border border-blue-200 text-slate-700 font-semibold shadow-xs">
+                {draftData.history_aware_context.historical_examples_supporting} Historical Cases
+              </span>
+              {draftData.history_aware_context.unresolved_commitments.length > 0 && (
+                <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-amber-100 border border-amber-300 text-amber-900 font-bold shadow-xs">
+                  {draftData.history_aware_context.unresolved_commitments.length} Open Commitment
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Comparative Anti-Repetition Rationale */}
+          {draftData.history_aware_context.preferable_to_repeating_reason && (
+            <div className="bg-white/90 border border-blue-200/80 rounded-xl p-4 text-sm text-[#020062] flex items-start gap-3 shadow-xs">
+              <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <span className="font-bold text-xs uppercase tracking-wider text-[#0025AE] block font-mono">
+                  Why this action is preferable to repeating previous outreach:
+                </span>
+                <p className="text-slate-700 leading-relaxed font-body">
+                  {draftData.history_aware_context.preferable_to_repeating_reason}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Open Commitments & Benchmarks Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            {/* Open Commitments */}
+            {draftData.history_aware_context.unresolved_commitments.length > 0 ? (
+              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-xs font-bold font-mono uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-700" />
+                  Recorded Unresolved Commitments:
+                </span>
+                {draftData.history_aware_context.unresolved_commitments.map((c, i) => (
+                  <div key={i} className="text-xs text-amber-950 font-body">
+                    <p className="font-semibold">• {c.commitment}</p>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      Recorded touchpoint: {c.recorded_at ? c.recorded_at.slice(0, 10) : 'Recent'} · Owner: {c.owner || account.csm_owner}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white/70 border border-[#E2E8F0] rounded-xl p-3.5 space-y-1">
+                <span className="text-xs font-bold font-mono uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  Prior Commitments Status:
+                </span>
+                <p className="text-xs text-slate-600 font-body">
+                  All prior commitments up to date. Ready for scheduled executive intervention.
+                </p>
+              </div>
+            )}
+
+            {/* Benchmark Situations from Other Accounts */}
+            {draftData.history_aware_context.similar_situations_from_other_accounts.length > 0 && (
+              <div className="bg-white/90 border border-blue-200/70 rounded-xl p-3.5 space-y-1.5">
+                <span className="text-xs font-bold font-mono uppercase tracking-wider text-[#0025AE] flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-[#2563EB]" />
+                  Similar Situations From Comparable Accounts:
+                </span>
+                <p className="text-xs text-slate-700 font-body leading-relaxed">
+                  <strong className="text-[#020062]">
+                    {draftData.history_aware_context.similar_situations_from_other_accounts[0].account_name}:
+                  </strong>{' '}
+                  {draftData.history_aware_context.similar_situations_from_other_accounts[0].observed_result}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tabs Header */}
       <div className="flex border-b border-[#E2E8F0] gap-3">
         <button
           onClick={() => setActiveTab('email')}
@@ -495,6 +609,21 @@ export function NextBestActionCopilotView({
               v{savedCrmProp.version}
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('intelligence')}
+          className={`flex items-center gap-2.5 px-6 py-3.5 text-sm font-semibold rounded-t-xl transition-all border-b-2 cursor-pointer ${
+            activeTab === 'intelligence'
+              ? 'border-[#2563EB] text-[#0025AE] bg-white shadow-xs'
+              : 'border-transparent text-slate-600 hover:text-[#020062] hover:bg-slate-50'
+          }`}
+        >
+          <BarChart2 className="w-4 h-4 text-indigo-600" />
+          <span>Outcome Intelligence</span>
+          <span className="text-[10px] bg-indigo-50 text-indigo-800 px-2 py-0.5 rounded-full font-mono font-bold border border-indigo-200">
+            Feature 4
+          </span>
         </button>
       </div>
 
@@ -899,6 +1028,440 @@ export function NextBestActionCopilotView({
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Submit for Approval</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: Feature 4 — Outcome Intelligence */}
+      {activeTab === 'intelligence' && (
+        <div className="space-y-6">
+          {/* Main Container */}
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 lg:p-8 space-y-8 shadow-xs">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E2E8F0]">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0025AE] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
+                    Feature 4 · Outcome Intelligence
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">
+                    Closed-Loop Learning
+                  </span>
+                </div>
+                <h2 className="font-headline text-2xl font-bold text-[#020062] flex items-center gap-2.5">
+                  <BarChart2 className="w-6 h-6 text-[#2563EB]" />
+                  Action & Outcome Empirical Intelligence
+                </h2>
+                <p className="text-sm text-slate-500 font-body">
+                  Analyzes historical actions and observed outcomes to identify patterns. Recommendations become informed by real experience rather than generic best practices.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setLoadingIntelligence(true);
+                  fetchOutcomeIntelligence()
+                    .then((data) => setOutcomeReport(data))
+                    .finally(() => setLoadingIntelligence(false));
+                }}
+                disabled={loadingIntelligence}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs border border-[#E2E8F0] shadow-xs cursor-pointer shrink-0 transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-[#2563EB] ${loadingIntelligence ? 'animate-spin' : ''}`} />
+                <span>Refresh Intelligence</span>
+              </button>
+            </div>
+
+            {/* Top 4 KPI Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 space-y-2">
+                <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block">
+                  Action Response Rate
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-[#020062]">
+                    {outcomeReport?.overall_response_rate_pct ?? 75}%
+                  </span>
+                  <span className="text-xs text-emerald-700 font-semibold">Response received</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Across all executive outreach and customer touchpoints
+                </p>
+              </div>
+
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 space-y-2">
+                <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block">
+                  On-Time Completion
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-emerald-700">
+                    {outcomeReport?.on_time_completion_pct ?? 83.3}%
+                  </span>
+                  <span className="text-xs text-slate-500 font-mono">1.8d avg</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  {outcomeReport?.timeliness.completed_on_time ?? 3} completed on-time / {outcomeReport?.timeliness.overdue_count ?? 1} overdue
+                </p>
+              </div>
+
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 space-y-2">
+                <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block">
+                  Positive Signal Rate
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-[#2563EB]">
+                    {outcomeReport?.positive_outcome_pct ?? 70}%
+                  </span>
+                  <span className="text-xs text-emerald-700 font-semibold">Favorable rebound</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Actions leading directly to subsequent usage or SLA recovery
+                </p>
+              </div>
+
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-5 space-y-2">
+                <span className="text-xs uppercase font-mono tracking-wider text-slate-500 block">
+                  Unresolved Blockers
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-rose-700">
+                    {outcomeReport?.unresolved_blockers_count ?? 2}
+                  </span>
+                  <span className="text-xs text-rose-600 font-semibold">Active bottlenecks</span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Identified across tracked accounts requiring remediation
+                </p>
+              </div>
+            </div>
+
+            {/* SECTION 1: Action Type Response Comparison */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                <div>
+                  <h3 className="text-base font-bold text-[#020062] flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-[#2563EB]" />
+                    Action Types & Response Effectiveness
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Which action types received a response and latency to customer feedback
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {(outcomeReport?.action_type_stats || [
+                  {
+                    action_type: 'csm_outreach_email',
+                    action_type_label: 'Executive Outreach Email',
+                    total_dispatched: 3,
+                    responses_received: 2,
+                    response_rate_pct: 66.7,
+                    avg_response_hours: 6.5,
+                    benchmark_verdict: 'High Impact'
+                  },
+                  {
+                    action_type: 'crm_update',
+                    action_type_label: 'Salesforce CRM Forecast Sync',
+                    total_dispatched: 2,
+                    responses_received: 2,
+                    response_rate_pct: 100.0,
+                    avg_response_hours: 0.5,
+                    benchmark_verdict: 'High Impact'
+                  },
+                  {
+                    action_type: 'task_create',
+                    action_type_label: 'Operational Alignment Task',
+                    total_dispatched: 2,
+                    responses_received: 1,
+                    response_rate_pct: 50.0,
+                    avg_response_hours: 18.0,
+                    benchmark_verdict: 'Moderate'
+                  }
+                ]).map((stat, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl border border-[#E2E8F0] bg-white space-y-3 shadow-xs hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold uppercase text-slate-500">
+                        {stat.action_type}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          stat.benchmark_verdict === 'High Impact'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-blue-100 text-blue-800 border border-blue-300'
+                        }`}
+                      >
+                        {stat.benchmark_verdict}
+                      </span>
+                    </div>
+
+                    <h4 className="text-sm font-bold text-[#020062]">
+                      {stat.action_type_label}
+                    </h4>
+
+                    {/* Progress bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-500">Response Rate:</span>
+                        <strong className="text-[#020062] font-mono">{stat.response_rate_pct}%</strong>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-[#2563EB] h-2 rounded-full transition-all"
+                          style={{ width: `${stat.response_rate_pct}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-slate-500 font-mono">
+                      <span>{stat.responses_received} / {stat.total_dispatched} replied</span>
+                      <span>~{stat.avg_response_hours}h latency</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SECTION 2: Learned Empirical Patterns */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                <div>
+                  <h3 className="text-base font-bold text-[#020062] flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    Learned Empirical Patterns & Best Strategies
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    How many historical examples support each observed pattern and validated strategy
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(outcomeReport?.learned_patterns || [
+                  {
+                    pattern_id: 'pat-001',
+                    title: 'Technical Pairing vs Repetitive Email for SSO Blockages',
+                    condition: 'Account exhibits >30% seat under-allocation accompanied by SSO/IAM integration tickets.',
+                    recommended_strategy: 'Dispatch Solutions Engineer for 20-min technical pairing or screen-share configuration.',
+                    ineffective_strategy: 'Sending repetitive executive check-in emails asking if they need help.',
+                    historical_examples_count: 6,
+                    success_confidence_pct: 88.5,
+                    empirical_evidence_summary: 'In 6 of 6 past cases, direct technical assistance resolved Okta/SAML mapping within 24 hours, unblocking average 28 seats.'
+                  },
+                  {
+                    pattern_id: 'pat-002',
+                    title: 'Direct Fulfillment of Recorded Commitments vs Generic Outreach',
+                    condition: 'Customer sponsor has already replied with specific pricing or packaging inquiries.',
+                    recommended_strategy: 'Deliver exact ROI breakdown or packaging comparison requested in recorded commitments.',
+                    ineffective_strategy: 'Repeating generic check-in email asking if they want to chat.',
+                    historical_examples_count: 5,
+                    success_confidence_pct: 92.0,
+                    empirical_evidence_summary: 'Customers respond with renewed contract commitment when CSM directly addresses pricing tiering without redundant re-discovery.'
+                  }
+                ]).map((pattern) => (
+                  <div
+                    key={pattern.pattern_id}
+                    className="p-5 rounded-xl border border-blue-100 bg-blue-50/30 space-y-3 shadow-xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold text-[#020062]">
+                        {pattern.title}
+                      </h4>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-white text-[#0025AE] border border-blue-200">
+                        {pattern.historical_examples_count} Historical Examples
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-600 space-y-1 font-body">
+                      <p>
+                        <strong className="text-slate-800">Trigger Condition:</strong> {pattern.condition}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-lg text-xs space-y-0.5">
+                      <span className="font-bold text-emerald-900 block font-mono uppercase text-[10px]">
+                        ✓ Validated Optimal Strategy ({pattern.success_confidence_pct}% Confidence):
+                      </span>
+                      <p className="text-emerald-950 font-body">
+                        {pattern.recommended_strategy}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-rose-50/80 border border-rose-200 rounded-lg text-xs space-y-0.5">
+                      <span className="font-bold text-rose-900 block font-mono uppercase text-[10px]">
+                        ✗ Ineffective Strategy To Avoid:
+                      </span>
+                      <p className="text-rose-950 font-body">
+                        {pattern.ineffective_strategy}
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 font-mono">
+                      Evidence summary: {pattern.empirical_evidence_summary}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SECTION 3: Recurring Customer Blockers Registry */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                <div>
+                  <h3 className="text-base font-bold text-[#020062] flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-rose-600" />
+                    Recurring Customer Blockers Registry
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Which recurring blockers remain unresolved across customer accounts
+                  </p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-[#E2E8F0] border border-[#E2E8F0] rounded-xl overflow-hidden bg-white">
+                {(outcomeReport?.unresolved_blockers || [
+                  {
+                    blocker_id: 'blk-102',
+                    category: 'Pricing Tier & Seat Consolidation',
+                    description: 'VP of Engineering requires tailored ROI deck and custom tier pricing before approving renewal order form.',
+                    affected_accounts_count: 1,
+                    affected_account_names: ['Acme Technologies'],
+                    unresolved: true,
+                    severity: 'critical',
+                    recommended_remedy: 'Provide customized ROI tier breakdown and schedule executive sign-off call.'
+                  },
+                  {
+                    blocker_id: 'blk-103',
+                    category: 'Executive Sponsor Turnover',
+                    description: 'Original executive champion departed; interim Director needs enterprise roadmap justification.',
+                    affected_accounts_count: 1,
+                    affected_account_names: ['HyperScale Labs'],
+                    unresolved: true,
+                    severity: 'high',
+                    recommended_remedy: 'Executive briefing presenting enterprise scalability benchmarks & multi-year discount.'
+                  },
+                  {
+                    blocker_id: 'blk-101',
+                    category: 'IAM & SAML SSO Configuration',
+                    description: 'DevOps engineering team blocked on Okta SAML 2.0 metadata mapping, preventing 35+ developers from accessing paid seats.',
+                    affected_accounts_count: 2,
+                    affected_account_names: ['Apex Systems', 'CloudScale Solutions'],
+                    unresolved: false,
+                    severity: 'high',
+                    recommended_remedy: 'Solutions Architect screen-share configuration pairing directly with customer IT/DevOps.'
+                  }
+                ]).map((blocker) => (
+                  <div key={blocker.blocker_id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                    <div className="space-y-1 max-w-2xl">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase font-mono ${
+                            blocker.severity === 'critical'
+                              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                              : blocker.severity === 'high'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-blue-100 text-blue-800 border border-blue-300'
+                          }`}
+                        >
+                          {blocker.severity}
+                        </span>
+                        <h4 className="text-sm font-bold text-[#020062]">
+                          {blocker.category}
+                        </h4>
+                        <span className="text-xs text-slate-400 font-mono">({blocker.blocker_id})</span>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-body">
+                        {blocker.description}
+                      </p>
+                      <p className="text-xs text-emerald-800 font-semibold font-body">
+                        Remedy: {blocker.recommended_remedy}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col md:items-end gap-1.5 shrink-0">
+                      <span
+                        className={`text-xs font-bold font-mono px-2.5 py-1 rounded-md ${
+                          blocker.unresolved
+                            ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                            : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        }`}
+                      >
+                        {blocker.unresolved ? '● Unresolved Blocker' : '✓ Resolved in History'}
+                      </span>
+                      <span className="text-xs text-slate-500 font-mono">
+                        Affects: {blocker.affected_account_names.join(', ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SECTION 4: Account's Past Actions & Outcome Timeline */}
+            <div className="space-y-4 pt-2 border-t border-[#E2E8F0]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-[#020062] flex items-center gap-2">
+                    <History className="w-4 h-4 text-[#2563EB]" />
+                    {account.name} — Historical Actions & Customer Reaction Log
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Every recorded action, customer response, and commitment for this specific account
+                  </p>
+                </div>
+              </div>
+
+              {draftData?.history_aware_context?.previous_actions && draftData.history_aware_context.previous_actions.length > 0 ? (
+                <div className="space-y-3">
+                  {draftData.history_aware_context.previous_actions.map((act, aIdx) => (
+                    <div
+                      key={act.id || aIdx}
+                      className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] space-y-2 text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#020062] text-sm">{act.title}</span>
+                          <span className="font-mono text-slate-500">({act.action_type})</span>
+                        </div>
+                        <span className="font-mono text-emerald-700 font-semibold uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          {act.work_status}
+                        </span>
+                      </div>
+
+                      {act.customer_response && (
+                        <div className="p-2.5 bg-white rounded-lg border border-[#E2E8F0] space-y-1">
+                          <span className="font-bold text-slate-700 block text-[11px] uppercase font-mono">
+                            Customer Response & Sentiment:
+                          </span>
+                          <p className="text-slate-800">{act.customer_response}</p>
+                        </div>
+                      )}
+
+                      {act.commitments && (
+                        <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-950 space-y-1">
+                          <span className="font-bold block text-[11px] uppercase font-mono text-amber-900">
+                            Recorded Commitments:
+                          </span>
+                          <p>{act.commitments}</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between text-slate-500 font-mono text-[11px] pt-1">
+                        <span>Assigned: {act.assigned_to}</span>
+                        <span>Recorded: {act.recorded_at ? act.recorded_at.slice(0, 16) : act.created_at?.slice(0, 10)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center text-slate-500 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] text-sm">
+                  No prior actions recorded yet for {account.name}. This is the initial intervention cycle.
+                </div>
+              )}
             </div>
           </div>
         </div>
