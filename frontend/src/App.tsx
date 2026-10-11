@@ -242,6 +242,7 @@ export function App() {
       pendingApprovalsCount={pendingApprovalsCount}
       executionMode={executionMode}
       backendHealthy={backendHealthy}
+      onRefresh={loadData}
     >
       {/* Loading State */}
       {loading && (

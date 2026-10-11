@@ -33,6 +33,15 @@ class ProposalRepository:
         serialized = json.dumps({"action_type": action_type, "title": title, "payload": payload}, sort_keys=True)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()[:16]
 
+    @staticmethod
+    def _serialize_proposal(prop: ActionProposal) -> Dict[str, Any]:
+        doc = prop.model_dump()
+        for field in ["created_at", "updated_at", "approved_at"]:
+            val = doc.get(field)
+            if val is not None:
+                doc[field] = val.isoformat() if hasattr(val, "isoformat") else str(val)
+        return doc
+
     def _init_seed_proposals(self):
         # Proposal for Acme Technologies (acc-101)
         p1_payload = {
@@ -125,8 +134,7 @@ class ProposalRepository:
 
         if self.db is not None:
             try:
-                doc = prop.model_dump()
-                doc["created_at"] = doc["created_at"].isoformat()
+                doc = self._serialize_proposal(prop)
                 self.db.action_proposals.update_one({"id": prop.id}, {"$set": doc}, upsert=True)
             except Exception as e:
                 logger.warning(f"MongoDB update_proposal error: {e}")
@@ -163,9 +171,7 @@ class ProposalRepository:
 
         if self.db is not None:
             try:
-                doc = prop.model_dump()
-                doc["created_at"] = doc["created_at"].isoformat()
-                doc["approved_at"] = doc["approved_at"].isoformat() if doc.get("approved_at") else None
+                doc = self._serialize_proposal(prop)
                 self.db.action_proposals.update_one({"id": prop.id}, {"$set": doc}, upsert=True)
 
                 # Persist approval decision to approvals table/collection
@@ -207,10 +213,7 @@ class ProposalRepository:
 
         if self.db is not None:
             try:
-                doc = prop.model_dump()
-                doc["created_at"] = doc["created_at"].isoformat()
-                if doc.get("updated_at"):
-                    doc["updated_at"] = doc["updated_at"].isoformat()
+                doc = self._serialize_proposal(prop)
                 self.db.action_proposals.update_one({"id": prop.id}, {"$set": doc}, upsert=True)
 
                 # Persist rejection decision to approvals table/collection
@@ -247,13 +250,17 @@ class ProposalRepository:
 
             if self.db is not None:
                 try:
-                    doc = prop.model_dump()
-                    doc["created_at"] = doc["created_at"].isoformat()
-                    if doc.get("approved_at"):
-                        doc["approved_at"] = doc["approved_at"].isoformat()
+                    doc = self._serialize_proposal(prop)
                     self.db.action_proposals.update_one({"id": prop.id}, {"$set": doc}, upsert=True)
                 except Exception as e:
                     logger.warning(f"MongoDB record_execution_outcome error: {e}")
+
+            # If it's a task_create proposal, sync task status
+            if prop.action_type == "task_create":
+                try:
+                    self.create_task_from_proposal(prop)
+                except Exception as e:
+                    logger.warning(f"Error syncing executed task proposal: {e}")
 
             self._record_audit(
                 account_id=prop.account_id,
@@ -296,8 +303,7 @@ class ProposalRepository:
         # Persist to action_proposals table / collection
         if self.db is not None:
             try:
-                doc = proposal.model_dump()
-                doc["created_at"] = doc["created_at"].isoformat()
+                doc = self._serialize_proposal(proposal)
                 self.db.action_proposals.insert_one(doc)
             except Exception as e:
                 logger.warning(f"MongoDB insert action_proposal error: {e}")
@@ -353,12 +359,7 @@ class ProposalRepository:
 
         if self.db is not None:
             try:
-                doc = prop.model_dump()
-                doc["created_at"] = doc["created_at"].isoformat()
-                if doc.get("updated_at"):
-                    doc["updated_at"] = doc["updated_at"].isoformat()
-                if doc.get("approved_at"):
-                    doc["approved_at"] = doc["approved_at"].isoformat()
+                doc = self._serialize_proposal(prop)
                 self.db.action_proposals.update_one({"id": prop.id}, {"$set": doc}, upsert=True)
             except Exception as e:
                 logger.warning(f"MongoDB patch_proposal error: {e}")
