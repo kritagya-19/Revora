@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send, ClipboardCheck, History } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'tracker' | 'timeline' | 'analyzer';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -55,6 +55,30 @@ export function Sidebar({
       icon: CheckSquare,
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : null,
       badgeColor: 'bg-amber-50 text-amber-800 border border-amber-200 font-bold'
+    },
+    {
+      id: 'tracker' as NavItem,
+      label: 'Outcome Tracker',
+      sublabel: 'Execution & Closed-Loop',
+      icon: ClipboardCheck,
+      badge: 'Feature 1',
+      badgeColor: 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold'
+    },
+    {
+      id: 'timeline' as NavItem,
+      label: 'Outcome Timeline',
+      sublabel: 'Account History & Memory',
+      icon: History,
+      badge: 'Feature 2',
+      badgeColor: 'bg-purple-50 text-purple-800 border border-purple-200 font-bold'
+    },
+    {
+      id: 'analyzer' as NavItem,
+      label: 'Outcome Analyzer',
+      sublabel: 'LLM Unstructured Parsing',
+      icon: Sparkles,
+      badge: 'Feature 3',
+      badgeColor: 'bg-blue-50 text-[#0025AE] border border-blue-200 font-bold'
     }
   ];
 

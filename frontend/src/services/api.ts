@@ -304,6 +304,152 @@ export async function fetchRecentSyncRuns(limit = 20): Promise<SyncRunRecord[]> 
   return res.json();
 }
 
+// Feature 1: Action & Outcome Tracker Client APIs
+import type {
+  ActionTrackerItem,
+  SaveOutcomeRequest,
+  UpdateActionTrackerStatusRequest
+} from '../types/api';
 
+export async function fetchTrackedActions(params?: {
+  account_id?: string;
+  action_status?: string;
+  work_status?: string;
+  has_outcome?: boolean;
+}): Promise<ActionTrackerItem[]> {
+  const query = new URLSearchParams();
+  if (params?.account_id) query.append('account_id', params.account_id);
+  if (params?.action_status) query.append('action_status', params.action_status);
+  if (params?.work_status) query.append('work_status', params.work_status);
+  if (params?.has_outcome !== undefined) query.append('has_outcome', String(params.has_outcome));
 
+  const qs = query.toString() ? `?${query.toString()}` : '';
+  const res = await fetch(`${API_BASE}/api/tracker${qs}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch tracked actions: ${res.statusText}`);
+  }
+  return res.json();
+}
 
+export async function fetchTrackedActionById(itemId: string): Promise<ActionTrackerItem> {
+  const res = await fetch(`${API_BASE}/api/tracker/${itemId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch tracked action ${itemId}: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function updateTrackedActionStatus(
+  itemId: string,
+  req: UpdateActionTrackerStatusRequest
+): Promise<ActionTrackerItem> {
+  const res = await fetch(`${API_BASE}/api/tracker/${itemId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to update status: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function saveActionOutcome(
+  itemId: string,
+  req: SaveOutcomeRequest
+): Promise<ActionTrackerItem> {
+  const res = await fetch(`${API_BASE}/api/tracker/${itemId}/outcome`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to save outcome: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function autoCaptureActionOutcome(
+  itemId: string,
+  source?: string
+): Promise<ActionTrackerItem> {
+  const res = await fetch(`${API_BASE}/api/tracker/${itemId}/auto-capture`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ source })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to auto-capture outcome: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function syncApprovedProposalsToTracker(): Promise<ActionTrackerItem[]> {
+  const res = await fetch(`${API_BASE}/api/tracker/sync-approved`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to sync approved proposals: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Feature 2: Customer Outcome Timeline Client API
+import type { CustomerOutcomeTimelineResponse } from '../types/api';
+
+export async function fetchCustomerOutcomeTimeline(
+  accountId: string
+): Promise<CustomerOutcomeTimelineResponse> {
+  const res = await fetch(`${API_BASE}/api/accounts/${accountId}/outcome-timeline`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch customer outcome timeline: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Feature 3: AI Outcome Analyzer Client APIs
+import type { OutcomeAnalysisRequest, OutcomeAnalysisResult } from '../types/api';
+
+export async function analyzeOutcomeNotes(
+  req: OutcomeAnalysisRequest
+): Promise<OutcomeAnalysisResult> {
+  const res = await fetch(`${API_BASE}/api/outcome-analyzer/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to analyze notes: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchOutcomeAnalysesForAccount(
+  accountId: string
+): Promise<OutcomeAnalysisResult[]> {
+  const res = await fetch(`${API_BASE}/api/outcome-analyzer/account/${accountId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch analyses: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchOutcomeAnalysisById(
+  analysisId: string
+): Promise<OutcomeAnalysisResult> {
+  const res = await fetch(`${API_BASE}/api/outcome-analyzer/${analysisId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch analysis ${analysisId}: ${res.statusText}`);
+  }
+  return res.json();
+}

@@ -471,3 +471,119 @@ class SaveOutcomeRequest(BaseModel):
 class AutoCaptureOutcomeRequest(BaseModel):
     source: Optional[str] = None
 
+# Feature 2: Customer Outcome Timeline Schemas
+class TimelineEventType(str, Enum):
+    SIGNAL = "signal"
+    RECOMMENDATION = "recommendation"
+    APPROVAL = "approval"
+    ACTION_EXECUTED = "action_executed"
+    CUSTOMER_RESPONSE = "customer_response"
+    OUTCOME_CAPTURED = "outcome_captured"
+    RISK_ASSESSMENT = "risk_assessment"
+    MEETING_NOTE = "meeting_note"
+    EMAIL_COMMUNICATION = "email_communication"
+
+class OutstandingCommitment(BaseModel):
+    commitment_id: str
+    account_id: str
+    title: str
+    owner: str
+    due_date: Optional[str] = None
+    status: str = "open"  # open, in_progress, fulfilled
+    source_event_id: Optional[str] = None
+    created_at: str
+
+class TimelineEvent(BaseModel):
+    id: str
+    account_id: str
+    event_type: TimelineEventType
+    category: str  # telemetry, intervention, review, feedback, diagnosis, commitment
+    title: str
+    description: str
+    timestamp: str
+    author_or_actor: str
+    severity: Optional[str] = None  # critical, high, medium, low, info, success
+    status: Optional[str] = None  # proposed, approved, executed, completed, etc.
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Specific fields for Feature 2
+    customer_response: Optional[str] = None
+    commitments: Optional[str] = None
+    next_steps: Optional[str] = None
+    risk_score_at_time: Optional[int] = None
+    risk_level_at_time: Optional[str] = None
+    original_recommendation: Optional[Dict[str, Any]] = None
+    evidence_ids: List[str] = []
+
+class CustomerOutcomeTimelineResponse(BaseModel):
+    account_id: str
+    account_name: str
+    csm_owner: str
+    arr: float
+    current_risk_score: int
+    current_risk_level: str
+    events: List[TimelineEvent]
+    outstanding_commitments: List[OutstandingCommitment]
+    summary: Dict[str, Any] = Field(default_factory=dict)
+
+# Feature 3: AI Outcome Analyzer Schemas
+class SentimentEvidence(BaseModel):
+    interpretation: str  # Interpretation of sentiment/concern (not asserted as ground-truth mental state)
+    sentiment_label: str  # e.g., positive, cautiously_optimistic, neutral, frustrated, critical_risk
+    supporting_quote_or_evidence: str  # Direct quote or observed signal excerpt
+    confidence: float = 0.85
+    is_interpretation_notice: str = "Treated as an interpretation, not a verified fact about internal mental state."
+
+class AdoptionBlocker(BaseModel):
+    blocker_title: str
+    severity: str  # critical, high, medium, low
+    feature_or_area: str
+    evidence: str
+    workaround_exists: bool = False
+
+class RenewalObjection(BaseModel):
+    objection_type: str  # pricing, competitor, roi, executive_change, sso_security, contract_terms
+    description: str
+    direct_evidence: str
+    impact_level: str  # critical, moderate, minor
+
+class CustomerCommitmentItem(BaseModel):
+    commitment_text: str
+    responsible_party: str  # customer, vendor_csm, engineering
+    agreed_timeline: Optional[str] = None
+    status: str = "open"
+
+class UnresolvedIssue(BaseModel):
+    issue_title: str
+    description: str
+    recommended_follow_up: str
+    target_owner: str = "CSM Team"
+    urgency: str = "high"  # immediate, within_week, next_review
+
+class OutcomeAnalysisRequest(BaseModel):
+    account_id: str
+    source_type: str = "meeting_note"  # meeting_note, email_thread, customer_feedback, call_transcript
+    title: Optional[str] = None
+    raw_text: str
+    meeting_date: Optional[str] = None
+    participants: Optional[str] = None
+    auto_ingest_as_evidence: bool = False
+
+class OutcomeAnalysisResult(BaseModel):
+    id: str
+    account_id: str
+    account_name: str
+    source_type: str
+    title: str
+    raw_text: str
+    meeting_date: Optional[str] = None
+    participants: Optional[str] = None
+    analyzed_at: str
+    sentiment_analysis: SentimentEvidence
+    adoption_blockers: List[AdoptionBlocker] = []
+    renewal_objections: List[RenewalObjection] = []
+    commitments_and_next_steps: List[CustomerCommitmentItem] = []
+    unresolved_issues: List[UnresolvedIssue] = []
+    structured_investigation_brief: str
+    generated_signal_id: Optional[str] = None
+    rule_notice: str = "Sentiment is treated as an interpretation, not a verified fact about the customer's internal state."

@@ -320,5 +320,208 @@ export interface TriggerSyncResponse {
   freshness_minutes: number;
 }
 
+// Feature 1: Action & Outcome Tracker Types
+export type ActionExecutionStatus = 'pending' | 'approved' | 'executing' | 'executed' | 'failed';
+export type WorkStatus = 'not started' | 'in progress' | 'completed';
 
+export interface OutcomeRecord {
+  outcome_id: string;
+  action_tracker_id: string;
+  notes: string;
+  customer_response: string;
+  commitments: string;
+  next_steps: string;
+  supporting_evidence_ids: string[];
+  recorded_by: string;
+  recorded_at: string;
+  auto_captured: boolean;
+  capture_source?: string | null;
+}
 
+export interface ActionTrackerItem {
+  id: string;
+  proposal_id?: string | null;
+  account_id: string;
+  account_name: string;
+  action_type: string;
+  title: string;
+  description?: string | null;
+  investigation_id?: string | null;
+  evidence_ids: string[];
+  recommendation_payload: Record<string, any>;
+  action_status: ActionExecutionStatus;
+  work_status: WorkStatus;
+  assigned_to: string;
+  execution_mode: string;
+  execution_result?: Record<string, any> | null;
+  outcome?: OutcomeRecord | null;
+  auto_capture_available: boolean;
+  auto_capture_preview?: Record<string, any> | null;
+  created_at: string;
+  updated_at?: string | null;
+}
+
+export interface CreateActionTrackerRequest {
+  account_id: string;
+  title: string;
+  action_type: string;
+  proposal_id?: string;
+  description?: string;
+  investigation_id?: string;
+  evidence_ids?: string[];
+  recommendation_payload?: Record<string, any>;
+  action_status?: ActionExecutionStatus;
+  work_status?: WorkStatus;
+  assigned_to?: string;
+}
+
+export interface SaveOutcomeRequest {
+  notes: string;
+  customer_response: string;
+  commitments: string;
+  next_steps: string;
+  recorded_by?: string;
+  supporting_evidence_ids?: string[];
+  auto_captured?: boolean;
+  capture_source?: string;
+}
+
+export interface UpdateActionTrackerStatusRequest {
+  action_status?: ActionExecutionStatus;
+  work_status?: WorkStatus;
+  assigned_to?: string;
+}
+
+// Feature 2: Customer Outcome Timeline Types
+export type TimelineEventType =
+  | 'signal'
+  | 'recommendation'
+  | 'approval'
+  | 'action_executed'
+  | 'customer_response'
+  | 'outcome_captured'
+  | 'risk_assessment'
+  | 'meeting_note'
+  | 'email_communication';
+
+export interface OutstandingCommitment {
+  commitment_id: string;
+  account_id: string;
+  title: string;
+  owner: string;
+  due_date?: string | null;
+  status: 'open' | 'in_progress' | 'fulfilled' | string;
+  source_event_id?: string | null;
+  created_at: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  account_id: string;
+  event_type: TimelineEventType;
+  category: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  author_or_actor: string;
+  severity?: string | null;
+  status?: string | null;
+  metadata?: Record<string, any>;
+  customer_response?: string | null;
+  commitments?: string | null;
+  next_steps?: string | null;
+  risk_score_at_time?: number | null;
+  risk_level_at_time?: string | null;
+  original_recommendation?: Record<string, any> | null;
+  evidence_ids?: string[];
+}
+
+export interface CustomerOutcomeTimelineResponse {
+  account_id: string;
+  account_name: string;
+  csm_owner: string;
+  arr: number;
+  current_risk_score: number;
+  current_risk_level: string;
+  events: TimelineEvent[];
+  outstanding_commitments: OutstandingCommitment[];
+  summary: {
+    total_events: number;
+    signals_count: number;
+    recommendations_count: number;
+    actions_executed_count: number;
+    outcomes_captured_count: number;
+    outstanding_commitments_count: number;
+    first_interaction?: string | null;
+    latest_interaction?: string | null;
+  };
+}
+
+// Feature 3: AI Outcome Analyzer Types
+export interface SentimentEvidence {
+  interpretation: string;
+  sentiment_label: string;
+  supporting_quote_or_evidence: string;
+  confidence: number;
+  is_interpretation_notice: string;
+}
+
+export interface AdoptionBlocker {
+  blocker_title: string;
+  severity: 'critical' | 'high' | 'medium' | 'low' | string;
+  feature_or_area: string;
+  evidence: string;
+  workaround_exists: boolean;
+}
+
+export interface RenewalObjection {
+  objection_type: string;
+  description: string;
+  direct_evidence: string;
+  impact_level: string;
+}
+
+export interface CustomerCommitmentItem {
+  commitment_text: string;
+  responsible_party: string;
+  agreed_timeline?: string | null;
+  status: string;
+}
+
+export interface UnresolvedIssue {
+  issue_title: string;
+  description: string;
+  recommended_follow_up: string;
+  target_owner: string;
+  urgency: string;
+}
+
+export interface OutcomeAnalysisRequest {
+  account_id: string;
+  source_type: 'meeting_note' | 'email_thread' | 'customer_feedback' | 'call_transcript' | string;
+  title?: string;
+  raw_text: string;
+  meeting_date?: string;
+  participants?: string;
+  auto_ingest_as_evidence?: boolean;
+}
+
+export interface OutcomeAnalysisResult {
+  id: string;
+  account_id: string;
+  account_name: string;
+  source_type: string;
+  title: string;
+  raw_text: string;
+  meeting_date?: string | null;
+  participants?: string | null;
+  analyzed_at: string;
+  sentiment_analysis: SentimentEvidence;
+  adoption_blockers: AdoptionBlocker[];
+  renewal_objections: RenewalObjection[];
+  commitments_and_next_steps: CustomerCommitmentItem[];
+  unresolved_issues: UnresolvedIssue[];
+  structured_investigation_brief: string;
+  generated_signal_id?: string | null;
+  rule_notice: string;
+}

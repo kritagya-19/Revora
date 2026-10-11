@@ -129,3 +129,20 @@ def draft_account_actions(account_id: str):
     drafts = llm_service.generate_draft_actions(acc, investigation)
     return drafts
 
+@router.get("/{account_id}/outcome-timeline")
+def get_customer_outcome_timeline(account_id: str):
+    """
+    GET /api/accounts/{account_id}/outcome-timeline
+    Feature 2: Customer Outcome Timeline
+    Displays the complete chronological history of an account's signals,
+    recommendations, approvals, actions, customer responses, and outcomes.
+    """
+    from app.services.customer_timeline_service import customer_timeline_service
+    try:
+        return customer_timeline_service.build_account_timeline(account_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate timeline: {e}")
+
+

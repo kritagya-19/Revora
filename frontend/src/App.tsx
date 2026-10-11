@@ -14,6 +14,9 @@ import { CustomerDetailView } from './components/CustomerDetailView';
 import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
 import { ApprovalCenterView } from './components/ApprovalCenterView';
+import { ActionOutcomeTrackerView } from './components/ActionOutcomeTrackerView';
+import { CustomerOutcomeTimelineView } from './components/CustomerOutcomeTimelineView';
+import { AIOutcomeAnalyzerView } from './components/AIOutcomeAnalyzerView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
@@ -116,6 +119,12 @@ export function App() {
     } else if (tab === 'copilot') {
       setViewMode('copilot');
     } else if (tab === 'approvals') {
+      setViewMode('radar');
+    } else if (tab === 'tracker') {
+      setViewMode('radar');
+    } else if (tab === 'timeline') {
+      setViewMode('radar');
+    } else if (tab === 'analyzer') {
       setViewMode('radar');
     }
   };
@@ -222,6 +231,21 @@ export function App() {
         return {
           title: 'Approval Center',
           subtitle: 'Step 5: Human Review & Safe Execution Gate — Authorizes proposed interventions with cryptographic verification'
+        };
+      case 'tracker':
+        return {
+          title: 'Action & Outcome Tracker',
+          subtitle: 'Feature 1: Closed-Loop Tracking — Knows what the team actually did, capturing execution status, responses & commitments'
+        };
+      case 'timeline':
+        return {
+          title: 'Customer Outcome Timeline',
+          subtitle: 'Feature 2: Account History & Memory — Chronological signals, previous autopsies, recommendations, actions, and customer feedback'
+        };
+      case 'analyzer':
+        return {
+          title: 'AI Outcome Analyzer',
+          subtitle: 'Feature 3: Unstructured Notes to Structured Intelligence — Extracts blockers, renewal objections, and commitments with verified citations'
         };
       default:
         return { title: 'Revora | SignalBridge AI', subtitle: 'Evidence-First Revenue Intelligence' };
@@ -475,6 +499,72 @@ export function App() {
               onNavigateToCopilot={() => {
                 setViewMode('copilot');
                 setCurrentTab('copilot');
+              }}
+            />
+          )}
+
+          {/* TAB 6 / Feature 1: Action & Outcome Tracker */}
+          {currentTab === 'tracker' && (
+            <ActionOutcomeTrackerView
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('customer_detail');
+                setCurrentTab('customers');
+              }}
+              onNavigateToCopilot={(accId) => {
+                if (accId) setSelectedAccountId(accId);
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+              onNavigateToAutopsy={(accId) => {
+                if (accId) setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+            />
+          )}
+
+          {/* TAB 7 / Feature 2: Customer Outcome Timeline */}
+          {currentTab === 'timeline' && (
+            <CustomerOutcomeTimelineView
+              initialAccountId={selectedAccountId || undefined}
+              accounts={accounts}
+              currency={currency}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onNavigateToCopilot={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('copilot');
+                setCurrentTab('copilot');
+              }}
+              onNavigateToAutopsy={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+              onNavigateToTracker={() => {
+                setCurrentTab('tracker');
+              }}
+            />
+          )}
+
+          {/* TAB 8 / Feature 3: AI Outcome Analyzer */}
+          {currentTab === 'analyzer' && (
+            <AIOutcomeAnalyzerView
+              initialAccountId={selectedAccountId || undefined}
+              accounts={accounts}
+              onSelectAccount={(accId) => {
+                setSelectedAccountId(accId);
+              }}
+              onNavigateToAutopsy={(accId) => {
+                setSelectedAccountId(accId);
+                setViewMode('autopsy');
+                setCurrentTab('autopsy');
+              }}
+              onNavigateToTimeline={(accId) => {
+                setSelectedAccountId(accId);
+                setCurrentTab('timeline');
               }}
             />
           )}
