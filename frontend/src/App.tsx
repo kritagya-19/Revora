@@ -14,6 +14,7 @@ import { CustomerDetailView } from './components/CustomerDetailView';
 import { RevenueRiskAutopsyView } from './components/RevenueRiskAutopsyView';
 import { NextBestActionCopilotView } from './components/NextBestActionCopilotView';
 import { ApprovalCenterView } from './components/ApprovalCenterView';
+import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
@@ -116,6 +117,8 @@ export function App() {
     } else if (tab === 'copilot') {
       setViewMode('copilot');
     } else if (tab === 'approvals') {
+      setViewMode('radar');
+    } else if (tab === 'settings') {
       setViewMode('radar');
     }
   };
@@ -222,6 +225,11 @@ export function App() {
         return {
           title: 'Approval Center',
           subtitle: 'Step 5: Human Review & Safe Execution Gate — Authorizes proposed interventions with cryptographic verification'
+        };
+      case 'settings':
+        return {
+          title: 'Settings & Integrations',
+          subtitle: 'Step 6: Connector Management — Configure and sync CRM, Email, Calendar, and Support data sources'
         };
       default:
         return { title: 'Revora | SignalBridge AI', subtitle: 'Evidence-First Revenue Intelligence' };
@@ -477,6 +485,11 @@ export function App() {
                 setCurrentTab('copilot');
               }}
             />
+          )}
+
+          {/* TAB 6 / Page 7: Settings & Integrations */}
+          {currentTab === 'settings' && (
+            <SettingsAndIntegrationsView />
           )}
         </>
       )}

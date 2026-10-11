@@ -171,10 +171,14 @@ export function RevenueRiskAutopsyView({
     }
   };
 
-  // Derive Metrics matching Image 2
+  // Derive Metrics dynamically from account data
   const renewalDays = account.urgency_days_to_renewal || 43;
-  const usageTrend = account.primary_reason_code.includes('usage') ? '-38%' : '-25%';
-  const lastReplyDays = 16;
+  const cm = account.customer_metrics;
+  const usageDropPct = cm?.usage_drop_pct ?? 0;
+  const usageTrend = usageDropPct > 0 ? `-${usageDropPct.toFixed(0)}%` : 'stable';
+  const lastReplyDays = cm?.days_since_touchpoint ?? 15;
+  const baselineSeats = cm?.baseline_users ?? 240;
+  const currentSeats = cm?.active_users ?? 148;
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -189,42 +193,73 @@ export function RevenueRiskAutopsyView({
     return `$${amount.toLocaleString()}`;
   };
 
-  // 1. Reconstruct the situation findings (matching Image 2)
-  const situationFindings = [
-    {
-      step: 1,
-      title: 'Product usage declined',
-      text: 'Usage is 38% below the defined comparison baseline. This is evidence of declining activity, not proof of dissatisfaction.',
-      evidenceId: account.signals[0]?.id || 'sig-101'
-    },
-    {
-      step: 2,
-      title: 'Customer engagement weakened',
-      text: 'The latest recorded outreach has no recorded reply within 16 days.',
-      evidenceId: account.signals[1]?.id || 'sig-102'
-    },
-    {
-      step: 3,
-      title: 'Renewal is approaching',
-      text: `The CRM records renewal in ${renewalDays} days, increasing the urgency of investigating the other signals.`,
-      evidenceId: account.signals[2]?.id || 'sig-103'
+  // 1. Reconstruct the situation findings dynamically from investigation data
+  const situationFindings = (() => {
+    // Use real investigation findings if available
+    if (investigation?.findings && investigation.findings.length > 0) {
+      return investigation.findings.map((f, idx) => ({
+        step: idx + 1,
+        title: f.claim || f.type?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) || `Finding ${idx + 1}`,
+        text: f.claim,
+        evidenceId: f.evidence_ids?.[0] || account.signals[idx]?.id || `sig-${100 + idx + 1}`
+      }));
     }
-  ];
+    // Dynamic fallback generated from actual account data (NOT hardcoded)
+    const findings = [];
+    if (usageDropPct > 0) {
+      findings.push({
+        step: 1,
+        title: 'Product usage declined',
+        text: `Usage is ${usageDropPct.toFixed(0)}% below the defined comparison baseline (${baselineSeats} → ${currentSeats} active seats). This is evidence of declining activity.`,
+        evidenceId: account.signals.find(s => s.signal_type === 'usage_drop')?.id || account.signals[0]?.id || 'sig-101'
+      });
+    }
+    if (lastReplyDays >= 14) {
+      findings.push({
+        step: findings.length + 1,
+        title: 'Customer engagement weakened',
+        text: `The latest recorded outreach has no recorded reply within ${lastReplyDays} days.`,
+        evidenceId: account.signals.find(s => s.signal_type === 'touchpoint_lag')?.id || account.signals[1]?.id || 'sig-102'
+      });
+    }
+    if (renewalDays <= 90) {
+      findings.push({
+        step: findings.length + 1,
+        title: 'Renewal is approaching',
+        text: `The CRM records renewal in ${renewalDays} days, increasing the urgency of investigating the other signals.`,
+        evidenceId: account.signals.find(s => s.signal_type === 'renewal_approaching')?.id || account.signals[2]?.id || 'sig-103'
+      });
+    }
+    // Ensure at least one finding
+    if (findings.length === 0) {
+      findings.push({
+        step: 1,
+        title: account.primary_reason_code.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+        text: account.main_warning || `Account flagged for ${account.primary_reason_code}.`,
+        evidenceId: account.signals[0]?.id || 'sig-100'
+      });
+    }
+    return findings;
+  })();
 
-  // 2. Conclusion (matching Image 2)
+  // 2. Conclusion — use investigation's causal explanation, or generate from account data
   const conclusionText = investigation?.causal_explanation ||
-    `The combination suggests elevated renewal risk because product activity is declining while customer engagement is limited and the renewal is approaching. The account owner should investigate the cause before deciding on a retention intervention.`;
+    `The combination of signals suggests elevated renewal risk for ${account.name} because ` +
+    (usageDropPct > 0 ? `product activity is declining (${usageDropPct.toFixed(0)}% drop)` : 'multiple risk factors are present') +
+    (lastReplyDays >= 14 ? ` while customer engagement has been limited (${lastReplyDays}d silence)` : '') +
+    (renewalDays <= 90 ? ` and the renewal is approaching in ${renewalDays} days` : '') +
+    `. The account owner should investigate the cause before deciding on a retention intervention.`;
 
-  // 3. Uncertainty (matching Image 2)
+  // 3. Uncertainty — use investigation data or generate dynamic fallbacks
   const uncertainties = investigation?.uncertainties && investigation.uncertainties.length > 0
     ? investigation.uncertainties
     : [
-        'Is the usage decline seasonal?',
-        'Is the customer contact unavailable?',
-        'Is there an unresolved support issue?'
+        usageDropPct > 0 ? 'Is the usage decline seasonal or permanent?' : 'Are there any hidden risk signals?',
+        lastReplyDays >= 14 ? 'Is the customer contact unavailable or deliberately disengaged?' : 'Is the customer actively engaged with other channels?',
+        'Is there an unresolved support issue affecting satisfaction?'
       ];
 
-  // 4. Recommended Action (matching Image 2)
+  // 4. Recommended Action — use investigation data or generate dynamic fallback
   const recommendedTitle = investigation?.recommended_action?.title ||
     'Schedule a customer-success check-in focused on adoption and renewal readiness.';
   const recommendedReason = investigation?.recommended_action?.reason ||
@@ -413,9 +448,9 @@ export function RevenueRiskAutopsyView({
           <div className="pt-2">
             <UsageTrendChart
               accountName={account.name}
-              baselineSeats={240}
-              currentSeats={148}
-              dropPct={38}
+              baselineSeats={baselineSeats}
+              currentSeats={currentSeats}
+              dropPct={Math.round(usageDropPct)}
             />
           </div>
         </section>

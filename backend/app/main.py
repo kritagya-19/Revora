@@ -77,18 +77,46 @@ def get_global_audit_logs(account_id: str = None, event_type: str = None, limit:
 def get_global_audit_logs_v1(account_id: str = None, event_type: str = None, limit: int = 100):
     return get_global_audit_logs(account_id=account_id, event_type=event_type, limit=limit)
 
-# Agent-Layer Pipeline Orchestration Endpoint
+# Agent-Layer Pipeline Orchestration Endpoint (5-Stage AI Architecture)
 @app.post("/api/agent/pipeline/{account_id}", tags=["Agent Architecture"])
 @app.get("/api/agent/pipeline/{account_id}", tags=["Agent Architecture"])
 def run_agent_pipeline(account_id: str):
     """
-    Executes the 4-tier Agent Pipeline:
-    1. Signal Analysis -> 2. Risk Assessment -> 3. Investigation -> 4. Action Planning
+    Executes the full 5-Stage AI Pipeline:
+    1. Context Builder -> 2. Deterministic Intelligence -> 3. Signal Analysis
+    -> 4. Risk Explanation -> 5. Investigation & Action Planning
     """
-    from app.services.agent_orchestrator import agent_orchestrator
+    from app.ai.orchestrator import agent_orchestrator
     from fastapi import HTTPException
     try:
-        return agent_orchestrator.execute_full_cycle(account_id)
+        result = agent_orchestrator.orchestrate_account(account_id)
+        return {
+            "account_id": result.account_id,
+            "account_name": result.account_name,
+            "pipeline_stages": {
+                "deterministic_risk": {
+                    "risk_score": result.deterministic_risk.risk_score,
+                    "risk_level": result.deterministic_risk.risk_level.value,
+                    "primary_reason_code": result.deterministic_risk.primary_reason_code,
+                    "rule_version": result.deterministic_risk.rule_version,
+                },
+                "signal_analysis": {
+                    "baseline_comparison": result.signal_analysis.baseline_comparison,
+                    "missing_data_flags": result.signal_analysis.missing_data_flags,
+                },
+                "investigation": {
+                    "verified_facts_count": len(result.investigation.verified_facts),
+                    "uncertainties": result.investigation.uncertainties,
+                    "causal_narrative": result.investigation.causal_narrative,
+                },
+                "action_plan": {
+                    "action_type": result.action_plan.action_type,
+                    "title": result.action_plan.title,
+                    "reason": result.action_plan.reason,
+                },
+            },
+            "orchestrated_at": result.orchestrated_at,
+        }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send } from 'lucide-react';
+import { LayoutDashboard, Users, CheckSquare, ShieldCheck, Activity, Sparkles, Send, Settings } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -55,6 +55,13 @@ export function Sidebar({
       icon: CheckSquare,
       badge: pendingApprovalsCount > 0 ? pendingApprovalsCount : null,
       badgeColor: 'bg-amber-50 text-amber-800 border border-amber-200 font-bold'
+    },
+    {
+      id: 'settings' as NavItem,
+      label: 'Settings & Sync',
+      sublabel: 'Connectors & Integrations',
+      icon: Settings,
+      badge: null
     }
   ];
 

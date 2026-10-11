@@ -251,7 +251,7 @@ class AccountRepository:
             high_risk_arr=high_risk_arr,
             total_portfolio_arr=total_portfolio_arr,
             average_risk_score=avg_risk_score,
-            rule_version="v1.0.0"
+            rule_version="v2.0.0"
         )
 
     def get_account_by_id(self, account_id: str) -> Optional[AccountDetail]:
@@ -383,7 +383,7 @@ class AccountRepository:
             primary_reason_code=account.primary_reason_code,
             main_warning=account.main_warning or account.primary_reason_code,
             contributing_factors=account.contributing_factors,
-            rule_version="v1.0.0",
+            rule_version="v2.0.0",
             signals_count=len(account.signals),
             arr=account.arr,
             renewal_date=account.renewal_date

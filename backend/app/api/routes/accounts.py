@@ -73,7 +73,10 @@ def get_account_autopsy(account_id: str):
     """
     Returns Revenue Risk Autopsy (Deterministic fallback + evidence grounding).
     Separates facts, interpretations, and unknowns.
+    Uses real investigation data from the AI pipeline when available.
     """
+    from app.services.investigation_repository import investigation_repo
+
     acc = account_repo.get_account_by_id(account_id)
     if not acc:
         raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
@@ -88,25 +91,43 @@ def get_account_autopsy(account_id: str):
             "timestamp": ev.timestamp.isoformat()
         })
 
-    interpretations = [
-        f"Account is experiencing {acc.primary_reason_code} ahead of renewal window.",
-        "Customer champion disengagement may indicate budget re-evaluation."
-    ]
+    # Attempt to source dynamic interpretations and unknowns from existing investigation
+    latest_investigation = investigation_repo.get_latest_for_account(account_id)
 
-    unknowns = [
-        "Customer's internal Q4 budget decision timeline is unconfirmed.",
-        "Whether executive sponsor has tested alternative vendor solutions."
-    ]
+    if latest_investigation and latest_investigation.findings:
+        interpretations = [
+            f"{f.claim} (Evidence: {', '.join(f.evidence_ids)})" if f.evidence_ids
+            else f.claim
+            for f in latest_investigation.findings
+        ]
+        unknowns = latest_investigation.uncertainties if latest_investigation.uncertainties else [
+            "No uncertainty data available — run a full investigation to populate."
+        ]
+        suggested_action = latest_investigation.recommended_action.action_type if latest_investigation.recommended_action else "csm_outreach_email"
+    else:
+        # Dynamic fallback from account data — NOT hardcoded static text
+        interpretations = [
+            f"Account is experiencing {acc.primary_reason_code} with a risk score of {acc.risk_score}/100.",
+        ]
+        if acc.contributing_factors:
+            for factor in acc.contributing_factors[:3]:
+                interpretations.append(factor)
+
+        unknowns = [
+            "Full AI investigation has not been run yet — trigger 'Run Investigation' for detailed autopsy.",
+            "Customer's internal budget decision timeline is unconfirmed.",
+        ]
+        suggested_action = "csm_outreach_email"
 
     return RevenueRiskAutopsy(
         account_id=account_id,
         risk_score=acc.risk_score,
         risk_level=acc.risk_level,
-        rule_version="v1.0.0",
+        rule_version="v2.0.0",
         facts=facts,
         interpretations=interpretations,
         unknowns=unknowns,
-        suggested_action_type="csm_outreach_email"
+        suggested_action_type=suggested_action
     )
 
 @router.post("/{account_id}/actions/draft", response_model=DraftActionsResponse)
