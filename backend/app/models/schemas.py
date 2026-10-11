@@ -392,3 +392,82 @@ class UpdateTaskRequest(BaseModel):
     priority: Optional[str] = None
     status: Optional[str] = None
 
+# Feature 1: Action & Outcome Tracker Schemas
+class ActionExecutionStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    EXECUTING = "executing"
+    EXECUTED = "executed"
+    FAILED = "failed"
+
+class WorkStatus(str, Enum):
+    NOT_STARTED = "not started"
+    IN_PROGRESS = "in progress"
+    COMPLETED = "completed"
+
+class OutcomeRecord(BaseModel):
+    outcome_id: str
+    action_tracker_id: str
+    notes: str
+    customer_response: str  # notes or sentiment on customer reaction
+    commitments: str  # agreed commitments made by customer or CSM
+    next_steps: str  # follow-up items
+    supporting_evidence_ids: List[str] = []
+    recorded_by: str = "CSM Lead"
+    recorded_at: str
+    auto_captured: bool = False
+    capture_source: Optional[str] = None  # e.g., "Gmail Integration", "Salesforce CRM Sync", "Google Calendar"
+
+class ActionTrackerItem(BaseModel):
+    id: str
+    proposal_id: Optional[str] = None
+    account_id: str
+    account_name: str
+    action_type: str
+    title: str
+    description: Optional[str] = None
+    investigation_id: Optional[str] = None
+    evidence_ids: List[str] = []
+    recommendation_payload: Dict[str, Any] = Field(default_factory=dict)
+    action_status: ActionExecutionStatus = ActionExecutionStatus.APPROVED
+    work_status: WorkStatus = WorkStatus.NOT_STARTED
+    assigned_to: str = "CSM Team"
+    execution_mode: str = "simulated"
+    execution_result: Optional[Dict[str, Any]] = None
+    outcome: Optional[OutcomeRecord] = None
+    auto_capture_available: bool = False
+    auto_capture_preview: Optional[Dict[str, Any]] = None
+    created_at: str
+    updated_at: Optional[str] = None
+
+class CreateActionTrackerRequest(BaseModel):
+    account_id: str
+    title: str
+    action_type: str
+    proposal_id: Optional[str] = None
+    description: Optional[str] = None
+    investigation_id: Optional[str] = None
+    evidence_ids: List[str] = []
+    recommendation_payload: Dict[str, Any] = Field(default_factory=dict)
+    action_status: Optional[ActionExecutionStatus] = ActionExecutionStatus.APPROVED
+    work_status: Optional[WorkStatus] = WorkStatus.NOT_STARTED
+    assigned_to: Optional[str] = "CSM Team"
+
+class UpdateActionTrackerStatusRequest(BaseModel):
+    action_status: Optional[ActionExecutionStatus] = None
+    work_status: Optional[WorkStatus] = None
+    assigned_to: Optional[str] = None
+
+class SaveOutcomeRequest(BaseModel):
+    notes: str
+    customer_response: str
+    commitments: str
+    next_steps: str
+    recorded_by: Optional[str] = "CSM Lead"
+    supporting_evidence_ids: List[str] = []
+    auto_captured: bool = False
+    capture_source: Optional[str] = None
+
+class AutoCaptureOutcomeRequest(BaseModel):
+    source: Optional[str] = None
+
