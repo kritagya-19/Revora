@@ -143,6 +143,139 @@
         "days_since_last_touchpoint": 32,
         "open_critical_tickets": 0
       }
+    },
+    {
+      "id": "acc-109",
+      "name": "PulseWave Health",
+      "domain": "pulsewavehealth.com",
+      "arr": 145000.0,
+      "renewal_date": "2026-11-05",
+      "csm_owner": "Sarah Jenkins",
+      "industry": "Medical Analytics",
+      "health_score": 35,
+      "tier": "Enterprise",
+      "status": "at_risk",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 24,
+        "usage_drop_pct": 28.0,
+        "days_since_last_touchpoint": 22,
+        "open_critical_tickets": 1
+      }
+    },
+    {
+      "id": "acc-110",
+      "name": "Cobalt Cybersecurity",
+      "domain": "cobaltsec.io",
+      "arr": 210000.0,
+      "renewal_date": "2027-04-15",
+      "csm_owner": "Alex Rivera",
+      "industry": "InfoSec & Zero Trust",
+      "health_score": 85,
+      "tier": "Enterprise",
+      "status": "active",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 187,
+        "usage_drop_pct": 0.0,
+        "days_since_last_touchpoint": 7,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-111",
+      "name": "DataNest AI",
+      "domain": "datanest.ai",
+      "arr": 160000.0,
+      "renewal_date": "2026-11-30",
+      "csm_owner": "Marcus Chen",
+      "industry": "Big Data Infrastructure",
+      "health_score": 48,
+      "tier": "Mid-Market",
+      "status": "at_risk",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 50,
+        "usage_drop_pct": 22.0,
+        "days_since_last_touchpoint": 20,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-112",
+      "name": "QuantumPay Solutions",
+      "domain": "quantumpay.com",
+      "arr": 280000.0,
+      "renewal_date": "2026-10-31",
+      "csm_owner": "Sarah Jenkins",
+      "industry": "Payment Processing",
+      "health_score": 22,
+      "tier": "Strategic",
+      "status": "at_risk",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 19,
+        "usage_drop_pct": 45.0,
+        "days_since_last_touchpoint": 30,
+        "open_critical_tickets": 2
+      }
+    },
+    {
+      "id": "acc-113",
+      "name": "Zenith Logistics",
+      "domain": "zenithlogistics.com",
+      "arr": 78000.0,
+      "renewal_date": "2027-05-20",
+      "csm_owner": "Alex Rivera",
+      "industry": "Supply Chain & Fleet",
+      "health_score": 76,
+      "tier": "Growth",
+      "status": "active",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 222,
+        "usage_drop_pct": 0.0,
+        "days_since_last_touchpoint": 12,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-114",
+      "name": "Aether Dynamics",
+      "domain": "aetherdynamics.tech",
+      "arr": 195000.0,
+      "renewal_date": "2026-12-05",
+      "csm_owner": "Marcus Chen",
+      "industry": "Aerospace & Sensor IoT",
+      "health_score": 56,
+      "tier": "Enterprise",
+      "status": "active",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 55,
+        "usage_drop_pct": 18.0,
+        "days_since_last_touchpoint": 25,
+        "open_critical_tickets": 0
+      }
+    },
+    {
+      "id": "acc-hs-101",
+      "name": "Starlight Industries (HubSpot CRM)",
+      "domain": "starlight.io",
+      "arr": 120000.0,
+      "renewal_date": "2026-11-23",
+      "csm_owner": "Sarah Jenkins",
+      "industry": "Enterprise SaaS Platform",
+      "health_score": 40,
+      "tier": "Enterprise",
+      "status": "at_risk",
+      "source_system": "hubspot",
+      "signals_summary": {
+        "days_to_renewal": 43,
+        "usage_drop_pct": 34.0,
+        "days_since_last_touchpoint": 18,
+        "open_critical_tickets": 1
+      }
     }
   ],
   "contacts": [
@@ -235,6 +368,76 @@
       "is_primary": true,
       "sentiment": "neutral",
       "last_contact_date": "2026-09-30T10:00:00Z"
+    },
+    {
+      "id": "con-110",
+      "account_id": "acc-109",
+      "name": "Dr. Alistair Finch",
+      "email": "afinch@pulsewavehealth.com",
+      "role": "Chief Information Officer",
+      "is_primary": true,
+      "sentiment": "negative",
+      "last_contact_date": "2026-09-22T08:30:00Z"
+    },
+    {
+      "id": "con-111",
+      "account_id": "acc-110",
+      "name": "Maya Lin",
+      "email": "maya@cobaltsec.io",
+      "role": "Chief Information Security Officer",
+      "is_primary": true,
+      "sentiment": "positive",
+      "last_contact_date": "2026-10-05T10:15:00Z"
+    },
+    {
+      "id": "con-112",
+      "account_id": "acc-111",
+      "name": "Ethan Cole",
+      "email": "ethan@datanest.ai",
+      "role": "VP Data Science",
+      "is_primary": true,
+      "sentiment": "neutral",
+      "last_contact_date": "2026-09-20T13:45:00Z"
+    },
+    {
+      "id": "con-113",
+      "account_id": "acc-112",
+      "name": "Priya Sharma",
+      "email": "priya@quantumpay.com",
+      "role": "VP Core Platform",
+      "is_primary": true,
+      "sentiment": "negative",
+      "last_contact_date": "2026-09-18T16:20:00Z"
+    },
+    {
+      "id": "con-114",
+      "account_id": "acc-113",
+      "name": "Carlos Mendez",
+      "email": "carlos@zenithlogistics.com",
+      "role": "Head of Fleet Operations",
+      "is_primary": true,
+      "sentiment": "positive",
+      "last_contact_date": "2026-10-06T11:00:00Z"
+    },
+    {
+      "id": "con-115",
+      "account_id": "acc-114",
+      "name": "Samantha Wright",
+      "email": "samantha@aetherdynamics.tech",
+      "role": "Director of Avionics Software",
+      "is_primary": true,
+      "sentiment": "neutral",
+      "last_contact_date": "2026-09-25T15:30:00Z"
+    },
+    {
+      "id": "cnt-hs-101",
+      "account_id": "acc-hs-101",
+      "name": "Bob Vance",
+      "email": "bob@starlight.io",
+      "role": "VP Engineering",
+      "is_primary": true,
+      "sentiment": "neutral",
+      "last_contact_date": "2026-09-25T14:30:00Z"
     }
   ],
   "signals": [
@@ -301,9 +504,14 @@
       "timestamp": "2026-10-05T11:00:00Z",
       "metadata": {
         "status": "cancelled",
-        "meeting_type": "Executive QBR"
+        "meeting_type": "Executive QBR",
+        "attendees": [
+          "vikram@hyperscalelabs.co",
+          "alex.rivera@revora.app"
+        ],
+        "calendar_id": "primary"
       },
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "evidence_id": "ev-sig-104",
       "source_record_id": "rec-sig-104"
     },
@@ -381,9 +589,13 @@
       "severity": "high",
       "timestamp": "2026-09-22T08:30:00Z",
       "metadata": {
-        "risk_type": "sponsor_loss"
+        "risk_type": "sponsor_loss",
+        "sender": "msterling@apexfintech.com",
+        "sender_name": "Michael Sterling",
+        "recipient": "sarah.jenkins@revora.app",
+        "thread_id": "gm-th-acc-106-sig-109"
       },
-      "source_type": "email",
+      "source_type": "gmail",
       "evidence_id": "ev-sig-109",
       "source_record_id": "rec-sig-109"
     },
@@ -429,9 +641,14 @@
       "severity": "low",
       "timestamp": "2026-10-07T15:20:00Z",
       "metadata": {
-        "sentiment": "very_positive"
+        "sentiment": "very_positive",
+        "attendees": [
+          "phayes@omnihealth.org",
+          "marcus.chen@revora.app"
+        ],
+        "calendar_id": "primary"
       },
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "evidence_id": "ev-sig-112",
       "source_record_id": "rec-sig-112"
     },
@@ -487,7 +704,7 @@
       "id": "sig-116",
       "account_id": "acc-101",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "downgrade_inquiry",
       "title": "Procurement Inbound Downgrade Inquiry",
       "summary": "Inbound email from Acme Procurement requesting pricing options for lower tier with reduced seat count.",
@@ -498,14 +715,16 @@
       "metadata": {
         "sender": "procurement@acmetechnologies.com",
         "subject": "Contract renewal tier adjustments",
-        "sentiment": "negative"
+        "sentiment": "negative",
+        "recipient": "sarah.jenkins@revora.app",
+        "thread_id": "gm-th-acc-101-sig-116"
       }
     },
     {
       "id": "sig-117",
       "account_id": "acc-101",
       "source_category": "calendar",
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "signal_type": "qbr_rescheduled",
       "title": "Executive QBR Meeting Cancelled",
       "summary": "Executive Sponsor cancelled the scheduled Q4 strategy review meeting without setting a fallback date.",
@@ -515,7 +734,12 @@
       "source_record_id": "rec-sig-117",
       "metadata": {
         "meeting_name": "Acme Q4 Strategic Review",
-        "status": "cancelled_by_client"
+        "status": "cancelled_by_client",
+        "attendees": [
+          "d.vance@acmedynamics.com",
+          "sarah.jenkins@revora.app"
+        ],
+        "calendar_id": "primary"
       }
     },
     {
@@ -541,7 +765,7 @@
       "id": "sig-119",
       "account_id": "acc-102",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "data_export_inquiry",
       "title": "Inbound Request Regarding Bulk Data Export",
       "summary": "Lead Architect inquired about historical data offloading protocols and API transition schedules.",
@@ -552,14 +776,16 @@
       "metadata": {
         "sender": "radams@cloudnova.io",
         "intent": "data_export",
-        "sentiment": "neutral"
+        "sentiment": "neutral",
+        "recipient": "marcus.chen@revora.app",
+        "thread_id": "gm-th-acc-102-sig-119"
       }
     },
     {
       "id": "sig-120",
       "account_id": "acc-102",
       "source_category": "calendar",
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "signal_type": "meeting_declined",
       "title": "Architecture Sync Declined",
       "summary": "Engineering Lead declined the scheduled bi-weekly architecture check-in citing internal priority shifting.",
@@ -569,7 +795,12 @@
       "source_record_id": "rec-sig-120",
       "metadata": {
         "event": "Bi-weekly Architecture Sync",
-        "status": "declined"
+        "status": "declined",
+        "attendees": [
+          "radams@cloudnova.io",
+          "marcus.chen@revora.app"
+        ],
+        "calendar_id": "primary"
       }
     },
     {
@@ -611,7 +842,7 @@
       "id": "sig-123",
       "account_id": "acc-103",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "seat_expansion_inquiry",
       "title": "Additional Seats Quote Requested",
       "summary": "Head of Quantitative Infrastructure requested pricing addendum for 25 additional analyst licenses.",
@@ -622,14 +853,16 @@
       "metadata": {
         "sender": "liam@vortexdata.ai",
         "intent": "expansion",
-        "sentiment": "positive"
+        "sentiment": "positive",
+        "recipient": "sarah.jenkins@revora.app",
+        "thread_id": "gm-th-acc-103-sig-123"
       }
     },
     {
       "id": "sig-124",
       "account_id": "acc-103",
       "source_category": "calendar",
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "signal_type": "roadmap_sync_completed",
       "title": "Q4 Product Roadmap Alignment Completed",
       "summary": "Successful sync held with data engineering team reviewing upcoming real-time streaming connectors.",
@@ -639,7 +872,12 @@
       "source_record_id": "rec-sig-124",
       "metadata": {
         "meeting_type": "Roadmap Review",
-        "attendance": "full"
+        "attendance": "full",
+        "attendees": [
+          "liam@vortexdata.ai",
+          "sarah.jenkins@revora.app"
+        ],
+        "calendar_id": "primary"
       }
     },
     {
@@ -664,7 +902,7 @@
       "id": "sig-126",
       "account_id": "acc-104",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "cfo_termination_inquiry",
       "title": "CFO Early Termination Clause Inquiry",
       "summary": "Inbound email from CFO Vikram Patel inquiring about early contract termination terms and compute credit refunds.",
@@ -675,7 +913,9 @@
       "metadata": {
         "sender": "vikram@hyperscalelabs.co",
         "intent": "cancellation",
-        "sentiment": "very_negative"
+        "sentiment": "very_negative",
+        "recipient": "alex.rivera@revora.app",
+        "thread_id": "gm-th-acc-104-sig-126"
       }
     },
     {
@@ -717,7 +957,7 @@
       "id": "sig-129",
       "account_id": "acc-105",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "procurement_confirmation",
       "title": "Procurement Sign-off Ready for Review",
       "summary": "Email from Dr. Patricia Hayes confirming clinical IT budget allocation approved for enterprise upgrade.",
@@ -727,7 +967,9 @@
       "source_record_id": "rec-sig-129",
       "metadata": {
         "sender": "phayes@omnihealth.org",
-        "sentiment": "enthusiastic"
+        "sentiment": "enthusiastic",
+        "recipient": "marcus.chen@revora.app",
+        "thread_id": "gm-th-acc-105-sig-129"
       }
     },
     {
@@ -786,7 +1028,7 @@
       "id": "sig-133",
       "account_id": "acc-106",
       "source_category": "calendar",
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "signal_type": "security_briefing_pending",
       "title": "InfoSec Briefing Rescheduling Requested",
       "summary": "Interim Security Officer requested rescheduling mandatory annual compliance audit briefing.",
@@ -796,7 +1038,12 @@
       "source_record_id": "rec-sig-133",
       "metadata": {
         "meeting": "Annual InfoSec Audit Review",
-        "status": "rescheduled"
+        "status": "rescheduled",
+        "attendees": [
+          "msterling@apexfintech.com",
+          "sarah.jenkins@revora.app"
+        ],
+        "calendar_id": "primary"
       }
     },
     {
@@ -820,7 +1067,7 @@
       "id": "sig-135",
       "account_id": "acc-107",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "positive_feedback",
       "title": "Praise for Latency Improvement",
       "summary": "Chloe Nguyen sent note acknowledging sub-100ms checkout inventory lookups during flash sale test.",
@@ -830,14 +1077,16 @@
       "source_record_id": "rec-sig-135",
       "metadata": {
         "sender": "chloe@kiteflow.shop",
-        "sentiment": "very_positive"
+        "sentiment": "very_positive",
+        "recipient": "alex.rivera@revora.app",
+        "thread_id": "gm-th-acc-107-sig-135"
       }
     },
     {
       "id": "sig-136",
       "account_id": "acc-107",
       "source_category": "calendar",
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "signal_type": "biweekly_attended",
       "title": "Peak Traffic Readiness Sync Attended",
       "summary": "Infrastructure team attended bi-weekly sync; confirmed load test target of 5,000 req/sec for November.",
@@ -847,7 +1096,12 @@
       "source_record_id": "rec-sig-136",
       "metadata": {
         "target_rps": 5000,
-        "readiness": "green"
+        "readiness": "green",
+        "attendees": [
+          "chloe@kiteflow.shop",
+          "alex.rivera@revora.app"
+        ],
+        "calendar_id": "primary"
       }
     },
     {
@@ -889,7 +1143,7 @@
       "id": "sig-139",
       "account_id": "acc-108",
       "source_category": "email",
-      "source_type": "email",
+      "source_type": "gmail",
       "signal_type": "feature_inquiry",
       "title": "Inquiry on Multi-Region CDN Routing",
       "summary": "Arthur Pendelton emailed asking about upcoming support for edge rendering and multi-region CDN caching.",
@@ -899,14 +1153,16 @@
       "source_record_id": "rec-sig-139",
       "metadata": {
         "sender": "arthur@starlightmedia.io",
-        "sentiment": "curious"
+        "sentiment": "curious",
+        "recipient": "marcus.chen@revora.app",
+        "thread_id": "gm-th-acc-108-sig-139"
       }
     },
     {
       "id": "sig-140",
       "account_id": "acc-108",
       "source_category": "calendar",
-      "source_type": "calendar",
+      "source_type": "google_calendar",
       "signal_type": "feedback_scheduled",
       "title": "Product Feedback Session Scheduled",
       "summary": "Calendar invite accepted for 45-minute workflow feedback session with Revora product design team.",
@@ -916,7 +1172,12 @@
       "source_record_id": "rec-sig-140",
       "metadata": {
         "event": "Product Feedback Review",
-        "status": "confirmed"
+        "status": "confirmed",
+        "attendees": [
+          "arthur@starlightmedia.io",
+          "marcus.chen@revora.app"
+        ],
+        "calendar_id": "primary"
       }
     },
     {
@@ -935,6 +1196,1787 @@
         "ticket_id": "5088",
         "status": "closed",
         "priority": "low"
+      }
+    },
+    {
+      "id": "sig-142",
+      "account_id": "acc-109",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "HIPAA Audit Log Ingestion Stalled",
+      "summary": "Ticket #5102: Audit pipeline delayed by 4 hours during database backup window.",
+      "severity": "high",
+      "timestamp": "2026-10-07T12:00:00Z",
+      "evidence_id": "ev-sig-142",
+      "source_record_id": "rec-sig-142",
+      "metadata": {
+        "ticket_id": "5102",
+        "priority": "high",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-143",
+      "account_id": "acc-109",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "usage_drop",
+      "title": "Clinical Trials Telemetry Contraction",
+      "summary": "Active researchers using analytics modules dropped 28% month-over-month.",
+      "severity": "high",
+      "timestamp": "2026-10-08T09:00:00Z",
+      "evidence_id": "ev-sig-143",
+      "source_record_id": "rec-sig-143",
+      "metadata": {
+        "drop_pct": 28.0,
+        "baseline": 190,
+        "current_seats": 137
+      }
+    },
+    {
+      "id": "sig-144",
+      "account_id": "acc-109",
+      "source_category": "email",
+      "source_type": "gmail",
+      "signal_type": "touchpoint_lag",
+      "title": "Unanswered CSM outreach regarding compliance patch",
+      "summary": "Sarah Jenkins outreach from 22 days ago remains unanswered by Dr. Finch.",
+      "severity": "high",
+      "timestamp": "2026-10-09T14:30:00Z",
+      "evidence_id": "ev-sig-144",
+      "source_record_id": "rec-sig-144",
+      "metadata": {
+        "days_since_touchpoint": 22,
+        "recipient": "afinch@pulsewavehealth.com",
+        "sender": "afinch@pulsewavehealth.com",
+        "sender_name": "Dr. Alistair Finch",
+        "thread_id": "gm-th-acc-109-sig-144"
+      }
+    },
+    {
+      "id": "sig-145",
+      "account_id": "acc-110",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "license_saturation",
+      "title": "Zero Trust Active Users Saturated",
+      "summary": "Active seat utilization reached 94% across 310 enterprise identities.",
+      "severity": "low",
+      "timestamp": "2026-10-08T11:00:00Z",
+      "evidence_id": "ev-sig-145",
+      "source_record_id": "rec-sig-145",
+      "metadata": {
+        "utilization_pct": 94,
+        "active_seats": 291,
+        "licensed_seats": 310
+      }
+    },
+    {
+      "id": "sig-146",
+      "account_id": "acc-110",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "signal_type": "architecture_review_attended",
+      "title": "Quarterly Security Architecture Sync",
+      "summary": "Maya Lin attended QBR; confirmed plan to expand identity tier in Q1.",
+      "severity": "low",
+      "timestamp": "2026-10-05T15:00:00Z",
+      "evidence_id": "ev-sig-146",
+      "source_record_id": "rec-sig-146",
+      "metadata": {
+        "status": "attended",
+        "meeting": "QBR Security Review",
+        "attendees": [
+          "maya@cobaltsec.io",
+          "alex.rivera@revora.app"
+        ],
+        "calendar_id": "primary"
+      }
+    },
+    {
+      "id": "sig-147",
+      "account_id": "acc-111",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "usage_drop",
+      "title": "Vector Indexing Contraction",
+      "summary": "Indexing pipeline API throughput declined 22% over past 3 weeks.",
+      "severity": "medium",
+      "timestamp": "2026-10-06T10:15:00Z",
+      "evidence_id": "ev-sig-147",
+      "source_record_id": "rec-sig-147",
+      "metadata": {
+        "drop_pct": 22.0
+      }
+    },
+    {
+      "id": "sig-148",
+      "account_id": "acc-111",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "Batch Export Timeout on 100M Dataset",
+      "summary": "Ticket #5140: Large vector dataset dump timed out at 15 minutes.",
+      "severity": "medium",
+      "timestamp": "2026-10-07T16:00:00Z",
+      "evidence_id": "ev-sig-148",
+      "source_record_id": "rec-sig-148",
+      "metadata": {
+        "ticket_id": "5140",
+        "priority": "medium",
+        "status": "in_progress"
+      }
+    },
+    {
+      "id": "sig-149",
+      "account_id": "acc-112",
+      "source_category": "support",
+      "source_type": "support",
+      "signal_type": "support_ticket",
+      "title": "Critical Payment Webhook Timeout",
+      "summary": "Ticket #5201: Euro currency settlement webhook failed during European market close.",
+      "severity": "critical",
+      "timestamp": "2026-10-09T07:15:00Z",
+      "evidence_id": "ev-sig-149",
+      "source_record_id": "rec-sig-149",
+      "metadata": {
+        "ticket_id": "5201",
+        "priority": "critical",
+        "status": "escalated"
+      }
+    },
+    {
+      "id": "sig-150",
+      "account_id": "acc-112",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "usage_drop",
+      "title": "Daily Settlement Batch Contraction",
+      "summary": "Daily batch settlement volume decreased by 45% month-over-month.",
+      "severity": "high",
+      "timestamp": "2026-10-08T18:00:00Z",
+      "evidence_id": "ev-sig-150",
+      "source_record_id": "rec-sig-150",
+      "metadata": {
+        "drop_pct": 45.0
+      }
+    },
+    {
+      "id": "sig-151",
+      "account_id": "acc-112",
+      "source_category": "crm",
+      "source_type": "crm",
+      "signal_type": "renewal_approaching",
+      "title": "Imminent Contract Renewal in 19 Days",
+      "summary": "$280k strategic subscription expires 2026-10-31 with unresolved outage ticket.",
+      "severity": "high",
+      "timestamp": "2026-10-09T11:00:00Z",
+      "evidence_id": "ev-sig-151",
+      "source_record_id": "rec-sig-151",
+      "metadata": {
+        "days_to_renewal": 19,
+        "arr": 280000.0
+      }
+    },
+    {
+      "id": "sig-152",
+      "account_id": "acc-113",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "route_telemetry_steady",
+      "title": "Freight Route Optimization Steady",
+      "summary": "Dispatch engine routing 85,000 miles/day with 99.9% uptime.",
+      "severity": "low",
+      "timestamp": "2026-10-07T08:00:00Z",
+      "evidence_id": "ev-sig-152",
+      "source_record_id": "rec-sig-152",
+      "metadata": {
+        "utilization_pct": 82
+      }
+    },
+    {
+      "id": "sig-153",
+      "account_id": "acc-113",
+      "source_category": "email",
+      "source_type": "gmail",
+      "signal_type": "positive_feedback",
+      "title": "Positive Feedback on Fleet ETA Accuracy",
+      "summary": "Carlos Mendez sent message commending machine-learned ETA accuracy.",
+      "severity": "low",
+      "timestamp": "2026-10-08T14:00:00Z",
+      "evidence_id": "ev-sig-153",
+      "source_record_id": "rec-sig-153",
+      "metadata": {
+        "sender": "carlos@zenithlogistics.com",
+        "sentiment": "positive",
+        "recipient": "alex.rivera@revora.app",
+        "thread_id": "gm-th-acc-113-sig-153"
+      }
+    },
+    {
+      "id": "sig-154",
+      "account_id": "acc-114",
+      "source_category": "usage",
+      "source_type": "usage",
+      "signal_type": "usage_drop",
+      "title": "Telemetry SDK Latency Contraction",
+      "summary": "Avionics sensor ingest declined 18% during hardware validation cycle.",
+      "severity": "medium",
+      "timestamp": "2026-10-06T13:00:00Z",
+      "evidence_id": "ev-sig-154",
+      "source_record_id": "rec-sig-154",
+      "metadata": {
+        "drop_pct": 18.0
+      }
+    },
+    {
+      "id": "sig-155",
+      "account_id": "acc-114",
+      "source_category": "crm",
+      "source_type": "crm",
+      "signal_type": "touchpoint_lag",
+      "title": "Avionics Leadership Sponsor Left",
+      "summary": "Primary executive sponsor departed; 25 days since last CSM touchpoint.",
+      "severity": "medium",
+      "timestamp": "2026-10-07T11:00:00Z",
+      "evidence_id": "ev-sig-155",
+      "source_record_id": "rec-sig-155",
+      "metadata": {
+        "days_since_touchpoint": 25
+      }
+    },
+    {
+      "id": "sig-hs-101",
+      "account_id": "acc-hs-101",
+      "source_category": "crm",
+      "source_type": "hubspot",
+      "signal_type": "touchpoint_lag",
+      "title": "HubSpot CRM Engagement: 18d since touchpoint",
+      "summary": "Last recorded HubSpot CRM company modification was 18 days ago.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T10:00:00Z",
+      "evidence_id": "ev-hs-touch-101",
+      "source_record_id": "rec-hs-touch-101",
+      "metadata": {
+        "days_since_touchpoint": 18
+      }
+    },
+    {
+      "id": "sig-hs-102",
+      "account_id": "acc-hs-101",
+      "source_category": "support",
+      "source_type": "hubspot",
+      "signal_type": "support_ticket",
+      "title": "HubSpot Ticket: Critical Integration Outage",
+      "summary": "[HIGH] Production webhook integration failure on payment processing",
+      "severity": "critical",
+      "timestamp": "2026-10-08T12:00:00Z",
+      "evidence_id": "ev-hs-tkt-101",
+      "source_record_id": "hs-tkt-991",
+      "metadata": {
+        "priority": "critical",
+        "ticket_id": "hs-tkt-991"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-101",
+      "signal_id": "sig-gmail-acc-101",
+      "account_id": "acc-101",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-101",
+      "source_record_id": "rec-sig-gmail-acc-101",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Inbound renewal objection from David Vance (VP of Engineering)",
+      "summary": "David Vance replied: 'We experienced critical webhook drops during Tuesday peak load. Unless our Okta SSO and 99.99% webhook latency SLAs are signed off, our executive team cannot approve the Enterprise renewal in November.'",
+      "severity": "high",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-101-01",
+        "sender": "d.vance@acmedynamics.com",
+        "sender_name": "David Vance",
+        "recipient": "sarah.jenkins@revora.app",
+        "subject": "Re: Enterprise Renewal & Telemetry Issues",
+        "sentiment": "negative",
+        "customer_reply": "Unless our Okta SSO and 99.99% webhook latency SLAs are signed off, our executive team cannot approve the Enterprise renewal in November.",
+        "urgency": "immediate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-101",
+      "signal_id": "sig-cal-acc-101",
+      "account_id": "acc-101",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-101",
+      "source_record_id": "rec-sig-cal-acc-101",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Architecture Review & Renewal Intercept",
+      "summary": "Meeting completed with David Vance and Sarah Jenkins. David emphasized that contract renewal is on hold pending resolution of open delivery delay tickets.",
+      "severity": "high",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-101-01",
+        "meeting_type": "Executive QBR Review",
+        "status": "completed",
+        "attendees": [
+          "d.vance@acmedynamics.com",
+          "sarah.jenkins@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-101",
+      "signal_id": "sig-supp-acc-101",
+      "account_id": "acc-101",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-101",
+      "source_record_id": "tkt-4401",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #4401: Delivery Route Ingestion Webhook Outage",
+      "summary": "15% of delivery tracking payloads timed out during batch ingest on regional logistics cluster.",
+      "severity": "critical",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-4401",
+        "priority": "critical",
+        "status": "escalated"
+      }
+    },
+    {
+      "id": "sig-usage-acc-101",
+      "signal_id": "sig-usage-acc-101",
+      "account_id": "acc-101",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-101",
+      "source_record_id": "rec-sig-usage-acc-101",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Core Workflow Ingest Down 45%",
+      "summary": "Active fleet routing calls contracted 45% over 21-day trailing period.",
+      "severity": "high",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 45.0,
+        "growth_pct": 0.0,
+        "current_seats": 132,
+        "baseline": 240,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-102",
+      "signal_id": "sig-gmail-acc-102",
+      "account_id": "acc-102",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-102",
+      "source_record_id": "rec-sig-gmail-acc-102",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Inbound reply from Rachel Adams (Head of Platform)",
+      "summary": "Rachel Adams replied: 'Our 15 new support engineers are blocked on ticket #4402 because of the legacy SAML migration. We would love Marcus to hop on a working session to unblock our team.'",
+      "severity": "medium",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-102-01",
+        "sender": "radams@cloudnova.io",
+        "sender_name": "Rachel Adams",
+        "recipient": "marcus.chen@revora.app",
+        "subject": "Re: Ticket #4402 & Team Onboarding",
+        "sentiment": "neutral",
+        "customer_reply": "Our 15 new support engineers are blocked on ticket #4402. We'd love Marcus to hop on a working session.",
+        "urgency": "moderate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-102",
+      "signal_id": "sig-cal-acc-102",
+      "account_id": "acc-102",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-102",
+      "source_record_id": "rec-sig-cal-acc-102",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: CloudNova + Revora SSO Unblocker Working Session",
+      "summary": "Scheduled 45-minute working session with Marcus Chen and Lead Solutions Engineer to resolve SAML auth blocker.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-102-01",
+        "meeting_type": "Technical Working Session",
+        "status": "scheduled",
+        "attendees": [
+          "radams@cloudnova.io",
+          "marcus.chen@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-102",
+      "signal_id": "sig-supp-acc-102",
+      "account_id": "acc-102",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-102",
+      "source_record_id": "tkt-4402",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #4402: SSO Authentication SAML Assertion Deprecation",
+      "summary": "New support agent seats failing single sign-on assertion against legacy endpoint.",
+      "severity": "high",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-4402",
+        "priority": "high",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-usage-acc-102",
+      "signal_id": "sig-usage-acc-102",
+      "account_id": "acc-102",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-102",
+      "source_record_id": "rec-sig-usage-acc-102",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Platform Seat Usage Contracted 25%",
+      "summary": "Active daily agent logins reduced by 25% while waiting for authentication unblocker.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 25.0,
+        "growth_pct": 0.0,
+        "current_seats": 68,
+        "baseline": 90,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-103",
+      "signal_id": "sig-gmail-acc-103",
+      "account_id": "acc-103",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-103",
+      "source_record_id": "rec-sig-gmail-acc-103",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Positive update from Liam Gallagher (Chief Data Officer)",
+      "summary": "Liam Gallagher wrote: 'The APAC holiday query lull has completely normalized. Singapore traffic is back to 4.2M queries/day. We are very pleased with latency and are drafting our Q1 expansion budget.'",
+      "severity": "low",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-103-01",
+        "sender": "liam@vortexdata.ai",
+        "sender_name": "Liam Gallagher",
+        "recipient": "sarah.jenkins@revora.app",
+        "subject": "Vortex APAC Inactivity Check-in",
+        "sentiment": "positive",
+        "customer_reply": "Singapore traffic is back to 4.2M queries/day. We are very pleased with latency and are drafting our Q1 expansion budget.",
+        "urgency": "routine"
+      }
+    },
+    {
+      "id": "sig-cal-acc-103",
+      "signal_id": "sig-cal-acc-103",
+      "account_id": "acc-103",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-103",
+      "source_record_id": "rec-sig-cal-acc-103",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Strategic Partnership Review & APAC Expansion",
+      "summary": "Completed annual review. Liam confirmed full satisfaction with API throughput and signed off on Q1 Tokyo node trial.",
+      "severity": "low",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-103-01",
+        "meeting_type": "Executive QBR",
+        "status": "completed",
+        "attendees": [
+          "liam@vortexdata.ai",
+          "sarah.jenkins@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-103",
+      "signal_id": "sig-supp-acc-103",
+      "account_id": "acc-103",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-103",
+      "source_record_id": "tkt-4810",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #4810: Tokyo Edge IP Whitelist Request",
+      "summary": "Routine network configuration request to whitelist APAC egress proxy subnets.",
+      "severity": "low",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-4810",
+        "priority": "low",
+        "status": "resolved"
+      }
+    },
+    {
+      "id": "sig-usage-acc-103",
+      "signal_id": "sig-usage-acc-103",
+      "account_id": "acc-103",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-103",
+      "source_record_id": "rec-sig-usage-acc-103",
+      "signal_type": "usage_growth",
+      "event_type": "telemetry_metric",
+      "title": "Telemetry Ingestion Rebounded +15%",
+      "summary": "Query traffic rebounded after APAC corporate holiday; average 4.2M daily operations.",
+      "severity": "low",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 0.0,
+        "growth_pct": 15.0,
+        "current_seats": 320,
+        "baseline": 278,
+        "trend_direction": "growing"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-104",
+      "signal_id": "sig-gmail-acc-104",
+      "account_id": "acc-104",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-104",
+      "source_record_id": "rec-sig-gmail-acc-104",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Inbound outage complaint from Vikram Patel (CTO)",
+      "summary": "Vikram Patel replied: 'We experienced repeated Kafka 504 timeouts during Tuesday peak ingestion, dropping 15% of our payload events. Our co-founders have halted the contract renewal until we receive a formal root-cause analysis.'",
+      "severity": "critical",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-104-01",
+        "sender": "vikram@hyperscalelabs.co",
+        "sender_name": "Vikram Patel",
+        "recipient": "alex.rivera@revora.app",
+        "subject": "CRITICAL: Webhook Outage & Pausing Renewal",
+        "sentiment": "frustrated",
+        "customer_reply": "Our co-founders have halted the contract renewal until we receive a formal root-cause analysis.",
+        "urgency": "immediate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-104",
+      "signal_id": "sig-cal-acc-104",
+      "account_id": "acc-104",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-104",
+      "source_record_id": "rec-sig-cal-acc-104",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Q4 Executive QBR & Renewal Sign-off [CANCELLED]",
+      "summary": "Exec sponsor Vikram Patel cancelled QBR renewal review meeting with no reschedule date provided following API outage.",
+      "severity": "critical",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-104-01",
+        "meeting_type": "Executive QBR",
+        "status": "cancelled",
+        "attendees": [
+          "vikram@hyperscalelabs.co",
+          "alex.rivera@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-104",
+      "signal_id": "sig-supp-acc-104",
+      "account_id": "acc-104",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-104",
+      "source_record_id": "tkt-8420",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #8420: Kafka Webhook Ingestion 504 Timeout on Inbound Stream",
+      "summary": "Enterprise webhook buffers exhausted under 10k event/sec load causing dropped packets.",
+      "severity": "critical",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-8420",
+        "priority": "critical",
+        "status": "escalated"
+      }
+    },
+    {
+      "id": "sig-usage-acc-104",
+      "signal_id": "sig-usage-acc-104",
+      "account_id": "acc-104",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-104",
+      "source_record_id": "rec-sig-usage-acc-104",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Production API Calls Dropped 52%",
+      "summary": "Engineering team paused secondary pipeline integrations following timeout incident.",
+      "severity": "critical",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 52.0,
+        "growth_pct": 0.0,
+        "current_seats": 48,
+        "baseline": 100,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-105",
+      "signal_id": "sig-gmail-acc-105",
+      "account_id": "acc-105",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-105",
+      "source_record_id": "rec-sig-gmail-acc-105",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Expansion inquiry from Patricia Hayes (CIO)",
+      "summary": "Patricia Hayes wrote: 'Our pediatric wing rollout completed ahead of schedule and license saturation has reached 98.2%. Please send an addendum order form for 50 additional hospital seats under our current enterprise pricing.'",
+      "severity": "low",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-105-01",
+        "sender": "phayes@omnihealth.org",
+        "sender_name": "Dr. Patricia Hayes",
+        "recipient": "marcus.chen@revora.app",
+        "subject": "Order Form Request: 50 Additional Hospital Seats",
+        "sentiment": "positive",
+        "customer_reply": "Please send an addendum order form for 50 additional hospital seats under our current enterprise pricing.",
+        "urgency": "routine"
+      }
+    },
+    {
+      "id": "sig-cal-acc-105",
+      "signal_id": "sig-cal-acc-105",
+      "account_id": "acc-105",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-105",
+      "source_record_id": "rec-sig-cal-acc-105",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: OmniHealth 50-Seat Expansion & Order Form Review",
+      "summary": "Completed contract sync. Dr. Hayes approved Master Services Agreement amendment adding 50 hospital licenses.",
+      "severity": "low",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-105-01",
+        "meeting_type": "Expansion Review",
+        "status": "completed",
+        "attendees": [
+          "phayes@omnihealth.org",
+          "marcus.chen@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-105",
+      "signal_id": "sig-supp-acc-105",
+      "account_id": "acc-105",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-105",
+      "source_record_id": "tkt-5201",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #5201: Clinical Department Role Provisioning",
+      "summary": "Adding specialized nurse practitioner roles to clinical dashboard permission group.",
+      "severity": "low",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-5201",
+        "priority": "low",
+        "status": "resolved"
+      }
+    },
+    {
+      "id": "sig-usage-acc-105",
+      "signal_id": "sig-usage-acc-105",
+      "account_id": "acc-105",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-105",
+      "source_record_id": "rec-sig-usage-acc-105",
+      "signal_type": "usage_growth",
+      "event_type": "telemetry_metric",
+      "title": "License Utilization Reached 98.2% Saturation",
+      "summary": "Active medical staff logins grew 32% across regional health network.",
+      "severity": "low",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 0.0,
+        "growth_pct": 32.0,
+        "current_seats": 196,
+        "baseline": 200,
+        "trend_direction": "growing"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-106",
+      "signal_id": "sig-gmail-acc-106",
+      "account_id": "acc-106",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-106",
+      "source_record_id": "rec-sig-gmail-acc-106",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Procurement budget warning from Michael Sterling (SVP Infrastructure)",
+      "summary": "Michael Sterling replied: 'Our CFO has instituted a strict 20% departmental SaaS reduction mandate. Without a documented executive ROI brief and tiered multi-year pricing, procurement cannot approve the November 12th renewal.'",
+      "severity": "high",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-106-01",
+        "sender": "msterling@apexfintech.com",
+        "sender_name": "Michael Sterling",
+        "recipient": "sarah.jenkins@revora.app",
+        "subject": "Procurement Audit & November Contract Renewal",
+        "sentiment": "frustrated",
+        "customer_reply": "Without a documented executive ROI brief and tiered multi-year pricing, procurement cannot approve the November 12th renewal.",
+        "urgency": "immediate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-106",
+      "signal_id": "sig-cal-acc-106",
+      "account_id": "acc-106",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-106",
+      "source_record_id": "rec-sig-cal-acc-106",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Emergency Executive Risk Intercept with CIO & Procurement",
+      "summary": "Scheduled high-priority alignment call between Sarah Jenkins, VP Sales, and Michael Sterling to present ROI brief and custom volume-tier options.",
+      "severity": "high",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-106-01",
+        "meeting_type": "Executive Intercept",
+        "status": "scheduled",
+        "attendees": [
+          "msterling@apexfintech.com",
+          "sarah.jenkins@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-106",
+      "signal_id": "sig-supp-acc-106",
+      "account_id": "acc-106",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-106",
+      "source_record_id": "tkt-7109",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #7109: SOC2 Automated Compliance Audit Export Failure",
+      "summary": "Scheduled export job timed out on 100M transaction ledger dataset.",
+      "severity": "high",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-7109",
+        "priority": "high",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-usage-acc-106",
+      "signal_id": "sig-usage-acc-106",
+      "account_id": "acc-106",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-106",
+      "source_record_id": "rec-sig-usage-acc-106",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Transaction Telemetry Contracted 30%",
+      "summary": "Banking transaction throughput fell 30% month-over-month alongside compliance freeze.",
+      "severity": "high",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 30.0,
+        "growth_pct": 0.0,
+        "current_seats": 140,
+        "baseline": 200,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-107",
+      "signal_id": "sig-gmail-acc-107",
+      "account_id": "acc-107",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-107",
+      "source_record_id": "rec-sig-gmail-acc-107",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Positive load test report from Chloe Nguyen (VP Product)",
+      "summary": "Chloe Nguyen wrote: 'Our pre-Black Friday stress test passed with flying colors. We hit 15,000 checkout events/sec and Revora ingestion latency stayed below 60ms.'",
+      "severity": "low",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-107-01",
+        "sender": "chloe@kiteflow.shop",
+        "sender_name": "Chloe Nguyen",
+        "recipient": "alex.rivera@revora.app",
+        "subject": "Black Friday Load Test Results - Successful",
+        "sentiment": "positive",
+        "customer_reply": "We hit 15,000 checkout events/sec and Revora's ingestion latency stayed below 60ms.",
+        "urgency": "routine"
+      }
+    },
+    {
+      "id": "sig-cal-acc-107",
+      "signal_id": "sig-cal-acc-107",
+      "account_id": "acc-107",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-107",
+      "source_record_id": "rec-sig-cal-acc-107",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Q4 Peak Sales Readiness & 99.99% SLA Validation",
+      "summary": "Completed review meeting. Confirmed auto-scaling parameters for Cyber Week traffic spike.",
+      "severity": "low",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-107-01",
+        "meeting_type": "QBR Sync",
+        "status": "completed",
+        "attendees": [
+          "chloe@kiteflow.shop",
+          "alex.rivera@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-107",
+      "signal_id": "sig-supp-acc-107",
+      "account_id": "acc-107",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-107",
+      "source_record_id": "tkt-6102",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #6102: Webhook Endpoint IP Range Update",
+      "summary": "Added new Shopify checkout proxy IP addresses to ingress firewall.",
+      "severity": "low",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-6102",
+        "priority": "low",
+        "status": "resolved"
+      }
+    },
+    {
+      "id": "sig-usage-acc-107",
+      "signal_id": "sig-usage-acc-107",
+      "account_id": "acc-107",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-107",
+      "source_record_id": "rec-sig-usage-acc-107",
+      "signal_type": "usage_growth",
+      "event_type": "telemetry_metric",
+      "title": "E-Commerce Telemetry Grew +28%",
+      "summary": "Seasonal order processing telemetry expanded 28% heading into Q4 holidays.",
+      "severity": "low",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 0.0,
+        "growth_pct": 28.0,
+        "current_seats": 55,
+        "baseline": 43,
+        "trend_direction": "growing"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-108",
+      "signal_id": "sig-gmail-acc-108",
+      "account_id": "acc-108",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-108",
+      "source_record_id": "rec-sig-gmail-acc-108",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: CDN transition update from Arthur Pendelton (Director of Technology)",
+      "summary": "Arthur Pendelton wrote: 'We are in the middle of our CDN cutover to Fastly. Video telemetry events are down about 18% temporarily but will recover once Frankfurt transcoding completes.'",
+      "severity": "medium",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-108-01",
+        "sender": "arthur@starlightmedia.io",
+        "sender_name": "Arthur Pendelton",
+        "recipient": "marcus.chen@revora.app",
+        "subject": "Fastly CDN Cutover Telemetry Notice",
+        "sentiment": "neutral",
+        "customer_reply": "Video telemetry events are down about 18% temporarily but will recover once Frankfurt transcoding completes.",
+        "urgency": "moderate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-108",
+      "signal_id": "sig-cal-acc-108",
+      "account_id": "acc-108",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-108",
+      "source_record_id": "rec-sig-cal-acc-108",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Quarterly Media Infrastructure & Transcoding Review",
+      "summary": "Scheduled working session with Arthur Pendelton to verify telemetry recovery after Frankfurt CDN cutover.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-108-01",
+        "meeting_type": "Technical Sync",
+        "status": "scheduled",
+        "attendees": [
+          "arthur@starlightmedia.io",
+          "marcus.chen@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-108",
+      "signal_id": "sig-supp-acc-108",
+      "account_id": "acc-108",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-108",
+      "source_record_id": "tkt-7821",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #7821: Video Transcode Bitrate Metrics Anomaly",
+      "summary": "HLS manifest bitrate metrics showing occasional null values on Europe cluster.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-7821",
+        "priority": "medium",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-usage-acc-108",
+      "signal_id": "sig-usage-acc-108",
+      "account_id": "acc-108",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-108",
+      "source_record_id": "rec-sig-usage-acc-108",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Media Ingest Telemetry Contracted 18%",
+      "summary": "Temporary drop in media stream encoding events during CDN restructuring.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 18.0,
+        "growth_pct": 0.0,
+        "current_seats": 82,
+        "baseline": 100,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-109",
+      "signal_id": "sig-gmail-acc-109",
+      "account_id": "acc-109",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-109",
+      "source_record_id": "rec-sig-gmail-acc-109",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Inbound compliance blocker from Alistair Finch (CIO)",
+      "summary": "Alistair Finch wrote: 'Our healthcare compliance officer flagged that Revora audit logs do not meet HIPAA immutable export standards. With our contract expiring November 5th, this is an immediate renewal blocker.'",
+      "severity": "critical",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-109-01",
+        "sender": "afinch@pulsewavehealth.com",
+        "sender_name": "Dr. Alistair Finch",
+        "recipient": "sarah.jenkins@revora.app",
+        "subject": "URGENT: HIPAA Compliance Audit Blocker for Renewal",
+        "sentiment": "frustrated",
+        "customer_reply": "Our healthcare compliance officer flagged that Revora audit logs do not meet HIPAA immutable export standards. This is an immediate renewal blocker.",
+        "urgency": "immediate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-109",
+      "signal_id": "sig-cal-acc-109",
+      "account_id": "acc-109",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-109",
+      "source_record_id": "rec-sig-cal-acc-109",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Emergency HIPAA Compliance & Audit Log Security Intercept",
+      "summary": "Scheduled urgent meeting with Alistair Finch and Revora Chief Security Officer to demonstrate cryptographic audit export compliance ahead of Nov 5 renewal.",
+      "severity": "critical",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-109-01",
+        "meeting_type": "Security Intercept",
+        "status": "scheduled",
+        "attendees": [
+          "afinch@pulsewavehealth.com",
+          "sarah.jenkins@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-109",
+      "signal_id": "sig-supp-acc-109",
+      "account_id": "acc-109",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-109",
+      "source_record_id": "tkt-8812",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #8812: HIPAA Audit Log Immutability & Signature Export",
+      "summary": "Compliance security audit failed due to lack of SHA-256 tamper-evident export receipt.",
+      "severity": "critical",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-8812",
+        "priority": "critical",
+        "status": "escalated"
+      }
+    },
+    {
+      "id": "sig-usage-acc-109",
+      "signal_id": "sig-usage-acc-109",
+      "account_id": "acc-109",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-109",
+      "source_record_id": "rec-sig-usage-acc-109",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Patient Portal Activity Contracted 32%",
+      "summary": "Clinical staff usage dropped 32% following internal compliance freeze order.",
+      "severity": "critical",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 32.0,
+        "growth_pct": 0.0,
+        "current_seats": 68,
+        "baseline": 100,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-110",
+      "signal_id": "sig-gmail-acc-110",
+      "account_id": "acc-110",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-110",
+      "source_record_id": "rec-sig-gmail-acc-110",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Vendor benchmark update from Maya Lin (CISO)",
+      "summary": "Maya Lin wrote: 'Our SOC analysts are conducting a side-by-side benchmark between Revora and an internal Apache Flink stream. Ingestion latency and query flexibility will determine our long-term roadmap.'",
+      "severity": "medium",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-110-01",
+        "sender": "maya@cobaltsec.io",
+        "sender_name": "Maya Lin",
+        "recipient": "alex.rivera@revora.app",
+        "subject": "SOC Telemetry Benchmark Progress",
+        "sentiment": "neutral",
+        "customer_reply": "Our SOC analysts are conducting a side-by-side benchmark between Revora and an internal Apache Flink stream.",
+        "urgency": "moderate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-110",
+      "signal_id": "sig-cal-acc-110",
+      "account_id": "acc-110",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-110",
+      "source_record_id": "rec-sig-cal-acc-110",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: SOC Threat Pipeline Latency Benchmark Review",
+      "summary": "Completed technical evaluation with Maya Lin and Lead Security Architect. Delivered latency optimization tuning recommendations.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-110-01",
+        "meeting_type": "Technical Benchmark",
+        "status": "completed",
+        "attendees": [
+          "maya@cobaltsec.io",
+          "alex.rivera@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-110",
+      "signal_id": "sig-supp-acc-110",
+      "account_id": "acc-110",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-110",
+      "source_record_id": "tkt-7901",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #7901: High-Volume Threat Feed Deduplication Lag",
+      "summary": "Deduplication worker threads lagging 4 seconds behind raw ingestion spike.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-7901",
+        "priority": "medium",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-usage-acc-110",
+      "signal_id": "sig-usage-acc-110",
+      "account_id": "acc-110",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-110",
+      "source_record_id": "rec-sig-usage-acc-110",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Threat Stream Telemetry Contracted 20%",
+      "summary": "Secondary firewall event feeds routed to temporary sandbox during internal benchmark.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 20.0,
+        "growth_pct": 0.0,
+        "current_seats": 120,
+        "baseline": 150,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-111",
+      "signal_id": "sig-gmail-acc-111",
+      "account_id": "acc-111",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-111",
+      "source_record_id": "rec-sig-gmail-acc-111",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Feature enhancement request from Ethan Cole (VP Data Science)",
+      "summary": "Ethan Cole wrote: 'Our ML engineers are running into bottlenecks exporting training metrics. We need native PyTorch callback integration and Parquet export, otherwise our teams will look at alternatives before Q4 renewal.'",
+      "severity": "medium",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-111-01",
+        "sender": "ethan@datanest.ai",
+        "sender_name": "Ethan Cole",
+        "recipient": "marcus.chen@revora.app",
+        "subject": "ML Pipeline Requirements & Q4 Renewal",
+        "sentiment": "neutral",
+        "customer_reply": "We need native PyTorch callback integration and Parquet export, otherwise our teams will look at alternatives.",
+        "urgency": "moderate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-111",
+      "signal_id": "sig-cal-acc-111",
+      "account_id": "acc-111",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-111",
+      "source_record_id": "rec-sig-cal-acc-111",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Data Science Integration & PyTorch Support Roadmap Walkthrough",
+      "summary": "Scheduled roadmap review with Ethan Cole and Senior AI Product Manager to demo the upcoming Parquet export SDK.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-111-01",
+        "meeting_type": "Roadmap Sync",
+        "status": "scheduled",
+        "attendees": [
+          "ethan@datanest.ai",
+          "marcus.chen@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-111",
+      "signal_id": "sig-supp-acc-111",
+      "account_id": "acc-111",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-111",
+      "source_record_id": "tkt-8110",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #8110: Large Batch Metric Export Timeout (Parquet Format)",
+      "summary": "Exporting 5GB+ experiment logs times out on HTTP 504 after 60 seconds.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-8110",
+        "priority": "medium",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-usage-acc-111",
+      "signal_id": "sig-usage-acc-111",
+      "account_id": "acc-111",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-111",
+      "source_record_id": "rec-sig-usage-acc-111",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Model Training Experiment Telemetry Contracted 22%",
+      "summary": "Weekly training telemetry runs dropped 22% due to manual export friction.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 22.0,
+        "growth_pct": 0.0,
+        "current_seats": 78,
+        "baseline": 100,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-112",
+      "signal_id": "sig-gmail-acc-112",
+      "account_id": "acc-112",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-112",
+      "source_record_id": "rec-sig-gmail-acc-112",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Critical latency escalation from Priya Sharma (VP Core Platform)",
+      "summary": "Priya Sharma replied: 'Our settlement transaction latency breached our 400ms SLA during market close today. With our contract expiring October 31st, we require an immediate technical post-mortem and VP Engineering escalation.'",
+      "severity": "critical",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-112-01",
+        "sender": "priya@quantumpay.com",
+        "sender_name": "Priya Sharma",
+        "recipient": "sarah.jenkins@revora.app",
+        "subject": "EMERGENCY: Settlement Latency SLA Breach & Oct 31 Renewal",
+        "sentiment": "frustrated",
+        "customer_reply": "Our settlement transaction latency breached our 400ms SLA during market close today. We require an immediate technical post-mortem.",
+        "urgency": "immediate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-112",
+      "signal_id": "sig-cal-acc-112",
+      "account_id": "acc-112",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-112",
+      "source_record_id": "rec-sig-cal-acc-112",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Emergency Settlement SLA Escalation & Renewal Intercept",
+      "summary": "Scheduled war-room alignment with Priya Sharma, Sarah Jenkins, and VP of Cloud Infrastructure to resolve settlement engine latency.",
+      "severity": "critical",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-112-01",
+        "meeting_type": "Executive Intercept",
+        "status": "scheduled",
+        "attendees": [
+          "priya@quantumpay.com",
+          "sarah.jenkins@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-112",
+      "signal_id": "sig-supp-acc-112",
+      "account_id": "acc-112",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-112",
+      "source_record_id": "tkt-5102",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #5102: Payment Settlement Latency Spike (>450ms)",
+      "summary": "Database read connection pool saturated during 4:00 PM market close batch settlement.",
+      "severity": "critical",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-5102",
+        "priority": "critical",
+        "status": "escalated"
+      }
+    },
+    {
+      "id": "sig-usage-acc-112",
+      "signal_id": "sig-usage-acc-112",
+      "account_id": "acc-112",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-112",
+      "source_record_id": "rec-sig-usage-acc-112",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Payment Gateway Settlement Telemetry Dropped 36%",
+      "summary": "Payment gateway volume dropped 36% as customer shifted transaction batches to backup processor.",
+      "severity": "critical",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 36.0,
+        "growth_pct": 0.0,
+        "current_seats": 115,
+        "baseline": 180,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-113",
+      "signal_id": "sig-gmail-acc-113",
+      "account_id": "acc-113",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-113",
+      "source_record_id": "rec-sig-gmail-acc-113",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Fleet rollout confirmation from Carlos Mendez (Head of Fleet Operations)",
+      "summary": "Carlos Mendez wrote: 'We have fully brought 50 new refrigerated delivery vans online across Texas and Arizona. Telemetry GPS feeds are solid, and route optimization is operating without any issues.'",
+      "severity": "low",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-113-01",
+        "sender": "carlos@zenithlogistics.com",
+        "sender_name": "Carlos Mendez",
+        "recipient": "alex.rivera@revora.app",
+        "subject": "Re: Texas Van Deployment Update",
+        "sentiment": "positive",
+        "customer_reply": "Telemetry GPS feeds are solid, and route optimization is operating without any issues.",
+        "urgency": "routine"
+      }
+    },
+    {
+      "id": "sig-cal-acc-113",
+      "signal_id": "sig-cal-acc-113",
+      "account_id": "acc-113",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-113",
+      "source_record_id": "rec-sig-cal-acc-113",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Semi-Annual Fleet Telemetry & Route Optimization Check-in",
+      "summary": "Completed semi-annual sync with Carlos Mendez. Validated route latency and confirmed upcoming Midwestern depot rollout.",
+      "severity": "low",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-113-01",
+        "meeting_type": "Semi-Annual Review",
+        "status": "completed",
+        "attendees": [
+          "carlos@zenithlogistics.com",
+          "alex.rivera@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-113",
+      "signal_id": "sig-supp-acc-113",
+      "account_id": "acc-113",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-113",
+      "source_record_id": "tkt-6490",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #6490: Vehicle CAN Bus Sensor Firmware Latency",
+      "summary": "Minor GPS drift on 4 legacy telemetry dongles; resolved via remote OTA firmware flash.",
+      "severity": "low",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-6490",
+        "priority": "low",
+        "status": "resolved"
+      }
+    },
+    {
+      "id": "sig-usage-acc-113",
+      "signal_id": "sig-usage-acc-113",
+      "account_id": "acc-113",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-113",
+      "source_record_id": "rec-sig-usage-acc-113",
+      "signal_type": "usage_growth",
+      "event_type": "telemetry_metric",
+      "title": "Fleet Vehicle Telemetry Events Steady (+8%)",
+      "summary": "Telemetry ingest steady across 450 vehicles; telemetry expansion on track.",
+      "severity": "low",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 0.0,
+        "growth_pct": 8.0,
+        "current_seats": 45,
+        "baseline": 42,
+        "trend_direction": "steady"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-114",
+      "signal_id": "sig-gmail-acc-114",
+      "account_id": "acc-114",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-114",
+      "source_record_id": "rec-sig-gmail-acc-114",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Defense audit freeze notice from Samantha Wright (Director of Avionics Software)",
+      "summary": "Samantha Wright wrote: 'Our flight simulation lab is under an FAA/defense security air-gap freeze until next Tuesday. Telemetry sensor ingest is paused during air-gap isolation and will resume as soon as inspection concludes.'",
+      "severity": "medium",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-114-01",
+        "sender": "samantha@aetherdynamics.tech",
+        "sender_name": "Samantha Wright",
+        "recipient": "marcus.chen@revora.app",
+        "subject": "Air-Gap Audit Freeze & Telemetry Resume Date",
+        "sentiment": "neutral",
+        "customer_reply": "Telemetry sensor ingest is paused during air-gap isolation and will resume as soon as inspection concludes.",
+        "urgency": "moderate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-114",
+      "signal_id": "sig-cal-acc-114",
+      "account_id": "acc-114",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-114",
+      "source_record_id": "rec-sig-cal-acc-114",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: Avionics Security Compliance & Q4 Renewal Sync",
+      "summary": "Scheduled post-audit review with Samantha Wright to verify sensor telemetry stream restart and review December 5th contract renewal terms.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-114-01",
+        "meeting_type": "Renewal & Security Sync",
+        "status": "scheduled",
+        "attendees": [
+          "samantha@aetherdynamics.tech",
+          "marcus.chen@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-114",
+      "signal_id": "sig-supp-acc-114",
+      "account_id": "acc-114",
+      "source_category": "support",
+      "source_type": "zendesk",
+      "source": "zendesk",
+      "evidence_id": "ev-sig-supp-acc-114",
+      "source_record_id": "tkt-8304",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "Ticket #8304: Air-Gapped Proxy Certification Ingest Token",
+      "summary": "Generated specialized single-use mTLS certificates for isolated lab hardware test bench.",
+      "severity": "medium",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "tkt-8304",
+        "priority": "medium",
+        "status": "open"
+      }
+    },
+    {
+      "id": "sig-usage-acc-114",
+      "signal_id": "sig-usage-acc-114",
+      "account_id": "acc-114",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-114",
+      "source_record_id": "rec-sig-usage-acc-114",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "Sensor Ingestion Decreased 18% During Audit",
+      "summary": "Laboratory network isolated for defense hardware validation testing.",
+      "severity": "medium",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 18.0,
+        "growth_pct": 0.0,
+        "current_seats": 90,
+        "baseline": 110,
+        "trend_direction": "declining"
+      }
+    },
+    {
+      "id": "sig-gmail-acc-hs-101",
+      "signal_id": "sig-gmail-acc-hs-101",
+      "account_id": "acc-hs-101",
+      "source_category": "email",
+      "source_type": "gmail",
+      "source": "gmail",
+      "evidence_id": "ev-sig-gmail-acc-hs-101",
+      "source_record_id": "rec-sig-gmail-acc-hs-101",
+      "signal_type": "customer_reply",
+      "event_type": "email_received",
+      "title": "Gmail: Inbound reply from Bob Vance (VP Engineering - HubSpot CRM)",
+      "summary": "Bob Vance replied: 'We have logged 18 days without an executive sync while dealing with recurring payment webhook outages. If ticket hs-tkt-991 isn't resolved by engineering this week, we'll be forced to evaluate HubSpot ecosystem alternatives.'",
+      "severity": "high",
+      "timestamp": "2026-10-09T18:40:00.324531",
+      "occurred_at": "2026-10-09T18:40:00.324531",
+      "metadata": {
+        "thread_id": "gm-th-acc-hs-101-01",
+        "sender": "bob@starlight.io",
+        "sender_name": "Bob Vance",
+        "recipient": "sarah.jenkins@revora.app",
+        "subject": "Re: HubSpot CRM Service Continuity & Outages",
+        "sentiment": "negative",
+        "customer_reply": "If ticket hs-tkt-991 isn't resolved by engineering this week, we'll be forced to evaluate alternatives.",
+        "urgency": "immediate"
+      }
+    },
+    {
+      "id": "sig-cal-acc-hs-101",
+      "signal_id": "sig-cal-acc-hs-101",
+      "account_id": "acc-hs-101",
+      "source_category": "calendar",
+      "source_type": "google_calendar",
+      "source": "google_calendar",
+      "evidence_id": "ev-sig-cal-acc-hs-101",
+      "source_record_id": "rec-sig-cal-acc-hs-101",
+      "signal_type": "calendar_meeting",
+      "event_type": "calendar_event",
+      "title": "Google Calendar: HubSpot CRM Executive Renewal Alignment & Bug Review",
+      "summary": "Scheduled executive check-in between Alice Smith, Principal Solutions Engineer, and Bob Vance to review webhook recovery.",
+      "severity": "high",
+      "timestamp": "2026-10-10T16:40:00.324531",
+      "occurred_at": "2026-10-10T16:40:00.324531",
+      "metadata": {
+        "calendar_id": "primary",
+        "event_id": "cal-ev-acc-hs-101-01",
+        "meeting_type": "Executive Renewal Alignment",
+        "status": "scheduled",
+        "attendees": [
+          "bob@starlight.io",
+          "sarah.jenkins@revora.app"
+        ]
+      }
+    },
+    {
+      "id": "sig-supp-acc-hs-101",
+      "signal_id": "sig-supp-acc-hs-101",
+      "account_id": "acc-hs-101",
+      "source_category": "support",
+      "source_type": "hubspot",
+      "source": "hubspot",
+      "evidence_id": "ev-sig-supp-acc-hs-101",
+      "source_record_id": "hs-tkt-991",
+      "signal_type": "support_ticket",
+      "event_type": "ticket_opened",
+      "title": "HubSpot Ticket hs-tkt-991: Critical Webhook Integration Outage",
+      "summary": "[CRITICAL] Production payment webhook callback times out causing invoice status synchronization failure.",
+      "severity": "critical",
+      "timestamp": "2026-10-08T20:40:00.324531",
+      "occurred_at": "2026-10-08T20:40:00.324531",
+      "metadata": {
+        "ticket_id": "hs-tkt-991",
+        "priority": "critical",
+        "status": "escalated"
+      }
+    },
+    {
+      "id": "sig-usage-acc-hs-101",
+      "signal_id": "sig-usage-acc-hs-101",
+      "account_id": "acc-hs-101",
+      "source_category": "usage",
+      "source_type": "telemetry",
+      "source": "telemetry",
+      "evidence_id": "ev-sig-usage-acc-hs-101",
+      "source_record_id": "rec-sig-usage-acc-hs-101",
+      "signal_type": "usage_drop",
+      "event_type": "telemetry_metric",
+      "title": "HubSpot Company Usage Telemetry Down 34%",
+      "summary": "CRM platform activity declined 34% over trailing 30 days.",
+      "severity": "high",
+      "timestamp": "2026-10-10T19:40:00.324531",
+      "occurred_at": "2026-10-10T19:40:00.324531",
+      "metadata": {
+        "drop_pct": 34.0,
+        "growth_pct": 0.0,
+        "current_seats": 78,
+        "baseline": 118,
+        "trend_direction": "declining"
       }
     }
   ]

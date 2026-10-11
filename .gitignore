@@ -286,3 +286,11 @@ __pycache__/
 .env.*
 !.env.example
 node_modules/
+
+# MongoDB local database storage
+mongodb_data/
+backend/mongodb_data/
+*.wt
+WiredTiger*
+diagnostic.data/
+mongod.lock

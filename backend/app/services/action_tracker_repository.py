@@ -136,25 +136,25 @@ class ActionTrackerRepository:
         )
         self._items[item2.id] = item2
 
-        # Seed 3: In Progress action with Auto-Capture Ready from Google Calendar/Gmail (Apex Systems)
+        # Seed 3: In Progress action with Auto-Capture Ready from Google Calendar/Gmail (CloudNova Technologies)
         item3 = ActionTrackerItem(
             id="act-track-103",
             proposal_id=None,
             account_id="acc-102",
-            account_name="Apex Systems",
+            account_name="CloudNova Technologies",
             action_type="task_create",
             title="Technical Adoption & SSO Alignment Review",
             description="Identify why developer team seats remain unallocated despite contract expansion.",
             investigation_id=None,
-            evidence_ids=["sig-201", "sig-202"],
+            evidence_ids=["sig-104", "sig-107"],
             recommendation_payload={
-                "task": "Meet with Apex DevOps lead to review SAML SSO integration blockage",
-                "assigned_to": "Marcus Vance (Solutions Engineer)",
+                "task": "Meet with CloudNova DevOps lead to review SAML SSO integration blockage",
+                "assigned_to": "Marcus Chen (CSM)",
                 "due_date": (now + timedelta(days=2)).strftime("%Y-%m-%d")
             },
             action_status=ActionExecutionStatus.EXECUTING,
             work_status=WorkStatus.IN_PROGRESS,
-            assigned_to="Marcus Vance (Solutions Engineer)",
+            assigned_to="Marcus Chen (CSM)",
             execution_mode="simulated",
             execution_result={
                 "execution_id": "exec-task-3301",
@@ -165,10 +165,10 @@ class ActionTrackerRepository:
             auto_capture_available=True,
             auto_capture_preview={
                 "source": "Google Calendar Telemetry",
-                "detected_event": "Meeting 'Apex Systems Technical Adoption Sync' completed with 4 attendees",
+                "detected_event": "Meeting 'CloudNova Technologies Technical Adoption Sync' completed with 4 attendees",
                 "detected_notes": "Call concluded at 4:30 PM. Lead DevOps engineer confirmed SAML metadata was misconfigured on Okta side. Reconfiguration succeeded during screen share.",
                 "detected_customer_response": "Positive — DevOps team confirmed 35 developers will now log in via Okta tomorrow morning.",
-                "detected_commitments": "Apex team will invite remaining 15 frontend engineers; Revora SE will monitor login volume on Thursday.",
+                "detected_commitments": "CloudNova team will invite remaining 15 frontend engineers; Revora SE will monitor login volume on Thursday.",
                 "detected_next_steps": "Check usage dashboard on Friday to confirm active user count rises from 12 to 50+."
             },
             created_at=yesterday,
@@ -176,21 +176,21 @@ class ActionTrackerRepository:
         )
         self._items[item3.id] = item3
 
-        # Seed 4: Approved action awaiting execution / not started (CloudScale Solutions)
+        # Seed 4: Approved action awaiting execution / not started (Vortex Analytics)
         item4 = ActionTrackerItem(
             id="act-track-104",
             proposal_id=None,
             account_id="acc-103",
-            account_name="CloudScale Solutions",
+            account_name="Vortex Analytics",
             action_type="csm_outreach_email",
             title="Quarterly Executive Alignment & Feature Adoption Sync",
             description="Schedule 30-min strategic sync ahead of 60-day renewal cycle to prevent surprise churn.",
             investigation_id=None,
-            evidence_ids=["sig-301"],
+            evidence_ids=["sig-113"],
             recommendation_payload={
-                "recipient": "director-it@cloudscale.io",
-                "subject": "CloudScale Solutions & Revora Executive Alignment",
-                "body": "Hi Jordan, reaching out ahead of your renewal window to ensure your infrastructure teams are leveraging our recent performance optimizations."
+                "recipient": "liam@vortexdata.ai",
+                "subject": "Vortex Analytics & Revora Executive Alignment",
+                "body": "Hi Liam, reaching out ahead of your renewal window to ensure your infrastructure teams are leveraging our recent performance optimizations."
             },
             action_status=ActionExecutionStatus.APPROVED,
             work_status=WorkStatus.NOT_STARTED,

@@ -535,6 +535,15 @@ class FeedbackRepository:
         )
         self._surveys[survey_103.id] = survey_103
 
+        if self.db is not None:
+            try:
+                for s in self._surveys.values():
+                    self.db.surveys.update_one({"id": s.id}, {"$setOnInsert": s.model_dump()}, upsert=True)
+                for r in self._responses.values():
+                    self.db.feedback_records.update_one({"id": r.id}, {"$setOnInsert": r.model_dump()}, upsert=True)
+            except Exception as e:
+                logger.warning(f"Error seeding MongoDB feedback data: {e}")
+
     # --- Survey Template operations ---
     def get_templates(self) -> List[SurveyFormTemplate]:
         return list(self._templates.values())
