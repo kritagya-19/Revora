@@ -20,6 +20,7 @@ from app.ai.schemas import (
     SignalCluster,
 )
 from app.core.config import settings
+from app.core.llm_client import llm_client
 
 logger = logging.getLogger("revora.ai.agent1_signal_analysis")
 
@@ -54,7 +55,7 @@ class Agent1SignalAnalysis:
         observations, cited_ids = self._generate_observations(account, evidence, usage_comparison, clusters)
 
         # 5. Optional LLM enhancement for interpreting message nuances if API key configured
-        if self.api_key and self.api_key.strip():
+        if llm_client.is_available() or (self.api_key and self.api_key.strip()):
             observations = self._enhance_with_llm(account, observations, clusters)
 
         return SignalAnalysisOutput(
@@ -194,28 +195,43 @@ class Agent1SignalAnalysis:
 
     def _enhance_with_llm(self, account, baseline_obs, clusters) -> List[str]:
         """
-        Optional: uses Gemini to distill nuances of customer sentiment if available.
+        Uses OpenRouter / Gemini to distill nuances of customer sentiment if available.
         """
-        try:
-            from google import genai
-            client = genai.Client(api_key=self.api_key)
-            prompt = (
-                f"Account: {account.name} (ARR: ${account.arr:,.0f}).\n"
-                f"Baseline observations: {json.dumps(baseline_obs)}\n"
-                f"Clusters: {json.dumps([c.model_dump() for c in clusters])}\n"
-                "Return a JSON list of strings summarizing the 3-4 most critical behavioral observations. "
-                "Keep any citation tags like [EVID-...] intact."
-            )
-            response = client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config={"response_mime_type": "application/json"}
-            )
-            if response.text:
-                res = json.loads(response.text)
+        prompt = (
+            f"Account: {account.name} (ARR: ${account.arr:,.0f}).\n"
+            f"Baseline observations: {json.dumps(baseline_obs)}\n"
+            f"Clusters: {json.dumps([c.model_dump() for c in clusters])}\n"
+            "Return a JSON list of strings summarizing the 3-4 most critical behavioral observations. "
+            "Keep any citation tags like [EVID-...] intact."
+        )
+
+        if llm_client.is_available():
+            try:
+                res = llm_client.generate_json(
+                    prompt,
+                    system_prompt="You are Agent 1 (Signal Analysis Specialist) for Revora. Return a JSON list of strings."
+                )
                 if isinstance(res, list) and len(res) > 0:
                     return res
-        except Exception as e:
-            logger.debug(f"LLM signal enhancement skipped: {e}")
+                elif isinstance(res, dict) and "observations" in res and isinstance(res["observations"], list):
+                    return res["observations"]
+            except Exception as e:
+                logger.debug(f"OpenRouter signal enhancement failed: {e}")
+
+        if self.api_key and self.api_key.strip():
+            try:
+                from google import genai
+                client = genai.Client(api_key=self.api_key)
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config={"response_mime_type": "application/json"}
+                )
+                if response.text:
+                    res = json.loads(response.text)
+                    if isinstance(res, list) and len(res) > 0:
+                        return res
+            except Exception as e:
+                logger.debug(f"Gemini signal enhancement skipped: {e}")
 
         return baseline_obs

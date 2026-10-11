@@ -20,6 +20,7 @@ from app.ai.schemas import (
     RiskExplanationOutput,
 )
 from app.core.config import settings
+from app.core.llm_client import llm_client
 
 logger = logging.getLogger("revora.ai.agent2_risk_explanation")
 
@@ -76,7 +77,7 @@ class Agent2RiskExplanation:
         narrative = self._generate_narrative(account, deterministic_risk, contributing_rules_narrative, urgency_drivers)
 
         # 5. Optional LLM plain language enhancement (authoritative numbers remain locked)
-        if self.api_key and self.api_key.strip():
+        if llm_client.is_available() or (self.api_key and self.api_key.strip()):
             narrative = self._enhance_narrative_with_llm(
                 account, deterministic_risk, narrative
             )
@@ -124,13 +125,10 @@ class Agent2RiskExplanation:
         base_narrative: str
     ) -> str:
         """
-        Optional: Uses Gemini to craft a polished executive briefing paragraph.
+        Uses OpenRouter / Gemini to craft a polished executive briefing paragraph.
         Prompt explicitly enforces that authoritative numbers cannot be changed.
         """
-        try:
-            from google import genai
-            client = genai.Client(api_key=self.api_key)
-            prompt = f"""
+        prompt = f"""
 You are Agent 2 (Risk Assessment & Explanation) for Revora.
 Explain to a Customer Success Manager how serious this warning is.
 MANDATORY CONSTRAINTS:
@@ -144,16 +142,31 @@ Base narrative:
 
 Return plain text:
 """
-            response = client.models.generate_content(
-                model=self.model_name,
-                contents=prompt
-            )
-            if response.text and len(response.text.strip()) > 30:
-                # Ensure the authoritative score appears in the narrative
-                enhanced = response.text.strip()
-                if str(deterministic_risk.risk_score) in enhanced:
-                    return enhanced
-        except Exception as e:
-            logger.debug(f"LLM risk explanation enhancement skipped: {e}")
+        if llm_client.is_available():
+            try:
+                enhanced = llm_client.generate_text(
+                    prompt,
+                    system_prompt="You are Agent 2 (Risk Assessment Specialist) for Revora. Strictly preserve authoritative numbers."
+                )
+                if enhanced and len(enhanced.strip()) > 30:
+                    if str(deterministic_risk.risk_score) in enhanced:
+                        return enhanced.strip()
+            except Exception as e:
+                logger.debug(f"OpenRouter risk narrative enhancement skipped: {e}")
+
+        if self.api_key and self.api_key.strip():
+            try:
+                from google import genai
+                client = genai.Client(api_key=self.api_key)
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt
+                )
+                if response.text and len(response.text.strip()) > 30:
+                    enhanced = response.text.strip()
+                    if str(deterministic_risk.risk_score) in enhanced:
+                        return enhanced
+            except Exception as e:
+                logger.debug(f"Gemini risk narrative enhancement skipped: {e}")
 
         return base_narrative

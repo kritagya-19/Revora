@@ -11,6 +11,8 @@ from app.models.schemas import (
     AskAccountQuestionResponse
 )
 
+from app.core.llm_client import llm_client
+
 logger = logging.getLogger("revora.llm")
 
 class LLMService:
@@ -22,12 +24,25 @@ class LLMService:
         """
         Executes the AI Investigation pipeline:
         1. Assembles verified stored evidence and deterministic risk score.
-        2. Prompts Gemini (or deterministic grounding engine) for structured findings, causal explanation, blindspots, and recommended action.
+        2. Prompts OpenRouter LLM (or Gemini / deterministic grounding engine) for structured findings, causal explanation, blindspots, and recommended action.
         3. Validates that all cited evidence IDs exist in stored signals.
         """
         valid_signal_ids = {s.id for s in account.signals}
 
-        # If Gemini API key is configured, attempt call
+        # 1. Attempt OpenRouter LLM first
+        if llm_client.is_available():
+            try:
+                prompt = self._build_investigation_prompt(account)
+                parsed = llm_client.generate_json(
+                    prompt,
+                    system_prompt="You are Revora's Chief Revenue Intelligence AI. Synthesize an evidence-grounded Revenue Risk Autopsy. Return strictly valid JSON."
+                )
+                if parsed:
+                    return self._build_and_validate_investigation(account, parsed, valid_signal_ids)
+            except Exception as e:
+                logger.warning(f"OpenRouter investigation call failed: {e}. Trying Gemini or fallback.")
+
+        # 2. If Gemini API key is configured, attempt call
         if self.api_key and self.api_key.strip():
             try:
                 from google import genai
@@ -47,7 +62,7 @@ class LLMService:
             except Exception as e:
                 logger.warning(f"Gemini API investigation call failed: {e}. Using deterministic evidence synthesis.")
 
-        # Deterministic evidence-grounded investigation fallback
+        # 3. Deterministic evidence-grounded investigation fallback
         return self._generate_deterministic_investigation(account, valid_signal_ids)
 
     def answer_account_question(self, account: AccountDetail, question: str) -> AskAccountQuestionResponse:
@@ -56,6 +71,28 @@ class LLMService:
         """
         valid_signal_ids = {s.id for s in account.signals}
 
+        # 1. Attempt OpenRouter LLM first
+        if llm_client.is_available():
+            try:
+                prompt = self._build_qa_prompt(account, question)
+                parsed = llm_client.generate_json(
+                    prompt,
+                    system_prompt="You are Revora's Account Assistant. Answer grounded strictly in verified account records. Output strictly valid JSON."
+                )
+                if parsed:
+                    cited_ids = [eid for eid in parsed.get("cited_evidence_ids", []) if eid in valid_signal_ids]
+                    return AskAccountQuestionResponse(
+                        account_id=account.id,
+                        question=question,
+                        answer=parsed.get("answer", "No direct evidence found in account records."),
+                        cited_evidence_ids=cited_ids,
+                        confidence=parsed.get("confidence", "high"),
+                        uncertainties=parsed.get("uncertainties", [])
+                    )
+            except Exception as e:
+                logger.warning(f"OpenRouter Q&A call error: {e}. Trying Gemini or fallback.")
+
+        # 2. Attempt Gemini if configured
         if self.api_key and self.api_key.strip():
             try:
                 from google import genai
@@ -80,6 +117,7 @@ class LLMService:
             except Exception as e:
                 logger.warning(f"Gemini Q&A call error: {e}. Using rule-grounded answer.")
 
+        # 3. Deterministic rule-grounded answer fallback
         return self._deterministic_qa(account, question)
 
     def _build_investigation_prompt(self, account: AccountDetail) -> str:
@@ -357,6 +395,34 @@ Return JSON:
             if investigation and investigation.recommended_action
             else f"Proactively mitigate {account.primary_reason_code.replace('_', ' ')} ahead of {account.renewal_date} contract renewal."
         )
+
+        # Attempt OpenRouter LLM dynamic drafting
+        if llm_client.is_available():
+            try:
+                email_prompt = (
+                    f"Account: {account.name} (ARR: ${account.arr:,.0f}, Renewal: {account.renewal_date}).\n"
+                    f"Recipient: {recipient_name} ({recipient}).\n"
+                    f"CSM Owner: {account.csm_owner}.\n"
+                    f"Key Signals: {json.dumps([s.summary for s in top_signals])}.\n"
+                    f"Action Reason: {action_reason}.\n"
+                    "Draft an executive outreach email to mitigate churn and request a brief alignment session.\n"
+                    "Return JSON with keys: 'subject', 'body', 'reason'."
+                )
+                res = llm_client.generate_json(
+                    email_prompt,
+                    system_prompt="You are Revora's Customer Success Copilot. Return strictly valid JSON."
+                )
+                if res and res.get("subject") and res.get("body"):
+                    return {
+                        "recipient": recipient,
+                        "recipient_name": recipient_name,
+                        "subject": res["subject"],
+                        "body": res["body"],
+                        "reason": res.get("reason", action_reason),
+                        "evidence_ids": evidence_ids
+                    }
+            except Exception as e:
+                logger.warning(f"OpenRouter email drafting failed: {e}. Using template.")
 
         subject = f"{account.name} — Platform Continuity & Executive Alignment ({account.renewal_date})"
         body = (
