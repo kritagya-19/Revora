@@ -14,6 +14,37 @@ from app.services.feedback_service import feedback_service
 
 router = APIRouter()
 
+@router.get("", response_model=List[CustomerFeedbackRecord])
+def list_feedback_records(
+    account_id: Optional[str] = Query(None, description="Filter feedback by canonical account ID")
+):
+    """
+    GET /api/feedback
+    Lists all submitted feedback records with AI root cause classification and analysis.
+    """
+    return feedback_repo.list_feedback_records(account_id=account_id)
+
+@router.get("/account/{account_id}", response_model=List[CustomerFeedbackRecord])
+def list_feedback_for_account(account_id: str):
+    """
+    GET /api/feedback/account/{account_id}
+    Retrieves all feedback records and sentiment analysis for an account.
+    """
+    return feedback_repo.list_feedback_records(account_id=account_id)
+
+@router.post("", response_model=CustomerFeedbackRecord, status_code=201)
+def submit_customer_feedback_standard(submission: FeedbackResponseSubmission):
+    """
+    POST /api/feedback
+    Standard endpoint to submit and analyze customer feedback.
+    """
+    try:
+        return feedback_service.submit_and_analyze_feedback(submission)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Feedback submission failed: {e}")
+
 @router.get("/templates", response_model=List[SurveyFormTemplate])
 def list_survey_templates():
     """

@@ -256,4 +256,11 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# MongoDB local database storage
+mongodb_data/
+*.wt
+WiredTiger*
+diagnostic.data/
+mongod.lock
+
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node,Python
