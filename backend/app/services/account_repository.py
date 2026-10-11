@@ -497,18 +497,26 @@ class AccountRepository:
             contributing_factors=eval_res["contributing_factors"],
             contacts=contacts,
             signals=signals,
-            customer_metrics=customer_metrics
+            customer_metrics=customer_metrics,
+            feedback_records=self._get_feedback_records_for_account(account_id)
         )
+
+    def _get_feedback_records_for_account(self, account_id: str):
+        try:
+            from app.services.feedback_repository import feedback_repo
+            return feedback_repo.list_feedback_records(account_id=account_id)
+        except Exception as e:
+            logger.warning(f"Could not load feedback records for {account_id}: {e}")
+            return []
 
     def get_account_risk_detail(self, account_id: str) -> Optional[AccountRiskDetail]:
         account = self.get_account_by_id(account_id)
         if not account:
             return None
-
         # Evaluate rich deterministic rules and compound multi-signals
         eval_res = DeterministicRiskEngine.evaluate_account(account_id, auto_trigger_investigation=False)
 
-        return AccountRiskDetail(
+        risk_detail = AccountRiskDetail(
             account_id=account.id,
             account_name=account.name,
             risk_score=eval_res["risk_score"],
@@ -533,6 +541,18 @@ class AccountRepository:
             arr=account.arr,
             renewal_date=account.renewal_date
         )
+        if self.db is not None:
+            try:
+                assessment_doc = risk_detail.model_dump()
+                assessment_doc["evaluated_at"] = datetime.utcnow().isoformat()
+                self.db.risk_assessments.update_one(
+                    {"account_id": account_id},
+                    {"$set": assessment_doc},
+                    upsert=True
+                )
+            except Exception as e:
+                logger.warning(f"Error persisting risk assessment to MongoDB: {e}")
+        return risk_detail
 
     def get_account_contacts(self, account_id: str) -> List[Contact]:
         if self.db is not None:
@@ -616,6 +636,7 @@ class AccountRepository:
             details={"signal_id": signal.id, "type": signal.signal_type, "severity": signal.severity}
         )
         return signal
+
 
     def apply_approved_crm_update(
         self,
@@ -718,5 +739,45 @@ class AccountRepository:
         if account_id:
             return [r for r in self._crm_records if r["account_id"] == account_id]
         return self._crm_records
+
+    def get_all_signals(
+        self,
+        account_id: Optional[str] = None,
+        source_category: Optional[str] = None,
+        source_type: Optional[str] = None,
+        severity: Optional[str] = None,
+        limit: int = 100
+    ) -> List[Signal]:
+        query: Dict[str, Any] = {}
+        if account_id:
+            query["account_id"] = account_id
+        if source_category:
+            query["source_category"] = source_category
+        if source_type:
+            query["source_type"] = source_type
+        if severity:
+            query["severity"] = severity
+
+        if self.db is not None:
+            try:
+                docs = list(self.db.signals.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit))
+                if docs:
+                    return [self._enrich_signal(d) for d in docs]
+            except Exception as e:
+                logger.warning(f"MongoDB get_all_signals error: {e}")
+
+        # In-memory fallback
+        signals = [self._enrich_signal(s) for s in self._signals_data]
+        if account_id:
+            signals = [s for s in signals if s.account_id == account_id]
+        if source_category:
+            signals = [s for s in signals if s.source_category.lower() == source_category.lower()]
+        if source_type:
+            signals = [s for s in signals if (s.source_type or "").lower() == source_type.lower()]
+        if severity:
+            signals = [s for s in signals if s.severity.lower() == severity.lower()]
+        signals.sort(key=lambda s: s.timestamp, reverse=True)
+        return signals[:limit]
+
 
 account_repo = AccountRepository()

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from typing import List
+from typing import List, Optional
 from app.models.schemas import (
     Signal,
     AccountSignalAnalysisResult,
@@ -10,6 +10,26 @@ from app.services.account_repository import account_repo
 from app.services.dynamic_signal_analysis_service import dynamic_signal_analyzer
 
 router = APIRouter()
+
+@router.get("", response_model=List[Signal])
+def list_all_signals(
+    account_id: Optional[str] = None,
+    source_category: Optional[str] = None,
+    source_type: Optional[str] = None,
+    severity: Optional[str] = None,
+    limit: int = 100
+):
+    """
+    GET /api/signals
+    Retrieves all customer signals with optional filters (account_id, source_category, source_type, severity).
+    """
+    return account_repo.get_all_signals(
+        account_id=account_id,
+        source_category=source_category,
+        source_type=source_type,
+        severity=severity,
+        limit=limit
+    )
 
 @router.get("/portfolio/analysis", response_model=BatchSignalAnalysisSummary)
 def get_portfolio_signal_analysis():
@@ -98,4 +118,3 @@ def ingest_signal(signal: Signal):
         return account_repo.create_signal(signal)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-

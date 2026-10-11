@@ -9,11 +9,15 @@ from app.models.schemas import (
     ActionExecutionStatus,
     WorkStatus,
     OutcomeIntelligenceReport,
-    HistoryAwareContext
+    HistoryAwareContext,
+    PostActionImprovementCycle,
+    EvaluatePostActionCycleRequest,
+    TriggerSecondaryReviewRequest
 )
 from app.services.action_tracker_repository import action_tracker_repo
 from app.services.account_repository import account_repo
 from app.services.proposal_repository import proposal_repo
+from app.services.post_action_cycle_service import post_action_cycle_service
 
 router = APIRouter()
 
@@ -203,3 +207,67 @@ def sync_all_approved_proposals():
             synced.append(item)
 
     return synced
+
+# ==========================================
+# Task C: Post-Action Improvement Cycle Endpoints
+# ==========================================
+@router.get("/cycles/all", response_model=List[PostActionImprovementCycle], summary="Get All Post-Action Improvement Cycles")
+def get_all_improvement_cycles(account_id: Optional[str] = Query(None)):
+    """
+    GET /api/tracker/cycles/all
+    Member 3 — Task C: Retrieves post-action improvement cycles across accounts.
+    """
+    return post_action_cycle_service.get_all_cycles(account_id=account_id)
+
+@router.get("/{item_id}/cycle", response_model=PostActionImprovementCycle, summary="Get Post-Action Improvement Cycle")
+def get_action_improvement_cycle(item_id: str):
+    """
+    GET /api/tracker/{item_id}/cycle
+    Member 3 — Task C:
+    Retrieves the post-action improvement cycle comparing customer state before vs after intervention.
+    """
+    cycle = post_action_cycle_service.get_cycle_for_action(item_id)
+    if not cycle:
+        try:
+            cycle = post_action_cycle_service.evaluate_post_action_cycle(item_id)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+    return cycle
+
+@router.post("/{item_id}/evaluate-cycle", response_model=PostActionImprovementCycle, summary="Evaluate Post-Action Telemetry Cycle")
+def evaluate_action_improvement_cycle(
+    item_id: str,
+    req: Optional[EvaluatePostActionCycleRequest] = None
+):
+    """
+    POST /api/tracker/{item_id}/evaluate-cycle
+    Member 3 — Task C:
+    - Retrieves subsequent usage, engagement, and feedback signals.
+    - Compares customer state before and after the intervention.
+    - Records whether the situation improved, remained unchanged, or deteriorated.
+    - Automatically triggers a secondary review if the issue remains unresolved.
+    """
+    try:
+        return post_action_cycle_service.evaluate_post_action_cycle(item_id, req)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{item_id}/trigger-review", response_model=PostActionImprovementCycle, summary="Trigger Secondary Review")
+def trigger_secondary_review(
+    item_id: str,
+    req: TriggerSecondaryReviewRequest
+):
+    """
+    POST /api/tracker/{item_id}/trigger-review
+    Member 3 — Task C:
+    Triggers another review when the issue remains unresolved after an intervention.
+    """
+    try:
+        return post_action_cycle_service.trigger_secondary_review(item_id, req)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

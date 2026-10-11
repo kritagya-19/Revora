@@ -4,8 +4,7 @@
 
 The existing frontend, backend, and database are already mostly built. The main work is to turn static screens and partially implemented components into a connected, dynamic, fully functional SignalBridge AI workflow.
 
-#### we have to build everything dynamic, fully functional from end to end and automate things that we can and its need.
-
+#### We have to build everything dynamic, fully functional, working end-to-end, and automated where needed.
 
 The team’s work covers three business outcomes:
 

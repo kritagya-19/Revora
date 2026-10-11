@@ -27,40 +27,113 @@ class TaskRepository:
 
     def _init_seed_tasks(self):
         now = datetime.utcnow().isoformat()
-        t1 = ProposedTask(
-            id="task-acc-101",
-            account_id="acc-101",
-            title="Executive Sponsor Alignment Call",
-            description="Schedule direct check-in with Dave Miller to address delivery tickets.",
-            assigned_to="Sarah Jenkins",
-            due_date="2026-11-08",
-            priority="high",
-            status="pending",
-            evidence_ids=["sig-101", "sig-102"],
-            created_at=now
-        )
-        t2 = ProposedTask(
-            id="task-acc-102",
-            account_id="acc-102",
-            title="Resolve SSO Deployment Blockers with Engineering",
-            description="Coordinate with CloudNova lead architect to clear ticket #4402.",
-            assigned_to="Marcus Chen",
-            due_date="2026-11-09",
-            priority="high",
-            status="pending",
-            evidence_ids=["sig-104"],
-            created_at=now
-        )
-        self._tasks[t1.id] = t1
-        self._tasks[t2.id] = t2
+        tasks_data = [
+            {
+                "id": "task-acc-101",
+                "account_id": "acc-101",
+                "title": "Executive Sponsor Alignment Call",
+                "description": "Schedule direct check-in with Dave Miller to address delivery tickets.",
+                "assigned_to": "Sarah Jenkins",
+                "due_date": "2026-11-08",
+                "priority": "high",
+                "status": "pending",
+                "evidence_ids": ["sig-101", "sig-102"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-102",
+                "account_id": "acc-102",
+                "title": "Resolve SSO Deployment Blockers with Engineering",
+                "description": "Coordinate with CloudNova lead architect to clear ticket #4402.",
+                "assigned_to": "Marcus Chen",
+                "due_date": "2026-11-09",
+                "priority": "high",
+                "status": "pending",
+                "evidence_ids": ["sig-104"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-103",
+                "account_id": "acc-103",
+                "title": "Verify APAC Inactivity Rebound",
+                "description": "Monitor Singapore branch query logs to verify post-holiday traffic normalizes.",
+                "assigned_to": "Sarah Jenkins",
+                "due_date": "2026-11-12",
+                "priority": "low",
+                "status": "pending",
+                "evidence_ids": ["sig-113"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-104",
+                "account_id": "acc-104",
+                "title": "Escalate API Outage Root Cause to VP Engineering",
+                "description": "Provide HyperScale Robotics team with post-mortem incident report.",
+                "assigned_to": "Alex Rivera",
+                "due_date": "2026-11-05",
+                "priority": "high",
+                "status": "pending",
+                "evidence_ids": ["sig-109", "sig-110"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-105",
+                "account_id": "acc-105",
+                "title": "Deliver Q1 License Expansion Contract",
+                "description": "Send updated Master Services Agreement with 50 added hospital seats.",
+                "assigned_to": "Marcus Chen",
+                "due_date": "2026-11-10",
+                "priority": "medium",
+                "status": "pending",
+                "evidence_ids": ["sig-111", "sig-112"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-106",
+                "account_id": "acc-106",
+                "title": "Schedule Executive Risk Intercept with CIO",
+                "description": "Coordinate joint review of financial latency and renewal terms.",
+                "assigned_to": "Sarah Jenkins",
+                "due_date": "2026-11-07",
+                "priority": "high",
+                "status": "pending",
+                "evidence_ids": ["sig-107"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-107",
+                "account_id": "acc-107",
+                "title": "Confirm Peak Season Black Friday SLA",
+                "description": "Validate 99.99% uptime parameters ahead of Q4 e-commerce sales rush.",
+                "assigned_to": "Alex Rivera",
+                "due_date": "2026-11-15",
+                "priority": "medium",
+                "status": "pending",
+                "evidence_ids": ["sig-114"],
+                "created_at": now
+            },
+            {
+                "id": "task-acc-108",
+                "account_id": "acc-108",
+                "title": "Quarterly Media Infrastructure Sync",
+                "description": "Meet with Head of Content Delivery to review publishing bandwidth.",
+                "assigned_to": "Marcus Chen",
+                "due_date": "2026-11-11",
+                "priority": "low",
+                "status": "pending",
+                "evidence_ids": ["sig-115"],
+                "created_at": now
+            }
+        ]
 
-        if self.db is not None:
-            try:
-                for t in [t1, t2]:
-                    doc = t.model_dump()
-                    self.db.tasks.update_one({"id": t.id}, {"$setOnInsert": doc}, upsert=True)
-            except Exception as e:
-                logger.warning(f"Error seeding MongoDB tasks: {e}")
+        for td in tasks_data:
+            tsk = ProposedTask(**td)
+            self._tasks[tsk.id] = tsk
+            if self.db is not None:
+                try:
+                    self.db.tasks.update_one({"id": tsk.id}, {"$setOnInsert": tsk.model_dump()}, upsert=True)
+                except Exception as e:
+                    logger.warning(f"Error seeding MongoDB task {tsk.id}: {e}")
 
     def get_all_tasks(self, account_id: Optional[str] = None, status: Optional[str] = None) -> List[ProposedTask]:
         if self.db is not None:
@@ -163,6 +236,15 @@ class TaskRepository:
             actor=task.assigned_to,
             details={"task_id": task.id, "new_status": task.status}
         )
+
+        # Synchronize linked reminder status (Task B requirement)
+        if req.status is not None:
+            try:
+                from app.services.reminder_repository import reminder_repo
+                reminder_repo.update_by_associated_task(task_id, req.status)
+            except Exception as rem_err:
+                logger.warning(f"Error syncing reminder status for task {task_id}: {rem_err}")
+
         return task
 
 task_repo = TaskRepository()

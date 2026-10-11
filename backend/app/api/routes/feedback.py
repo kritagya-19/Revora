@@ -14,6 +14,37 @@ from app.services.feedback_service import feedback_service
 
 router = APIRouter()
 
+@router.get("", response_model=List[CustomerFeedbackRecord])
+def list_feedback_records(
+    account_id: Optional[str] = Query(None, description="Filter feedback by canonical account ID")
+):
+    """
+    GET /api/feedback
+    Lists all submitted feedback records with AI root cause classification and analysis.
+    """
+    return feedback_repo.list_feedback_records(account_id=account_id)
+
+@router.get("/account/{account_id}", response_model=List[CustomerFeedbackRecord])
+def list_feedback_for_account(account_id: str):
+    """
+    GET /api/feedback/account/{account_id}
+    Retrieves all feedback records and sentiment analysis for an account.
+    """
+    return feedback_repo.list_feedback_records(account_id=account_id)
+
+@router.post("", response_model=CustomerFeedbackRecord, status_code=201)
+def submit_customer_feedback_standard(submission: FeedbackResponseSubmission):
+    """
+    POST /api/feedback
+    Standard endpoint to submit and analyze customer feedback.
+    """
+    try:
+        return feedback_service.submit_and_analyze_feedback(submission)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Feedback submission failed: {e}")
+
 @router.get("/templates", response_model=List[SurveyFormTemplate])
 def list_survey_templates():
     """
@@ -100,6 +131,29 @@ def get_public_survey_form(survey_code: str):
     """
     survey = feedback_repo.get_survey_by_code(survey_code)
     if not survey:
+        from app.services.account_repository import account_repo
+        acc = account_repo.get_account_by_id(survey_code)
+        if not acc and survey_code.startswith("rev-fb-"):
+            clean_id = survey_code.replace("rev-fb-", "")
+            parts = clean_id.split("-")
+            if len(parts) >= 2:
+                candidate_id = f"{parts[0]}-{parts[1]}"
+                acc = account_repo.get_account_by_id(candidate_id) or account_repo.get_account_by_id(clean_id)
+            else:
+                acc = account_repo.get_account_by_id(clean_id)
+        if acc:
+            template = feedback_repo.get_template_by_id("survey-tpl-churn-early-warning")
+            first_contact = acc.contacts[0] if acc.contacts else None
+            return {
+                "survey_code": survey_code,
+                "account_id": acc.id,
+                "account_name": acc.name,
+                "recipient_name": first_contact.name if first_contact else "Customer Champion",
+                "recipient_email": first_contact.email if first_contact else f"champion@{acc.domain or 'customer.com'}",
+                "status": "active",
+                "custom_intro": f"Customer experience & feedback survey for {acc.name}",
+                "template": template
+            }
         raise HTTPException(status_code=404, detail=f"Survey with code {survey_code} not found")
 
     template = feedback_repo.get_template_by_id(survey.template_id)

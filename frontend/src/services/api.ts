@@ -20,7 +20,13 @@ import type {
   OutcomeIntelligenceReport,
   HistoryAwareContext,
   FreePipelineStatus,
-  OutboxRecord
+  OutboxRecord,
+  DynamicReminder,
+  CreateReminderRequest,
+  DismissReminderRequest,
+  ReminderEvaluationResult,
+  RecurringProblem,
+  RecurringProblemsReport
 } from '../types/api';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || '';
@@ -488,6 +494,54 @@ export async function syncApprovedProposalsToTracker(): Promise<ActionTrackerIte
   return res.json();
 }
 
+// Task C: Post-Action Improvement Cycle API methods
+import type {
+  PostActionImprovementCycle,
+  EvaluatePostActionCycleRequest,
+  TriggerSecondaryReviewRequest
+} from '../types/api';
+
+export async function fetchPostActionCycle(actionId: string): Promise<PostActionImprovementCycle> {
+  const res = await fetch(`${API_BASE}/api/tracker/${actionId}/cycle`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch post-action cycle: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function evaluatePostActionCycle(
+  actionId: string,
+  req?: EvaluatePostActionCycleRequest
+): Promise<PostActionImprovementCycle> {
+  const res = await fetch(`${API_BASE}/api/tracker/${actionId}/evaluate-cycle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: req ? JSON.stringify(req) : undefined
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to evaluate post-action cycle: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function triggerSecondaryReview(
+  actionId: string,
+  req: TriggerSecondaryReviewRequest
+): Promise<PostActionImprovementCycle> {
+  const res = await fetch(`${API_BASE}/api/tracker/${actionId}/trigger-review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to trigger secondary review: ${res.statusText}`);
+  }
+  return res.json();
+}
+
 // Feature 2: Customer Outcome Timeline Client API
 import type { CustomerOutcomeTimelineResponse } from '../types/api';
 
@@ -761,5 +815,188 @@ export async function triggerAutomatedPortfolioScan(): Promise<BatchSignalAnalys
   return res.json();
 }
 
+// Task B: Dynamic Reminders API
+export async function fetchReminders(params?: {
+  account_id?: string;
+  status?: string;
+  reminder_type?: string;
+  severity?: string;
+}): Promise<DynamicReminder[]> {
+  const base = API_BASE ? API_BASE : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
+  const url = new URL(`${API_BASE}/api/reminders`, base);
+  if (params) {
+    if (params.account_id) url.searchParams.set('account_id', params.account_id);
+    if (params.status && params.status !== 'all') url.searchParams.set('status', params.status);
+    if (params.reminder_type && params.reminder_type !== 'all') url.searchParams.set('reminder_type', params.reminder_type);
+    if (params.severity && params.severity !== 'all') url.searchParams.set('severity', params.severity);
+  }
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch reminders: ${res.statusText}`);
+  }
+  return res.json();
+}
 
+export async function evaluateReminders(): Promise<ReminderEvaluationResult> {
+  const res = await fetch(`${API_BASE}/api/reminders/evaluate`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to evaluate reminders: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function completeReminder(reminderId: string): Promise<DynamicReminder> {
+  const res = await fetch(`${API_BASE}/api/reminders/${reminderId}/complete`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to complete reminder: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function dismissReminder(reminderId: string, reason?: string): Promise<DynamicReminder> {
+  const res = await fetch(`${API_BASE}/api/reminders/${reminderId}/dismiss`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason: reason || 'Dismissed by user' } as DismissReminderRequest)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to dismiss reminder: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function createReminder(req: CreateReminderRequest): Promise<DynamicReminder> {
+  const res = await fetch(`${API_BASE}/api/reminders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to create reminder: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// Task D: Recurring Customer Problems API methods
+export async function fetchRecurringProblemsReport(category?: string): Promise<RecurringProblemsReport> {
+  const url = new URL(`${API_BASE}/api/recurring-problems`, window.location.origin);
+  if (category && category !== 'all') {
+    url.searchParams.set('category', category);
+  }
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch recurring problems: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function refreshRecurringProblems(): Promise<RecurringProblemsReport> {
+  const res = await fetch(`${API_BASE}/api/recurring-problems/refresh`, {
+    method: 'POST'
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to refresh recurring problems: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchRecurringProblemById(problemId: string): Promise<RecurringProblem> {
+  const res = await fetch(`${API_BASE}/api/recurring-problems/${problemId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch problem detail: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchRecurringProblemsForAccount(accountId: string): Promise<RecurringProblem[]> {
+  const res = await fetch(`${API_BASE}/api/recurring-problems/account/${accountId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch problems for account: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+// ==========================================
+// Task E: Actionable Improvement Insights & Outcome Tracking APIs
+// ==========================================
+import type {
+  ImprovementInsightsReport,
+  ActionableImprovementInsight,
+  ImplementImprovementRequest,
+  EvaluateImprovementOutcomeRequest
+} from '../types/api';
+
+export async function fetchImprovementInsightsReport(
+  category?: string,
+  status?: string
+): Promise<ImprovementInsightsReport> {
+  const base = API_BASE ? API_BASE : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
+  const url = new URL(`${API_BASE}/api/improvement-insights`, base);
+  if (category && category !== 'all') {
+    url.searchParams.set('category', category);
+  }
+  if (status && status !== 'all') {
+    url.searchParams.set('status', status);
+  }
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch improvement insights report: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchImprovementInsightById(insightId: string): Promise<ActionableImprovementInsight> {
+  const res = await fetch(`${API_BASE}/api/improvement-insights/${insightId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch improvement insight: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function implementImprovementInsight(
+  insightId: string,
+  req: ImplementImprovementRequest
+): Promise<ActionableImprovementInsight> {
+  const res = await fetch(`${API_BASE}/api/improvement-insights/${insightId}/implement`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to implement improvement insight: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function evaluateImprovementInsight(
+  insightId: string,
+  req?: EvaluateImprovementOutcomeRequest
+): Promise<ActionableImprovementInsight> {
+  const res = await fetch(`${API_BASE}/api/improvement-insights/${insightId}/evaluate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: req ? JSON.stringify(req) : undefined
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to evaluate improvement insight: ${res.statusText}`);
+  }
+  return res.json();
+}
 
