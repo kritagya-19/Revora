@@ -61,6 +61,100 @@ class AccountRepository:
                 self._accounts_data = data.get("accounts", [])
                 self._contacts_data = data.get("contacts", [])
                 self._signals_data = data.get("signals", [])
+
+                # Ensure all accounts & contacts are tagged as HubSpot CRM source
+                for acc in self._accounts_data:
+                    if not acc.get("source_system"):
+                        acc["source_system"] = "hubspot"
+
+                for cnt in self._contacts_data:
+                    if not cnt.get("source_system"):
+                        cnt["source_system"] = "hubspot"
+                    if not cnt.get("hubspot_id"):
+                        cnt["hubspot_id"] = cnt.get("id")
+
+                for sig in self._signals_data:
+                    if not sig.get("source_system") and sig.get("source_category") == "crm":
+                        sig["source_system"] = "hubspot"
+                        sig["source_type"] = "hubspot"
+
+                # Ensure a dedicated HubSpot CRM account exists for live radar integration
+                if not any("hs-" in a.get("id", "") or a.get("id", "").startswith("acc-hs-") for a in self._accounts_data):
+                    from datetime import timedelta
+                    hs_acc = {
+                        "id": "acc-hs-101",
+                        "name": "Starlight Industries (HubSpot CRM)",
+                        "domain": "starlight.io",
+                        "arr": 120000.0,
+                        "renewal_date": (datetime.now() + timedelta(days=45)).strftime("%Y-%m-%d"),
+                        "csm_owner": "Alice Smith",
+                        "industry": "Enterprise SaaS Platform",
+                        "health_score": 38,
+                        "tier": "Enterprise",
+                        "status": "at_risk",
+                        "source_system": "hubspot",
+                        "signals_summary": {
+                            "days_to_renewal": 45,
+                            "usage_drop_pct": 34.0,
+                            "days_since_last_touchpoint": 18,
+                            "open_critical_tickets": 1
+                        }
+                    }
+                    self._accounts_data.append(hs_acc)
+
+                    hs_contact = {
+                        "id": "cnt-hs-101",
+                        "account_id": "acc-hs-101",
+                        "name": "Bob Vance",
+                        "email": "bob@starlight.io",
+                        "role": "VP Engineering",
+                        "is_primary": True,
+                        "sentiment": "neutral",
+                        "last_contact_date": datetime.now().isoformat(),
+                        "hubspot_id": "hs-cnt-991",
+                        "source_system": "hubspot"
+                    }
+                    self._contacts_data.append(hs_contact)
+
+                    hs_signals = [
+                        {
+                            "id": "sig-hs-ticket-101",
+                            "signal_id": "sig-hs-ticket-101",
+                            "account_id": "acc-hs-101",
+                            "source_category": "crm",
+                            "source_type": "hubspot",
+                            "source": "hubspot",
+                            "evidence_id": "ev-hs-ticket-101",
+                            "source_record_id": "hs-tkt-991",
+                            "signal_type": "support_ticket",
+                            "event_type": "ticket_opened",
+                            "title": "HubSpot Ticket: Critical Integration Outage",
+                            "summary": "[HIGH] Production webhook integration failure on payment processing",
+                            "severity": "critical",
+                            "timestamp": datetime.now().isoformat(),
+                            "event_time": datetime.now().isoformat(),
+                            "metadata": {"priority": "critical", "ticket_id": "hs-tkt-991"}
+                        },
+                        {
+                            "id": "sig-hs-touch-101",
+                            "signal_id": "sig-hs-touch-101",
+                            "account_id": "acc-hs-101",
+                            "source_category": "crm",
+                            "source_type": "hubspot",
+                            "source": "hubspot",
+                            "evidence_id": "ev-hs-touch-101",
+                            "source_record_id": "101",
+                            "signal_type": "touchpoint_lag",
+                            "event_type": "csm_activity",
+                            "title": "HubSpot CRM Engagement: 18d since touchpoint",
+                            "summary": "Last recorded HubSpot CRM company modification was 18 days ago.",
+                            "severity": "medium",
+                            "timestamp": datetime.now().isoformat(),
+                            "event_time": datetime.now().isoformat(),
+                            "metadata": {"days_since_touchpoint": 18}
+                        }
+                    ]
+                    self._signals_data.extend(hs_signals)
         except Exception as e:
             logger.error(f"Error loading seed file: {e}")
 
