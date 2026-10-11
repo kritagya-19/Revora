@@ -23,9 +23,10 @@ def test_account_filtering_and_sorting():
         assert arr_sorted[i].arr >= arr_sorted[i+1].arr
 
     # Search filter
-    search_res = account_repo.get_all_accounts_with_risk(search="HubSpot")
+    search_term = "Acme" if any("Acme" in a.name for a in all_accs) else all_accs[0].name.split()[0]
+    search_res = account_repo.get_all_accounts_with_risk(search=search_term)
     assert len(search_res) >= 1
-    assert "HubSpot" in search_res[0].name
+    assert search_term.lower() in search_res[0].name.lower()
 
 def test_dashboard_summary():
     summary = account_repo.get_dashboard_summary()

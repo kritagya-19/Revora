@@ -173,16 +173,15 @@ export function ApprovalCenterView({
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Step 5: Human Approval & Safe Execution Gate</span>
-              <span className="text-slate-400">• Zero Autonomous Writes</span>
+              <span>Human Review Gate</span>
+              <span className="text-slate-400">• Nothing sent without approval</span>
             </div>
             <h1 className="font-headline text-3xl font-normal text-[#020062]">
-              Action Authorization & Governance
+              Review & Approve Actions
             </h1>
             <p className="text-sm text-slate-600 leading-relaxed font-body">
-              Every action proposal prepared by the AI copilot must pass through this human authorization gate. 
-              Unapproved operations are strictly blocked. Approved items execute through secure adapters with 
-              immutable cryptographic audit records.
+              Every email draft, team task, or CRM update prepared by the AI must be checked and approved by your team here. 
+              Nothing is ever sent to a customer without your sign-off.
             </p>
           </div>
 

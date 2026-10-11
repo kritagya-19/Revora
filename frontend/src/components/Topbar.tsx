@@ -74,7 +74,7 @@ export function Topbar({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search accounts, telemetry, or risks..."
+          placeholder="Search accounts, activity, or risks..."
           className="w-full pl-9 pr-14 py-1.5 text-xs bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#2563EB] focus:bg-white text-[#020062] placeholder-slate-400 font-body transition-all"
         />
         <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5">

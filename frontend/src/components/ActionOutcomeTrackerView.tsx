@@ -385,14 +385,14 @@ export function ActionOutcomeTrackerView({
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold uppercase tracking-wider backdrop-blur-xs mb-3">
               <ClipboardCheck className="w-3.5 h-3.5 text-blue-200" />
-              Feature 1 — Closed-Loop Execution
+              Track Real-World Results
             </div>
             <h2 className="text-2xl font-bold font-headline tracking-tight text-white">
-              Action & Outcome Tracker
+              Action & Results Tracker
             </h2>
             <p className="text-blue-100 text-sm mt-1.5 leading-relaxed font-body">
-              Tracks every approved action from execution to completion and outcome capture.
-              The system knows what the team actually did, instead of just knowing what it recommended.
+              Track what actions your team actually took and record how the customer responded. 
+              See if your outreach actually solved the problem and lowered the customer's risk.
             </p>
           </div>
 

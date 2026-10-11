@@ -223,23 +223,29 @@ def test_phase4_approve_and_execute_in_demo_environment():
     prop = create_res.json()
     prop_id = prop["id"]
     
-    # Approve and auto-execute in demo environment
-    appr_res = client.post(f"/api/approvals/{prop_id}/approve", json={
-        "approver": "Sarah Jenkins (CSM Lead)",
-        "expected_hash": prop["content_hash"],
-        "auto_execute": True
-    })
-    assert appr_res.status_code == 200
-    data = appr_res.json()
+    from app.core.config import settings
+    orig_mode = settings.EXECUTION_MODE
+    settings.EXECUTION_MODE = "simulated"
+    try:
+        # Approve and auto-execute in demo environment
+        appr_res = client.post(f"/api/approvals/{prop_id}/approve", json={
+            "approver": "Sarah Jenkins (CSM Lead)",
+            "expected_hash": prop["content_hash"],
+            "auto_execute": True
+        })
+        assert appr_res.status_code == 200
+        data = appr_res.json()
     
-    # Assertions on execution outcome
-    assert data["approval_status"] == "approved"
-    assert "execution" in data
-    execution = data["execution"]
-    assert execution["status"] == "succeeded"
-    assert execution["mode"] == "simulated"
-    assert "execution_id" in execution
-    assert execution["simulated_details"]["provider_code"] == 200
+        # Assertions on execution outcome
+        assert data["approval_status"] == "approved"
+        assert "execution" in data
+        execution = data["execution"]
+        assert execution["status"] == "succeeded"
+        assert execution["mode"] == "simulated"
+        assert "execution_id" in execution
+        assert execution["simulated_details"]["provider_code"] == 200
+    finally:
+        settings.EXECUTION_MODE = orig_mode
     
     # Verify persisted proposal reflects outcome
     fetched = client.get(f"/api/action-proposals/{prop_id}").json()

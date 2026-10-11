@@ -104,8 +104,9 @@ class ActionExecutor:
             )
 
         # Build execution result object
+        from app.core.config import settings
         exec_id = f"exec-{uuid.uuid4().hex[:8]}"
-        is_live = free_pipelines.webhook_url != "" or free_pipelines.smtp_host != ""
+        is_live = (execution_mode == "live" or settings.EXECUTION_MODE == "live") and (free_pipelines.webhook_url != "" or free_pipelines.smtp_host != "")
 
         pipeline_details = {
             "webhook_dispatch": webhook_result,

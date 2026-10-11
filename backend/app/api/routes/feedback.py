@@ -151,3 +151,71 @@ def get_feedback_response(record_id: str):
     if not record:
         raise HTTPException(status_code=404, detail=f"Feedback record {record_id} not found")
     return record
+
+
+# ==========================================
+# 20-Node Interactive Feedback Flow Routes
+# ==========================================
+
+from app.models.schemas import (
+    FeedbackFlowGraph,
+    FeedbackFlowExecution,
+    RunFeedbackFlowRequest
+)
+from app.services.feedback_flow_orchestrator import feedback_flow_orchestrator
+
+@router.get("/flow/graph", response_model=FeedbackFlowGraph)
+def get_feedback_flow_graph():
+    """
+    GET /api/feedback/flow/graph
+    Returns the complete 20-node DAG definition, metadata, and directional edge links.
+    """
+    return feedback_flow_orchestrator.get_graph()
+
+@router.post("/flow/run", response_model=FeedbackFlowExecution)
+def run_feedback_flow(req: RunFeedbackFlowRequest):
+    """
+    POST /api/feedback/flow/run
+    Executes or simulates the complete 20-node Feedback Form Flow for an account.
+    """
+    try:
+        return feedback_flow_orchestrator.run_flow(req)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to run feedback flow: {e}")
+
+@router.get("/flow/executions", response_model=List[FeedbackFlowExecution])
+def list_feedback_flow_executions(
+    account_id: Optional[str] = Query(None, description="Filter executions by account ID")
+):
+    """
+    GET /api/feedback/flow/executions
+    Lists recent flow executions and their status.
+    """
+    return feedback_flow_orchestrator.list_executions(account_id=account_id)
+
+@router.get("/flow/executions/{execution_id}", response_model=FeedbackFlowExecution)
+def get_feedback_flow_execution(execution_id: str):
+    """
+    GET /api/feedback/flow/executions/{execution_id}
+    Retrieves full execution details with node-by-node telemetry.
+    """
+    exec_res = feedback_flow_orchestrator.get_execution(execution_id)
+    if not exec_res:
+        raise HTTPException(status_code=404, detail=f"Flow execution {execution_id} not found")
+    return exec_res
+
+from app.models.schemas import PortfolioAutomationResult
+
+@router.post("/flow/automate-portfolio", response_model=PortfolioAutomationResult)
+def automate_portfolio_feedback():
+    """
+    POST /api/feedback/flow/automate-portfolio
+    Executes automated zero-cost feedback loop across all monitored accounts.
+    Evaluates risk, dispatches Day 0 surveys, fires free webhooks, and queues emails in outbox.
+    """
+    try:
+        return feedback_flow_orchestrator.automate_portfolio_feedback_loop()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to automate portfolio feedback loop: {e}")
+
+

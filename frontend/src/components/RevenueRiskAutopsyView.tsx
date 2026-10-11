@@ -381,7 +381,7 @@ export function RevenueRiskAutopsyView({
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500">
-              Renewal Horizon
+              Days to Renewal
             </span>
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isUrgentRenewal ? 'bg-rose-50 border border-rose-200/60 text-rose-600' : 'bg-amber-50 border border-amber-200/60 text-amber-600'}`}>
               <Clock className="w-3.5 h-3.5" />
@@ -392,11 +392,11 @@ export function RevenueRiskAutopsyView({
               {renewalDays} Days
             </span>
             <span className={`text-[10px] font-mono font-bold uppercase px-1.5 py-0.2 rounded border ${isUrgentRenewal ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-              {isUrgentRenewal ? 'Immediate' : 'Due Soon'}
+              {isUrgentRenewal ? 'Urgent' : 'Due Soon'}
             </span>
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
-            Target: {account.renewal_date || '2026-10-25'}
+            Renewal Date: {account.renewal_date || '2026-10-25'}
           </p>
         </div>
 
@@ -404,7 +404,7 @@ export function RevenueRiskAutopsyView({
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500">
-              Usage Contraction
+              Drop in Usage
             </span>
             <div className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-200/60 flex items-center justify-center text-rose-600">
               <TrendingDown className="w-3.5 h-3.5" />
@@ -414,7 +414,7 @@ export function RevenueRiskAutopsyView({
             {usageTrend}
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
-            Below 240 active seat baseline
+            Compared to usual active users
           </p>
         </div>
 
@@ -422,7 +422,7 @@ export function RevenueRiskAutopsyView({
         <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500">
-              Touchpoint Silence
+              Days Without Contact
             </span>
             <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200/60 flex items-center justify-center text-purple-600">
               <UserX className="w-3.5 h-3.5" />
@@ -432,7 +432,7 @@ export function RevenueRiskAutopsyView({
             {lastReplyDays} Days
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
-            Without recorded customer reply
+            Since customer last replied
           </p>
         </div>
       </div>
@@ -455,10 +455,10 @@ export function RevenueRiskAutopsyView({
             <div>
               <h3 className="text-base font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                 <Activity className="w-4 h-4 text-[#2563EB]" />
-                <span>Root-Cause Anomaly Matrix</span>
+                <span>Key Warning Signs & Proof</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Multi-source signals linked to contract risk
+                Activity alerts that triggered this risk score
               </p>
             </div>
             <span className="text-[11px] font-mono font-semibold text-slate-400">
@@ -491,7 +491,7 @@ export function RevenueRiskAutopsyView({
                       <button
                         onClick={() => handleEvidenceClick(prob.evidenceId)}
                         className="text-[10px] font-mono font-semibold text-[#2563EB] hover:text-[#1D4ED8] bg-white border border-blue-200 px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1 shadow-2xs"
-                        title="View provenance record"
+                        title="View verified source record"
                       >
                         <span>{prob.evidenceId}</span>
                         <ExternalLink className="w-2.5 h-2.5" />
@@ -511,12 +511,12 @@ export function RevenueRiskAutopsyView({
 
       {/* 5. AI CAUSAL SYNTHESIS & PRE-MEETING BLINDSPOTS (2-COLUMN GRID) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: AI Causal Synthesis */}
+        {/* Left Column: AI Diagnosis */}
         <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
             <Sparkles className="w-4 h-4 text-[#2563EB]" />
             <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-              AI Causal Synthesis & Root Cause
+              AI Summary: Why This Customer Is at Risk
             </h3>
           </div>
 
@@ -525,37 +525,37 @@ export function RevenueRiskAutopsyView({
           </p>
 
           <div className="pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap text-xs text-slate-500 font-mono">
-            <span className="font-semibold text-slate-700 font-sans">Causal Chain:</span>
+            <span className="font-semibold text-slate-700 font-sans">What Happened:</span>
             <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-              Usage Drop (-38%)
+              Usage Dropped (-38%)
             </span>
             <span>→</span>
             <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-              Zero Outreach Reply (16d)
+              No Reply in 16 Days
             </span>
             <span>→</span>
             <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-semibold">
-              Imminent Renewal Risk (15d)
+              Renewal in 15 Days
             </span>
           </div>
         </div>
 
-        {/* Right Column: Pre-Meeting Blindspots / Unknowns Checklist */}
+        {/* Right Column: Pre-Meeting Questions / Missing Info */}
         <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-amber-600" />
               <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-                CSM Pre-Call Blindspots
+                Things to Check Before Calling
               </h3>
             </div>
             <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-2 py-0.5 rounded font-semibold border border-amber-200">
-              Verify Before Terms
+              Verify First
             </span>
           </div>
 
           <p className="text-xs text-slate-500">
-            Critical questions the CSM must verify before proposing any discounts or contract modifications:
+            Important questions to verify before discussing discounts or contract terms:
           </p>
 
           <div className="space-y-2">
@@ -574,24 +574,24 @@ export function RevenueRiskAutopsyView({
         </div>
       </div>
 
-      {/* 6. RECOMMENDED ACTION & EXECUTION GATE */}
+      {/* 6. RECOMMENDED ACTION */}
       <div className="bg-white border-2 border-blue-200 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
           <div className="space-y-1">
             <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#2563EB]">
-              Recommended Next-Best Action
+              Recommended Next Step
             </span>
             <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
               {recommendedTitle}
             </h3>
           </div>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 self-start sm:self-auto">
-            High Confidence Recommendation
+            High Confidence
           </span>
         </div>
 
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-          <strong className="text-slate-800">Operational Rationale: </strong>
+          <strong className="text-slate-800">Why we recommend this: </strong>
           {recommendedReason}
         </p>
 
