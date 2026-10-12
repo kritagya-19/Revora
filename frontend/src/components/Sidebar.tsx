@@ -9,10 +9,11 @@ import {
   Settings,
   ClipboardCheck,
   History,
-  MessageSquare
+  MessageSquare,
+  Layers
 } from 'lucide-react';
 
-export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'tracker' | 'timeline' | 'analyzer' | 'feedback' | 'settings';
+export type NavItem = 'dashboard' | 'customers' | 'autopsy' | 'copilot' | 'approvals' | 'tracker' | 'timeline' | 'analyzer' | 'feedback' | 'retention-flow' | 'settings';
 
 interface SidebarProps {
   currentTab: NavItem;
@@ -103,6 +104,14 @@ export function Sidebar({
           badge: 'Surveys',
           badgeStyle: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold',
           tooltip: 'Send quick surveys and catch customer frustration early'
+        },
+        {
+          id: 'retention-flow',
+          label: 'Retention & Reminders',
+          icon: Layers,
+          badge: 'Flow',
+          badgeStyle: 'bg-purple-50 text-purple-700 border border-purple-200/80 font-bold',
+          tooltip: 'Interactive 37-node continuous retention & feedback flow engine'
         }
       ]
     },

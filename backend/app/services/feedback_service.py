@@ -86,7 +86,7 @@ class FeedbackService:
         existing_surveys = feedback_repo.list_surveys(account_id=account_id)
         pending_surveys = [s for s in existing_surveys if s.status in (SurveyStatus.SENT, SurveyStatus.OPENED, SurveyStatus.PENDING)]
         
-        duplicate_pending = len(pending_surveys) > 0
+        duplicate_pending = (len(pending_surveys) > 0) and not force_ignore_cooldown
         pending_code = pending_surveys[0].survey_code if pending_surveys else None
 
         last_survey = existing_surveys[0] if existing_surveys else None

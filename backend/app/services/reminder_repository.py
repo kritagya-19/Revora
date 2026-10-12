@@ -1,14 +1,11 @@
 import logging
-import uuid
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
+from typing import Dict, List, Optional
 from app.core.config import settings
 from app.models.schemas import (
     DynamicReminder,
     ReminderType,
-    ReminderStatus,
-    CreateReminderRequest,
-    UpdateReminderRequest
+    ReminderStatus
 )
 
 logger = logging.getLogger("revora.reminders")
@@ -106,6 +103,7 @@ class ReminderRepository:
         reminder_type: Optional[str] = None,
         severity: Optional[str] = None
     ) -> List[DynamicReminder]:
+        raw_list = []
         if self.db is not None:
             try:
                 query = {}
@@ -119,20 +117,32 @@ class ReminderRepository:
                     query["severity"] = severity
                 docs = list(self.db.reminders.find(query, {"_id": 0}))
                 if docs:
-                    return [DynamicReminder(**d) for d in docs]
+                    raw_list = [DynamicReminder(**d) for d in docs]
             except Exception as e:
                 logger.warning(f"MongoDB get_all reminders error: {e}")
 
-        reminders = list(self._reminders.values())
-        if account_id:
-            reminders = [r for r in reminders if r.account_id == account_id]
-        if status:
-            reminders = [r for r in reminders if r.status.value == status or r.status == status]
-        if reminder_type:
-            reminders = [r for r in reminders if r.reminder_type.value == reminder_type or r.reminder_type == reminder_type]
-        if severity:
-            reminders = [r for r in reminders if r.severity == severity]
-        return sorted(reminders, key=lambda r: r.updated_at, reverse=True)
+        if not raw_list:
+            reminders = list(self._reminders.values())
+            if account_id:
+                reminders = [r for r in reminders if r.account_id == account_id]
+            if status:
+                reminders = [r for r in reminders if r.status.value == status or r.status == status]
+            if reminder_type:
+                reminders = [r for r in reminders if r.reminder_type.value == reminder_type or r.reminder_type == reminder_type]
+            if severity:
+                reminders = [r for r in reminders if r.severity == severity]
+            raw_list = reminders
+
+        # Enforce issue_key uniqueness for active reminders
+        seen_keys = set()
+        deduped = []
+        for r in sorted(raw_list, key=lambda r: r.updated_at, reverse=True):
+            if (status == "active" or r.status == ReminderStatus.ACTIVE or r.status.value == "active") and r.issue_key:
+                if r.issue_key in seen_keys:
+                    continue
+                seen_keys.add(r.issue_key)
+            deduped.append(r)
+        return deduped
 
     def get_by_id(self, reminder_id: str) -> Optional[DynamicReminder]:
         if self.db is not None:

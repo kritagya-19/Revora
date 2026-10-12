@@ -58,6 +58,7 @@ import type {
 } from '../types/api';
 import { FeedbackForm } from './FeedbackForm';
 import { FeedbackFlowInteractiveView } from './FeedbackFlowInteractiveView';
+import { RetentionReminderFlowView } from './RetentionReminderFlowView';
 
 interface FeedbackManagementViewProps {
   accounts: AccountRiskSummary[];
@@ -78,7 +79,7 @@ export function FeedbackManagementView({
   onNavigateToApprovals,
   onNavigateToCopilot
 }: FeedbackManagementViewProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'flow' | 'overview' | 'surveys' | 'interactive_form' | 'reminders' | 'recurring_problems' | 'improvement_insights'>('flow');
+  const [activeSubTab, setActiveSubTab] = useState<'retention_remainder_flow' | 'flow' | 'overview' | 'surveys' | 'interactive_form' | 'reminders' | 'recurring_problems' | 'improvement_insights'>('retention_remainder_flow');
   const [selectedAccountId, setSelectedAccountId] = useState<string>(initialAccountId || (accounts[0]?.id || 'acc-101'));
   
   // Data State
@@ -723,7 +724,8 @@ export function FeedbackManagementView({
       <div className="border-b border-[#E2E8F0] flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           {[
-            { id: 'flow', label: '⚡ 20-Node Agent Flowchart', count: 'Interactive' },
+            { id: 'retention_remainder_flow', label: '🔄 37-Node Retention Engine', count: 'remainder.md' },
+            { id: 'flow', label: '⚡ 20-Node Feedback Flow', count: 'Interactive' },
             { id: 'recurring_problems', label: '🔍 Recurring Problems', count: recurringReport ? recurringReport.problems.length : null },
             { id: 'improvement_insights', label: '💡 Improvement Insights', count: insightsReport ? insightsReport.insights.length : null },
             { id: 'reminders', label: '⏰ Dynamic Reminders', count: reminders.filter((r) => r.status === 'active').length },
@@ -743,6 +745,7 @@ export function FeedbackManagementView({
               <span>{tab.label}</span>
               {tab.count !== null && (
                 <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+                  tab.id === 'retention_remainder_flow' ? 'bg-purple-100 text-purple-700 font-bold border border-purple-200' :
                   tab.id === 'flow' ? 'bg-indigo-100 text-indigo-700 font-bold' :
                   tab.id === 'recurring_problems' ? 'bg-purple-100 text-purple-800 font-bold' :
                   tab.id === 'improvement_insights' ? 'bg-emerald-100 text-emerald-800 font-bold' :
@@ -756,6 +759,18 @@ export function FeedbackManagementView({
           ))}
         </div>
       </div>
+
+      {/* SUBTAB -1: 37-Node Retention & Reminders Continuous Improvement Flow */}
+      {activeSubTab === 'retention_remainder_flow' && (
+        <RetentionReminderFlowView
+          onOpenFeedbackForm={() => {
+            setActiveSubTab('interactive_form');
+          }}
+          onNavigateToFeedback={() => {
+            setActiveSubTab('overview');
+          }}
+        />
+      )}
 
       {/* SUBTAB 0: 20-Node Interactive Agent Flowchart */}
       {activeSubTab === 'flow' && (

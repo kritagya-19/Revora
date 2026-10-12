@@ -1337,7 +1337,94 @@ export interface ImprovementInsightsReport {
   generated_at: string;
 }
 
+// ==========================================
+// 37-Node Retention & Reminders Flow Types (remainder.md)
+// ==========================================
+export type RetentionReminderFlowNodeType = 'source' | 'agent' | 'decision' | 'positive' | 'negative' | 'action';
 
+export interface RetentionReminderFlowNode {
+  id: string;
+  title: string;
+  subtitle: string;
+  node_type: RetentionReminderFlowNodeType;
+  category_class: string;
+  day_label?: string | null;
+  status: string;
+  summary?: string | null;
+  output_payload?: Record<string, any> | null;
+}
 
+export interface RetentionReminderFlowEdge {
+  from_node: string;
+  to_node: string;
+  label?: string | null;
+}
 
+export interface RetentionReminderFlowGraph {
+  nodes: RetentionReminderFlowNode[];
+  edges: RetentionReminderFlowEdge[];
+}
 
+export interface RetentionReminderFlowExecution {
+  execution_id: string;
+  account_id: string;
+  account_name: string;
+  scenario: string;
+  path_taken: string[];
+  current_node: string;
+  node_states: Record<string, any>;
+  status: string;
+  started_at: string;
+  completed_at?: string | null;
+  outcome_summary: string;
+  feedback_survey_id?: string | null;
+  feedback_survey_code?: string | null;
+  recovery_proposal_id?: string | null;
+  direct_reminder_sent: boolean;
+  feedback_received: boolean;
+  sales_notified: boolean;
+  manager_notified: boolean;
+  recovery_message_sent: boolean;
+  crm_updated: boolean;
+  healthy_marked: boolean;
+}
+
+export interface RunRetentionReminderFlowRequest {
+  account_id: string;
+  scenario?: string;
+  custom_satisfaction_score?: number | null;
+  custom_blocker?: string | null;
+  custom_comments?: string | null;
+  recovery_offer_type?: string | null;
+  human_approval_decision?: string;
+  post_action_risk_reduced?: boolean;
+  include_direct_reminder?: boolean;
+  connect_live_feedback?: boolean;
+}
+
+export interface ApproveRetentionRecoveryRequest {
+  execution_id: string;
+  decision: string;
+  reviewer?: string;
+  notes?: string | null;
+}
+
+export interface PortfolioRetentionAutomationResult {
+  scanned_accounts: number;
+  at_risk_detected: number;
+  retention_plans_created: number;
+  direct_reminders_dispatched: number;
+  feedback_forms_dispatched: number;
+  sales_escalations: number;
+  recovery_messages_approved: number;
+  healthy_maintained: number;
+  timestamp: string;
+  accounts_detail: Array<{
+    account_id: string;
+    account_name: string;
+    risk_score: number;
+    execution_id?: string | null;
+    outcome: string;
+    survey_code?: string | null;
+  }>;
+}

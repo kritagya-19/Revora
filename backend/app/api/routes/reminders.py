@@ -44,6 +44,84 @@ def evaluate_reminders():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Reminder evaluation failed: {e}")
 
+# ==========================================
+# 37-Node Retention & Reminders Flow Routes (remainder.md)
+# ==========================================
+from app.models.schemas import (
+    RetentionReminderFlowGraph,
+    RetentionReminderFlowExecution,
+    RunRetentionReminderFlowRequest,
+    ApproveRetentionRecoveryRequest,
+    PortfolioRetentionAutomationResult
+)
+from app.services.retention_reminder_flow_orchestrator import retention_reminder_flow_orchestrator
+
+@router.get("/retention-flow/graph", response_model=RetentionReminderFlowGraph)
+def get_retention_reminder_flow_graph():
+    """
+    GET /api/reminders/retention-flow/graph
+    Returns the complete 37-node DAG flowchart definition from remainder.md.
+    """
+    return retention_reminder_flow_orchestrator.get_graph()
+
+@router.post("/retention-flow/run", response_model=RetentionReminderFlowExecution)
+def run_retention_reminder_flow(req: RunRetentionReminderFlowRequest):
+    """
+    POST /api/reminders/retention-flow/run
+    Executes the 37-node Retention & Reminders Flow for an account,
+    connected directly to feedback forms and approval modals.
+    """
+    try:
+        return retention_reminder_flow_orchestrator.run_flow(req)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Retention reminder flow execution failed: {e}")
+
+@router.post("/retention-flow/approve", response_model=RetentionReminderFlowExecution)
+def approve_retention_recovery(req: ApproveRetentionRecoveryRequest):
+    """
+    POST /api/reminders/retention-flow/approve
+    Manager review gate: approves or rejects recovery proposal for node AB in remainder.md.
+    """
+    try:
+        return retention_reminder_flow_orchestrator.approve_recovery_proposal(req)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Approval action failed: {e}")
+
+@router.get("/retention-flow/executions", response_model=List[RetentionReminderFlowExecution])
+def list_retention_flow_executions(
+    account_id: Optional[str] = Query(None, description="Filter executions by account ID")
+):
+    """
+    GET /api/reminders/retention-flow/executions
+    Returns history of retention reminder flow executions.
+    """
+    return retention_reminder_flow_orchestrator.get_executions(account_id=account_id)
+
+@router.get("/retention-flow/executions/{execution_id}", response_model=RetentionReminderFlowExecution)
+def get_retention_flow_execution(execution_id: str):
+    """
+    GET /api/reminders/retention-flow/executions/{execution_id}
+    Retrieves full execution details and node states by ID.
+    """
+    res = retention_reminder_flow_orchestrator.get_execution_by_id(execution_id)
+    if not res:
+        raise HTTPException(status_code=404, detail=f"Execution {execution_id} not found")
+    return res
+
+@router.post("/retention-flow/portfolio-automation", response_model=PortfolioRetentionAutomationResult)
+def scan_and_automate_retention_portfolio():
+    """
+    POST /api/reminders/retention-flow/portfolio-automation
+    Portfolio-wide trigger: scans accounts, builds retention plans,
+    dispatches reminders & feedback forms, and coordinates escalations.
+    """
+    try:
+        return retention_reminder_flow_orchestrator.scan_and_automate_portfolio()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Portfolio retention automation failed: {e}")
+
 @router.get("/{reminder_id}", response_model=DynamicReminder)
 def get_reminder(reminder_id: str):
     """

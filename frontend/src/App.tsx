@@ -19,6 +19,7 @@ import { ActionOutcomeTrackerView } from './components/ActionOutcomeTrackerView'
 import { CustomerOutcomeTimelineView } from './components/CustomerOutcomeTimelineView';
 import { AIOutcomeAnalyzerView } from './components/AIOutcomeAnalyzerView';
 import { FeedbackManagementView } from './components/FeedbackManagementView';
+import { RetentionReminderFlowView } from './components/RetentionReminderFlowView';
 import { SettingsAndIntegrationsView } from './components/SettingsAndIntegrationsView';
 import { PortfolioCharts } from './components/PortfolioCharts';
 import { LoadingState } from './components/LoadingState';
@@ -604,7 +605,19 @@ export function App() {
             />
           )}
 
-          {/* TAB 10 / Settings & Free Hackathon Pipelines */}
+          {/* TAB 10 / Feature: Retention & Reminders Flow (remainder.md) */}
+          {currentTab === 'retention-flow' && (
+            <RetentionReminderFlowView
+              onOpenFeedbackForm={() => {
+                setCurrentTab('feedback');
+              }}
+              onNavigateToFeedback={() => {
+                setCurrentTab('feedback');
+              }}
+            />
+          )}
+
+          {/* TAB 11 / Settings & Free Hackathon Pipelines */}
           {currentTab === 'settings' && (
             <SettingsAndIntegrationsView
               executionMode="live"

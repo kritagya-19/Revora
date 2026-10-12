@@ -26,7 +26,12 @@ import type {
   DismissReminderRequest,
   ReminderEvaluationResult,
   RecurringProblem,
-  RecurringProblemsReport
+  RecurringProblemsReport,
+  RetentionReminderFlowGraph,
+  RetentionReminderFlowExecution,
+  RunRetentionReminderFlowRequest,
+  ApproveRetentionRecoveryRequest,
+  PortfolioRetentionAutomationResult
 } from '../types/api';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) || '';
@@ -1000,3 +1005,74 @@ export async function evaluateImprovementInsight(
   return res.json();
 }
 
+// ==========================================
+// 37-Node Retention & Reminders Flow API Functions (remainder.md)
+// ==========================================
+
+export async function fetchRetentionReminderFlowGraph(): Promise<RetentionReminderFlowGraph> {
+  const res = await fetch(`${API_BASE}/api/reminders/retention-flow/graph`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch retention reminder flow graph: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function runRetentionReminderFlow(req: RunRetentionReminderFlowRequest): Promise<RetentionReminderFlowExecution> {
+  const res = await fetch(`${API_BASE}/api/reminders/retention-flow/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to run retention reminder flow: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function approveRetentionRecovery(req: ApproveRetentionRecoveryRequest): Promise<RetentionReminderFlowExecution> {
+  const res = await fetch(`${API_BASE}/api/reminders/retention-flow/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to approve retention recovery: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchRetentionFlowExecutions(accountId?: string): Promise<RetentionReminderFlowExecution[]> {
+  const url = accountId
+    ? `${API_BASE}/api/reminders/retention-flow/executions?account_id=${encodeURIComponent(accountId)}`
+    : `${API_BASE}/api/reminders/retention-flow/executions`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch retention flow executions: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function fetchRetentionFlowExecutionById(executionId: string): Promise<RetentionReminderFlowExecution> {
+  const res = await fetch(`${API_BASE}/api/reminders/retention-flow/executions/${executionId}`);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch retention flow execution: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function runPortfolioRetentionAutomation(): Promise<PortfolioRetentionAutomationResult> {
+  const res = await fetch(`${API_BASE}/api/reminders/retention-flow/portfolio-automation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to run portfolio retention automation: ${res.statusText}`);
+  }
+  return res.json();
+}
